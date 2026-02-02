@@ -3,16 +3,30 @@
     --folha-gradient-start: #667eea;
     --folha-gradient-end: #764ba2;
     --folha-sidebar-width: 260px;
+    /* Variável para altura real da viewport (mobile fix) */
+    --vh: 1vh;
 }
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f8f9fa;
     color: #212529;
+    /* Notch support */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+}
+
+/* Melhoria para Inputs no Mobile (evita zoom no Safari) */
+@media screen and (max-width: 768px) {
+    input, select, textarea {
+        font-size: 16px !important;
+    }
 }
 
 .sidebar {
     min-height: 100vh;
+    /* Fallback and modern unit */
+    min-height: calc(var(--vh, 1vh) * 100); 
     background: linear-gradient(135deg, var(--folha-gradient-start) 0%, var(--folha-gradient-end) 100%);
     position: fixed;
     top: 0;
@@ -21,6 +35,8 @@ body {
     overflow-y: auto;
     z-index: 1000;
     width: var(--folha-sidebar-width);
+    /* Scroll suave no iOS */
+    -webkit-overflow-scrolling: touch; 
 }
 
 .sidebar .nav-link {
@@ -60,6 +76,41 @@ main {
         height: auto;
         min-height: 0;
         width: 100%;
+        /* Padding safe area para mobile */
+        padding-top: env(safe-area-inset-top);
+    }
+    
+    /* Ajuste para o header na sidebar móvel */
+    .sidebar .p-4 {
+        padding: 1rem !important;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    /* Colapsar meno no mobile para economizar espaço */
+    .sidebar .nav {
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 0.5rem;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .sidebar .nav-item {
+        margin-right: 0.5rem;
+    }
+
+    .sidebar .nav-link {
+        padding: 0.5rem 1rem;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    /* Ajuste no rodapé mobile */
+    .dynamic-footer {
+        padding-bottom: calc(1rem + env(safe-area-inset-bottom));
     }
 }
 
