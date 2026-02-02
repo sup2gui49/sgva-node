@@ -39,7 +39,28 @@ getJwtSecret();
 app.use(cors());
 app.use(express.json({ limit: '10mb' })); // Aumentar limite para uploads de imagens/documentos
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(express.static(path.join(__dirname, '../public')));
+
+// Configuração correta do caminho estático
+// Em produção, __dirname aponta para src/. Precisamos voltar um nível.
+const publicPath = path.resolve(__dirname, '..', 'public');
+app.use(express.static(publicPath));
+
+console.log('📂 Servindo arquivos estáticos de:', publicPath);
+
+// Rota raiz explícita para evitar erro 404/ENOENT
+app.get('/', (req, res) => {
+  const indexPath = path.join(publicPath, 'index.html');
+  const loginPath = path.join(publicPath, 'login.html');
+  
+  // Se existir index.html, envia ele, senão tenta login.html
+  if (require('fs').existsSync(indexPath)) {
+      res.sendFile(indexPath);
+  } else if (require('fs').existsSync(loginPath)) {
+      res.sendFile(loginPath);
+  } else {
+      res.status(404).send('Arquivo index.html não encontrado no servidor.');
+  }
+});
 
 // Log de requisições (desenvolvimento)
 if (process.env.NODE_ENV === 'development') {
