@@ -1,0 +1,35 @@
+{
+  "name": "sgva-node",
+  "version": "1.0.0",
+  "description": "Sistema de Gestão de Vendas Adaptável - SGVA",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "db:setup": "node src/database/setup.js",
+    "test": "echo \"Testes em desenvolvimento\" && exit 0"
+  },
+  "keywords": [
+    "gestao",
+    "vendas",
+    "financeiro",
+    "nodejs"
+  ],
+  "author": "Eng. Guilherme",
+  "license": "MIT",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "axios": "^1.13.2",
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.4.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "pdfkit": "^0.17.2",
+    "xmlbuilder2": "^4.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}

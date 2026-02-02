@@ -1,0 +1,426 @@
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
+const path = require('path');
+
+class PDFService {
+  constructor() {
+    // Criar diretório de relatórios se não existir
+    this.reportsDir = path.join(__dirname, '../../reports');
+    if (!fs.existsSync(this.reportsDir)) {
+      fs.mkdirSync(this.reportsDir, { recursive: true });
+    }
+  }
+
+  // Configurar cabeçalho padrão
+  addHeader(doc, titulo, subtitulo = null) {
+    doc
+      .fontSize(20)
+      .fillColor('#667eea')
+      .text('SGVA - Sistema de Gestão de Vendas', 50, 50)
+      .fontSize(16)
+      .text(titulo, 50, 80)
+      .fontSize(10)
+      .fillColor('#666666');
+    
+    if (subtitulo) {
+      doc.text(subtitulo, 50, 105);
+    }
+    
+    doc
+      .moveTo(50, 125)
+      .lineTo(550, 125)
+      .stroke('#667eea');
+    
+    return doc;
+  }
+
+  // Configurar rodapé
+  addFooter(doc, pageNumber = 1) {
+    const bottom = doc.page.height - 50;
+    
+    doc
+      .fontSize(8)
+      .fillColor('#999999')
+      .text(
+        `Página ${pageNumber} | Gerado em ${new Date().toLocaleString('pt-AO')}`,
+        50,
+        bottom,
+        { align: 'center', width: 500 }
+      );
+    
+    return doc;
+  }
+
+  // Relatório de Vendas
+  async gerarRelatorioVendas(vendas, periodo) {
+    return new Promise((resolve, reject) => {
+      try {
+        const filename = `vendas_${Date.now()}.pdf`;
+        const filepath = path.join(this.reportsDir, filename);
+        const doc = new PDFDocument({ margin: 50 });
+        const stream = fs.createWriteStream(filepath);
+
+        doc.pipe(stream);
+
+        // Cabeçalho
+        this.addHeader(
+          doc,
+          'Relatório de Vendas',
+          `Período: ${periodo.mes}/${periodo.ano}`
+        );
+
+        // Resumo
+        let y = 150;
+        doc
+          .fontSize(14)
+          .fillColor('#333333')
+          .text('Resumo', 50, y);
+
+        y += 25;
+        const totalVendas = vendas.length;
+        const valorTotal = vendas.reduce((sum, v) => sum + parseFloat(v.total || 0), 0);
+        const valorMedio = totalVendas > 0 ? valorTotal / totalVendas : 0;
+
+        doc
+          .fontSize(11)
+          .text(`Total de Vendas: ${totalVendas}`, 50, y)
+          .text(`Valor Total: ${valorTotal.toLocaleString('pt-AO')} KZ`, 50, y + 20)
+          .text(`Ticket Médio: ${valorMedio.toLocaleString('pt-AO')} KZ`, 50, y + 40);
+
+        // Tabela de vendas
+        y += 80;
+        doc
+          .fontSize(14)
+          .text('Detalhamento', 50, y);
+
+        y += 25;
+        doc.fontSize(10).fillColor('#667eea');
+        
+        // Cabeçalho da tabela
+        doc
+          .text('Data', 50, y, { width: 80 })
+          .text('Cliente', 130, y, { width: 150 })
+          .text('Total (KZ)', 280, y, { width: 100, align: 'right' })
+          .text('Pagamento', 380, y, { width: 100 })
+          .text('Status', 480, y, { width: 70 });
+
+        y += 20;
+        doc
+          .moveTo(50, y)
+          .lineTo(550, y)
+          .stroke('#667eea');
+
+        // Linhas da tabela
+        doc.fontSize(9).fillColor('#333333');
+        vendas.forEach((venda, index) => {
+          y += 20;
+          
+          // Nova página se necessário
+          if (y > 700) {
+            this.addFooter(doc, 1);
+            doc.addPage();
+            y = 50;
+          }
+
+          const data = new Date(venda.data_venda).toLocaleDateString('pt-AO');
+          const cliente = venda.cliente_nome || 'Sem cadastro';
+          const total = parseFloat(venda.total || 0).toLocaleString('pt-AO');
+
+          doc
+            .text(data, 50, y, { width: 80 })
+            .text(cliente, 130, y, { width: 150 })
+            .text(total, 280, y, { width: 100, align: 'right' })
+            .text(venda.tipo_pagamento, 380, y, { width: 100 })
+            .text(venda.status, 480, y, { width: 70 });
+        });
+
+        // Rodapé
+        this.addFooter(doc, 1);
+
+        doc.end();
+
+        stream.on('finish', () => {
+          resolve({ filename, filepath });
+        });
+
+        stream.on('error', reject);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  // Relatório DRE
+  async gerarRelatorioDRE(dre, periodo) {
+    return new Promise((resolve, reject) => {
+      try {
+        const filename = `dre_${Date.now()}.pdf`;
+        const filepath = path.join(this.reportsDir, filename);
+        const doc = new PDFDocument({ margin: 50 });
+        const stream = fs.createWriteStream(filepath);
+
+        doc.pipe(stream);
+
+        // Cabeçalho
+        this.addHeader(
+          doc,
+          'Demonstrativo de Resultados (DRE)',
+          `Período: ${periodo.mes}/${periodo.ano}`
+        );
+
+        let y = 150;
+
+        // Estrutura do DRE
+        const items = [
+          { label: 'RECEITA BRUTA', value: dre.receita_bruta, bold: true, color: '#667eea' },
+          { label: '(-) Deduções', value: dre.deducoes, indent: 1 },
+          { label: 'RECEITA LÍQUIDA', value: dre.receita_liquida, bold: true, color: '#667eea' },
+          { label: '(-) CMV', value: dre.cmv, indent: 1 },
+          { label: 'LUCRO BRUTO', value: dre.lucro_bruto, bold: true, color: '#4CAF50' },
+          { label: '(-) Despesas Operacionais', value: dre.despesas_operacionais?.total || 0, indent: 1 },
+          { label: 'LUCRO OPERACIONAL', value: dre.lucro_operacional, bold: true, color: '#4CAF50' },
+          { label: '(-) Folha de Pagamento', value: dre.folha_pagamento, indent: 1 },
+          { label: '(-) INSS Patronal', value: dre.inss_patronal, indent: 1 },
+          { label: 'LUCRO LÍQUIDO', value: dre.lucro_liquido, bold: true, color: dre.lucro_liquido >= 0 ? '#4CAF50' : '#f44336' }
+        ];
+
+        items.forEach(item => {
+          const fontSize = item.bold ? 12 : 10;
+          const x = 50 + (item.indent || 0) * 20;
+          
+          doc
+            .fontSize(fontSize)
+            .fillColor(item.color || '#333333')
+            .font(item.bold ? 'Helvetica-Bold' : 'Helvetica')
+            .text(item.label, x, y, { width: 300 })
+            .text(
+              `${item.value >= 0 ? '' : '-'}${Math.abs(item.value).toLocaleString('pt-AO')} KZ`,
+              350,
+              y,
+              { width: 200, align: 'right' }
+            );
+
+          y += item.bold ? 30 : 25;
+
+          if (item.bold && item !== items[items.length - 1]) {
+            doc
+              .moveTo(50, y - 10)
+              .lineTo(550, y - 10)
+              .stroke('#e0e0e0');
+          }
+        });
+
+        // Análise
+        y += 20;
+        doc
+          .fontSize(12)
+          .fillColor('#667eea')
+          .font('Helvetica-Bold')
+          .text('Análise', 50, y);
+
+        y += 25;
+        const margemBruta = dre.receita_liquida > 0 ? (dre.lucro_bruto / dre.receita_liquida * 100).toFixed(2) : 0;
+        const margemLiquida = dre.receita_liquida > 0 ? (dre.lucro_liquido / dre.receita_liquida * 100).toFixed(2) : 0;
+
+        doc
+          .fontSize(10)
+          .fillColor('#333333')
+          .font('Helvetica')
+          .text(`Margem Bruta: ${margemBruta}%`, 50, y)
+          .text(`Margem Líquida: ${margemLiquida}%`, 50, y + 20)
+          .text(`Status: ${dre.lucro_liquido >= 0 ? 'POSITIVO ✓' : 'NEGATIVO ✗'}`, 50, y + 40);
+
+        // Rodapé
+        this.addFooter(doc, 1);
+
+        doc.end();
+
+        stream.on('finish', () => {
+          resolve({ filename, filepath });
+        });
+
+        stream.on('error', reject);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  // Relatório de Despesas
+  async gerarRelatorioDespesas(despesas, resumo, periodo) {
+    return new Promise((resolve, reject) => {
+      try {
+        const filename = `despesas_${Date.now()}.pdf`;
+        const filepath = path.join(this.reportsDir, filename);
+        const doc = new PDFDocument({ margin: 50 });
+        const stream = fs.createWriteStream(filepath);
+
+        doc.pipe(stream);
+
+        // Cabeçalho
+        this.addHeader(
+          doc,
+          'Relatório de Despesas',
+          `Período: ${periodo.mes}/${periodo.ano}`
+        );
+
+        // Resumo
+        let y = 150;
+        doc
+          .fontSize(14)
+          .fillColor('#333333')
+          .text('Resumo', 50, y);
+
+        y += 25;
+        doc
+          .fontSize(11)
+          .text(`Total de Despesas: ${resumo.total_despesas}`, 50, y)
+          .text(`Valor Total: ${(resumo.valor_total || 0).toLocaleString('pt-AO')} KZ`, 50, y + 20)
+          .text(`Despesas Pagas: ${(resumo.valor_pago || 0).toLocaleString('pt-AO')} KZ`, 50, y + 40)
+          .text(`Despesas Pendentes: ${(resumo.valor_pendente || 0).toLocaleString('pt-AO')} KZ`, 50, y + 60);
+
+        // Tabela de despesas
+        y += 100;
+        doc
+          .fontSize(14)
+          .text('Detalhamento', 50, y);
+
+        y += 25;
+        doc.fontSize(10).fillColor('#667eea');
+        
+        doc
+          .text('Data', 50, y, { width: 70 })
+          .text('Descrição', 120, y, { width: 200 })
+          .text('Categoria', 320, y, { width: 100 })
+          .text('Valor', 420, y, { width: 80, align: 'right' })
+          .text('Status', 500, y, { width: 50 });
+
+        y += 20;
+        doc
+          .moveTo(50, y)
+          .lineTo(550, y)
+          .stroke('#667eea');
+
+        doc.fontSize(9).fillColor('#333333');
+        despesas.forEach((desp) => {
+          y += 20;
+          
+          if (y > 700) {
+            this.addFooter(doc, 1);
+            doc.addPage();
+            y = 50;
+          }
+
+          const data = new Date(desp.data).toLocaleDateString('pt-AO');
+          const status = desp.pago ? '✓' : '✗';
+
+          doc
+            .text(data, 50, y, { width: 70 })
+            .text(desp.descricao, 120, y, { width: 200 })
+            .text(desp.categoria || '-', 320, y, { width: 100 })
+            .text(desp.valor.toLocaleString('pt-AO'), 420, y, { width: 80, align: 'right' })
+            .text(status, 500, y, { width: 50 });
+        });
+
+        this.addFooter(doc, 1);
+        doc.end();
+
+        stream.on('finish', () => {
+          resolve({ filename, filepath });
+        });
+
+        stream.on('error', reject);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  // Relatório de Folha de Pagamento
+  async gerarRelatorioFolha(folha, periodo) {
+    return new Promise((resolve, reject) => {
+      try {
+        const filename = `folha_${Date.now()}.pdf`;
+        const filepath = path.join(this.reportsDir, filename);
+        const doc = new PDFDocument({ margin: 50 });
+        const stream = fs.createWriteStream(filepath);
+
+        doc.pipe(stream);
+
+        this.addHeader(
+          doc,
+          'Folha de Pagamento',
+          `Período: ${periodo.mes}/${periodo.ano}`
+        );
+
+        let y = 150;
+        doc
+          .fontSize(14)
+          .fillColor('#333333')
+          .text('Resumo Geral', 50, y);
+
+        y += 25;
+        const resumo = folha.resumo;
+        doc
+          .fontSize(11)
+          .text(`Total de Funcionários: ${resumo.total_funcionarios}`, 50, y)
+          .text(`Salário Base Total: ${resumo.total_salario_base.toLocaleString('pt-AO')} KZ`, 50, y + 20)
+          .text(`Total de Descontos: ${resumo.total_descontos.toLocaleString('pt-AO')} KZ`, 50, y + 40)
+          .text(`Salário Líquido Total: ${resumo.total_salario_liquido.toLocaleString('pt-AO')} KZ`, 50, y + 60)
+          .text(`INSS Patronal: ${resumo.total_inss_patronal.toLocaleString('pt-AO')} KZ`, 50, y + 80)
+          .fontSize(12)
+          .fillColor('#667eea')
+          .text(`CUSTO TOTAL: ${resumo.total_custo_empresa.toLocaleString('pt-AO')} KZ`, 50, y + 100);
+
+        // Detalhamento
+        y += 140;
+        doc
+          .fontSize(14)
+          .fillColor('#333333')
+          .text('Detalhamento por Funcionário', 50, y);
+
+        y += 25;
+        doc.fontSize(10).fillColor('#667eea');
+        
+        doc
+          .text('Funcionário', 50, y, { width: 150 })
+          .text('Salário Base', 200, y, { width: 100, align: 'right' })
+          .text('Descontos', 300, y, { width: 100, align: 'right' })
+          .text('Líquido', 400, y, { width: 100, align: 'right' });
+
+        y += 20;
+        doc.moveTo(50, y).lineTo(550, y).stroke('#667eea');
+
+        doc.fontSize(9).fillColor('#333333');
+        folha.folha_pagamento.forEach((func) => {
+          y += 20;
+          
+          if (y > 700) {
+            this.addFooter(doc, 1);
+            doc.addPage();
+            y = 50;
+          }
+
+          doc
+            .text(func.nome, 50, y, { width: 150 })
+            .text(func.salario_base.toLocaleString('pt-AO'), 200, y, { width: 100, align: 'right' })
+            .text(func.descontos.total_descontos.toLocaleString('pt-AO'), 300, y, { width: 100, align: 'right' })
+            .text(func.salario_liquido.toLocaleString('pt-AO'), 400, y, { width: 100, align: 'right' });
+        });
+
+        this.addFooter(doc, 1);
+        doc.end();
+
+        stream.on('finish', () => {
+          resolve({ filename, filepath });
+        });
+
+        stream.on('error', reject);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+}
+
+module.exports = new PDFService();
