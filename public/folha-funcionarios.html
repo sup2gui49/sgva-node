@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Funcionários - Folha Profissional</title>
+    <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.css">
+    <link rel="stylesheet" href="folha-shared.css">
+    <link rel="stylesheet" href="offline.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        (function () {
+            if (!navigator.onLine) {
+                document.documentElement.classList.add('offline-mode');
+            }
+        })();
+    </script>
+    <style>
+        .func-card {
+            transition: all 0.3s;
+            cursor: pointer;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .func-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .func-card .card-body {
+            padding: 1.5rem;
+        }
+        .func-avatar-container {
+            position: relative;
+            width: 60px;
+            height: 60px;
+        }
+        .func-status-indicator {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 3px solid white;
+        }
+        .func-info-row {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .func-info-row:last-child {
+            border-bottom: none;
+        }
+        .func-info-row i {
+            width: 20px;
+            text-align: center;
+        }
+        /* Cores customizadas para badges */
+        .badge.bg-purple {
+            background-color: #6f42c1 !important;
+        }
+        .badge.bg-cyan {
+            background-color: #0dcaf0 !important;
+        }
+        .badge.bg-light {
+            background-color: #f8f9fa !important;
+            color: #212529 !important;
+        }
+        .filtros-profissionais {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-md-block sidebar p-3">
+                <div class="text-white mb-4">
+                    <h4><i class="bi bi-cash-stack"></i> SGVA Folha</h4>
+                    <small>Sistema Profissional</small>
+                </div>
+                
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-dashboard.html">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link active" href="folha-funcionarios.html">
+                            <i class="bi bi-people"></i> Funcionários
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-subsidios.html">
+                            <i class="bi bi-wallet2"></i> Subsídios
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-categorias.html">
+                            <i class="bi bi-diagram-3"></i> Categorias
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-calculo.html">
+                            <i class="bi bi-calculator"></i> Calcular Folha
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-salarios.html">
+                            <i class="bi bi-table"></i> Folha de Salários
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-irt.html">
+                            <i class="bi bi-bar-chart-steps"></i> Escalões IRT
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-historico.html">
+                            <i class="bi bi-clock-history"></i> Histórico
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-excel.html">
+                            <i class="bi bi-file-earmark-excel"></i> Exportar Excel
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-notificacoes.html">
+                            <i class="bi bi-bell"></i> Notificações
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-backup.html">
+                            <i class="bi bi-hdd"></i> Backup
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-presencas.html">
+                            <i class="bi bi-calendar-check"></i> Presenças
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-configuracoes.html">
+                            <i class="bi bi-gear"></i> Configurações
+                        </a>
+                    </li>
+                </ul>
+                
+                <!-- Botão Voltar ao Painel -->
+                <div class="mt-4 pt-3 border-top border-light">
+                    <a href="index.html" class="btn btn-outline-light btn-sm w-100">
+                        <i class="bi bi-arrow-left"></i> Voltar ao Painel
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-10 ms-sm-auto px-4 py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2><i class="bi bi-people text-primary"></i> Gestão de Funcionários</h2>
+                        <p class="text-muted">Cadastro, edição e atribuição de categorias</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <div class="btn-group">
+                            <button class="btn btn-outline-primary" onclick="gerarPDFRapido()">
+                                <i class="bi bi-file-earmark-pdf"></i> PDF Rápido
+                            </button>
+                            <button class="btn btn-outline-success" onclick="gerarPDFProfissional()">
+                                <i class="bi bi-file-earmark-arrow-down"></i> PDF Profissional
+                            </button>
+                        </div>
+                        <button class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#modalFuncionario" onclick="novoFuncionario()">
+                            <i class="bi bi-plus-circle"></i> Novo Funcionário
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filtros -->
+                <div class="filtros-profissionais mb-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-funnel text-primary me-2"></i>
+                        <h6 class="mb-0">Filtros de Pesquisa</h6>
+                    </div>
+                    <div class="row">
+                            <div class="col-md-4">
+                                <input type="text" class="form-control" id="filtro-nome" placeholder="🔍 Buscar por nome..." onkeyup="filtrarFuncionarios()">
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select" id="filtro-categoria" onchange="filtrarFuncionarios()">
+                                    <option value="">Todas as Categorias</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select" id="filtro-status" onchange="filtrarFuncionarios()">
+                                    <option value="">Todos os Status</option>
+                                    <option value="1">Ativos</option>
+                                    <option value="0">Inativos</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button class="btn btn-outline-secondary w-100" onclick="limparFiltros()">
+                                    <i class="bi bi-x-circle"></i> Limpar
+                                </button>
+                            </div>
+                        </div>
+                </div>
+
+                <!-- Lista de Funcionários -->
+                <div class="row g-4" id="lista-funcionarios">
+                    <div class="col-12 text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <p class="mt-3">Carregando funcionários...</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal Funcionário -->
+    <div class="modal fade" id="modalFuncionario" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Novo Funcionário</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formFuncionario">
+                        <input type="hidden" id="func-id">
+                        
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label class="form-label">Nome Completo *</label>
+                                <input type="text" class="form-control" id="func-nome" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Status *</label>
+                                <select class="form-select" id="func-ativo" required>
+                                    <option value="1">Ativo</option>
+                                    <option value="0">Inativo</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Salário Base (KZ) *</label>
+                                <input type="number" class="form-control" id="func-salario" min="0" step="1000" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Categoria Profissional</label>
+                                <select class="form-select" id="func-categoria">
+                                    <option value="">Sem categoria</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">NIF/BI</label>
+                                <input type="text" class="form-control" id="func-nif" placeholder="Opcional">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Data de Admissão</label>
+                                <input type="date" class="form-control" id="func-admissao">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="func-email" placeholder="Opcional">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Turno de Trabalho</label>
+                                <select class="form-select" id="func-turno">
+                                    <option value="">Carregando...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="func-trabalha-fds">
+                                <label class="form-check-label" for="func-trabalha-fds">
+                                    <i class="bi bi-calendar-week"></i> <strong>Trabalha aos Finais de Semana</strong>
+                                    <small class="text-muted d-block">Marque se este funcionário tem turnos aos sábados/domingos (ex: Segurança, Serviços 24h)</small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Telefone</label>
+                            <input type="text" class="form-control" id="func-telefone" placeholder="Opcional">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Foto de Perfil</label>
+                                <input type="file" class="form-control" id="func-foto-input" accept="image/*" onchange="previewImage(this)">
+                                <input type="hidden" id="func-foto-base64">
+                                <div class="mt-2 text-center" id="func-foto-preview-container" style="display:none;">
+                                    <img id="func-foto-preview" src="" alt="Preview" style="max-height: 150px; max-width: 100%; border-radius: 8px; border: 1px solid #ddd;">
+                                    <button type="button" class="btn btn-sm btn-outline-danger mt-1" onclick="limparFoto()">Remover</button>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Documento (BI/Outros)</label>
+                                <input type="file" class="form-control" id="func-doc-input" accept="image/*,application/pdf" onchange="previewDoc(this)">
+                                <input type="hidden" id="func-doc-base64">
+                                <div class="mt-2" id="func-doc-info" style="display:none;">
+                                    <span class="badge bg-secondary" id="func-doc-name"></span>
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="limparDoc()">Remover</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> 
+                            <small>Campos marcados com * são obrigatórios</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" onclick="salvarFuncionario()">
+                        <i class="bi bi-check-circle"></i> Salvar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        let funcionarios = [];
+        let categorias = [];
+        let modalFuncionario;
+
+        // Gerar iniciais do nome
+        function getInitials(nome) {
+            if (!nome) return '?';
+            const parts = nome.trim().split(' ');
+            if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+
+        // Gerar cor baseada no nome
+        function getColorForName(nome) {
+            const colors = ['#1abc9c', '#2ecc71', '#3498db', '#9b59b6', '#34495e', '#16a085', '#27ae60', '#2980b9', '#8e44ad', '#e74c3c'];
+            let hash = 0;
+            for (let i = 0; i < nome.length; i++) {
+                hash = nome.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return colors[Math.abs(hash) % colors.length];
+        }
+
+        // Criar URL de avatar
+        function createAvatarUrl(nome, foto) {
+            if (foto && foto.trim() !== '') return foto;
+            const initials = getInitials(nome);
+            const color = getColorForName(nome);
+            const svg = `<svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="${color}"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="24" font-weight="bold" fill="white">${initials}</text></svg>`;
+            return 'data:image/svg+xml;base64,' + btoa(svg);
+        }
+
+        async function carregarDados() {
+            await Promise.all([
+                carregarCategorias(),
+                carregarTurnos(),
+                carregarFuncionarios()
+            ]);
+        }
+
+        async function carregarTurnos() {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch(`${API_BASE}/turnos`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                const select = document.getElementById('func-turno');
+                select.innerHTML = '';
+                
+                if (data.success && data.data) {
+                    data.data.forEach(t => {
+                        select.innerHTML += `<option value="${t.id}">${t.nome} (${t.entrada} - ${t.saida})</option>`;
+                    });
+                }
+            } catch (error) {
+                console.error('Erro ao carregar turnos:', error);
+            }
+        }
+
+        async function carregarCategorias() {
+            try {
+                const response = await fetch(`${API_BASE}/folha-profissional`);
+                const data = await response.json();
+                categorias = data.data || [];
+
+                // Preencher selects
+                const selectsCategoria = ['filtro-categoria', 'func-categoria'];
+                selectsCategoria.forEach(id => {
+                    const select = document.getElementById(id);
+                    const isFilter = id === 'filtro-categoria';
+                    
+                    select.innerHTML = isFilter ? '<option value="">Todas as Categorias</option>' : '<option value="">Sem categoria</option>';
+                    
+                    categorias.forEach(cat => {
+                        select.innerHTML += `<option value="${cat.id}">${cat.nome}</option>`;
+                    });
+                });
+            } catch (error) {
+                console.error('Erro ao carregar categorias:', error);
+            }
+        }
+
+        async function carregarFuncionarios() {
+            try {
+                const response = await fetch(`${API_BASE}/funcionarios`);
+                const data = await response.json();
+                funcionarios = data.data || [];
+
+                renderizarFuncionarios(funcionarios);
+            } catch (error) {
+                console.error('Erro ao carregar funcionários:', error);
+                document.getElementById('lista-funcionarios').innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle"></i> Erro ao carregar funcionários
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function getCorCategoria(categoriaId) {
+            const cores = {
+                1: 'danger',      // CEO/Diretor Geral
+                2: 'primary',     // Direção/Gerência
+                3: 'success',     // Financeiro
+                4: 'info',        // Recursos Humanos
+                5: 'warning',     // Produção
+                6: 'purple',      // Comercial/Vendas
+                7: 'dark',        // Segurança
+                8: 'secondary',   // Auxiliar/Operacional
+                9: 'light',       // Limpeza
+                10: 'cyan'        // Administrativo
+            };
+            return cores[categoriaId] || 'info';
+        }
+
+        function renderizarFuncionarios(funcs) {
+            const container = document.getElementById('lista-funcionarios');
+
+            if (funcs.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <i class="bi bi-inbox" style="font-size: 4em; color: #ccc;"></i>
+                        <p class="mt-3 text-muted">Nenhum funcionário encontrado</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = funcs.map(func => {
+                const categoria = categorias.find(c => c.id === func.categoria_id);
+                const statusBadge = func.ativo 
+                    ? '<span class="badge bg-success"><i class="bi bi-check-circle"></i> Ativo</span>'
+                    : '<span class="badge bg-secondary"><i class="bi bi-pause-circle"></i> Inativo</span>';
+                const avatarUrl = createAvatarUrl(func.nome, func.foto);
+                const trabalhaFds = func.trabalha_fds === 1 ? '<span class="badge bg-info"><i class="bi bi-calendar-week"></i> FDS</span>' : '';
+
+                return `
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card func-card h-100 border-0" onclick="editarFuncionario(${func.id})" style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);">
+                            <div class="card-body">
+                                <div class="d-flex align-items-start mb-3 pb-3 border-bottom">
+                                    <div class="func-avatar-container me-3">
+                                        <img src="${avatarUrl}" class="rounded-circle" width="60" height="60" style="object-fit: cover; border: 3px solid ${func.ativo ? '#28a745' : '#6c757d'};" alt="${func.nome}">
+                                        <div class="func-status-indicator bg-${func.ativo ? 'success' : 'secondary'}"></div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1 fw-bold text-dark">${func.nome}</h6>
+                                        <small class="text-muted d-block"><i class="bi bi-hash"></i> ${func.id}</small>
+                                        ${statusBadge}
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="func-info-row">
+                                        <i class="bi bi-cash-stack text-success"></i>
+                                        <strong class="ms-2">${formatMoney(func.salario_base)} KZ</strong>
+                                        <span class="text-muted ms-1">/mês</span>
+                                    </div>
+                                    <div class="func-info-row">
+                                        <i class="bi bi-diagram-3 text-primary"></i>
+                                        <span class="ms-2">
+                                            ${categoria ? `<span class="badge bg-${getCorCategoria(categoria.id)}">${categoria.nome}</span>` : '<span class="badge bg-secondary">Sem categoria</span>'}
+                                            ${trabalhaFds}
+                                        </span>
+                                    </div>
+                                    ${func.email ? `<div class="func-info-row"><i class="bi bi-envelope text-info"></i><small class="ms-2 text-truncate" style="max-width: 200px;">${func.email}</small></div>` : ''}
+                                    ${func.telefone ? `<div class="func-info-row"><i class="bi bi-telephone text-warning"></i><small class="ms-2">${func.telefone}</small></div>` : ''}
+                                    ${func.nif ? `<div class="func-info-row"><i class="bi bi-card-text text-secondary"></i><small class="ms-2">NIF: ${func.nif}</small></div>` : ''}
+                                </div>
+                                
+                                <div class="d-flex gap-2 mt-3 pt-3 border-top">
+                                    <button class="btn btn-sm btn-outline-primary flex-fill" onclick="event.stopPropagation(); editarFuncionario(${func.id})">
+                                        <i class="bi bi-pencil"></i> Editar
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-${func.ativo ? 'warning' : 'success'}" onclick="event.stopPropagation(); toggleStatus(${func.id}, ${func.ativo})">
+                                        <i class="bi bi-${func.ativo ? 'pause' : 'play'}-circle"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filtrarFuncionarios() {
+            const nome = document.getElementById('filtro-nome').value.toLowerCase();
+            const categoria = document.getElementById('filtro-categoria').value;
+            const status = document.getElementById('filtro-status').value;
+
+            let filtrados = [...funcionarios];
+
+            if (nome) {
+                filtrados = filtrados.filter(f => f.nome.toLowerCase().includes(nome));
+            }
+
+            if (categoria) {
+                filtrados = filtrados.filter(f => f.categoria_id == categoria);
+            }
+
+            if (status !== '') {
+                filtrados = filtrados.filter(f => f.ativo == status);
+            }
+
+            renderizarFuncionarios(filtrados);
+        }
+
+        function limparFiltros() {
+            document.getElementById('filtro-nome').value = '';
+            document.getElementById('filtro-categoria').value = '';
+            document.getElementById('filtro-status').value = '';
+            renderizarFuncionarios(funcionarios);
+        }
+
+        function normalizeDateInput(value) {
+            if (!value) return '';
+            if (value.includes('T')) return value.split('T')[0];
+            if (value.includes(' ')) return value.split(' ')[0];
+            return value;
+        }
+
+        async function editarFuncionario(id) {
+            const func = funcionarios.find(f => f.id === id);
+            if (!func) return;
+
+            document.getElementById('modalTitle').textContent = 'Editar Funcionário';
+            document.getElementById('func-id').value = func.id;
+            document.getElementById('func-nome').value = func.nome;
+            document.getElementById('func-salario').value = func.salario_base;
+            document.getElementById('func-ativo').value = func.ativo;
+            document.getElementById('func-categoria').value = func.categoria_id || '';
+            document.getElementById('func-nif').value = func.nif || '';
+            document.getElementById('func-email').value = func.email || '';
+            document.getElementById('func-telefone').value = func.telefone || '';
+            document.getElementById('func-turno').value = func.turno_id || 1;
+            document.getElementById('func-admissao').value = normalizeDateInput(func.data_admissao);
+            document.getElementById('func-trabalha-fds').checked = func.trabalha_fds === 1;
+            
+            // Files
+            limparFoto();
+            limparDoc();
+            
+            if (func.foto) {
+                document.getElementById('func-foto-base64').value = func.foto;
+                document.getElementById('func-foto-preview').src = func.foto;
+                document.getElementById('func-foto-preview-container').style.display = 'block';
+            }
+
+            if (func.documento) {
+                document.getElementById('func-doc-base64').value = func.documento;
+                document.getElementById('func-doc-name').innerText = 'Documento Anexado (Existente)';
+                document.getElementById('func-doc-info').style.display = 'block';
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById('modalFuncionario'));
+            modal.show();
+        }
+
+        async function salvarFuncionario() {
+            const id = document.getElementById('func-id').value;
+            const nome = document.getElementById('func-nome').value.trim();
+            const salario = parseFloat(document.getElementById('func-salario').value);
+            const ativo = parseInt(document.getElementById('func-ativo').value);
+            const categoriaValue = document.getElementById('func-categoria').value;
+            const categoria_id = categoriaValue && categoriaValue !== '' ? parseInt(categoriaValue) : null;
+            const nif = document.getElementById('func-nif').value.trim();
+            const email = document.getElementById('func-email').value.trim();
+            const telefone = document.getElementById('func-telefone').value.trim();
+            const dataAdmissaoRaw = document.getElementById('func-admissao').value;
+            const data_admissao = dataAdmissaoRaw ? dataAdmissaoRaw : null;
+            const turnoValue = document.getElementById('func-turno').value;
+            const turno_id = turnoValue ? parseInt(turnoValue) : 1;
+            const trabalha_fds = document.getElementById('func-trabalha-fds').checked;
+            
+            const foto = document.getElementById('func-foto-base64').value;
+            const documento = document.getElementById('func-doc-base64').value;
+
+            if (!nome || !salario) {
+                alert('Preencha todos os campos obrigatórios!');
+                return;
+            }
+
+            try {
+                const method = id ? 'PUT' : 'POST';
+                const url = id ? `${API_BASE}/funcionarios/${id}` : `${API_BASE}/funcionarios`;
+
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nome,
+                        salario_base: salario,
+                        ativo,
+                        categoria_id,
+                        nif: nif || null,
+                        email: email || null,
+                        telefone: telefone || null,
+                        data_admissao,
+                        turno_id,
+                        trabalha_fds,
+                        foto: foto || null,
+                        documento: documento || null
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (!result.success) throw new Error(result.message);
+
+                alert(`✓ Funcionário ${id ? 'atualizado' : 'cadastrado'} com sucesso!`);
+                
+                bootstrap.Modal.getInstance(document.getElementById('modalFuncionario')).hide();
+                await carregarFuncionarios();
+            } catch (error) {
+                console.error('❌ Erro:', error);
+                alert('✗ Erro: ' + error.message);
+            }
+        }
+
+        // --- File Helpers ---
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        async function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                if (file.size > 2 * 1024 * 1024) { // 2MB restriction
+                    alert('Imagem muito grande! Máximo 2MB.');
+                    input.value = '';
+                    return;
+                }
+                try {
+                    const base64 = await fileToBase64(file);
+                    document.getElementById('func-foto-base64').value = base64;
+                    document.getElementById('func-foto-preview').src = base64;
+                    document.getElementById('func-foto-preview-container').style.display = 'block';
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        }
+
+        async function previewDoc(input) {
+             if (input.files && input.files[0]) {
+                const file = input.files[0];
+                if (file.size > 5 * 1024 * 1024) { // 5MB restriction
+                     alert('Documento muito grande! Máximo 5MB.');
+                     input.value = '';
+                     return;
+                }
+                try {
+                    const base64 = await fileToBase64(file);
+                    document.getElementById('func-doc-base64').value = base64;
+                    document.getElementById('func-doc-name').innerText = file.name;
+                    document.getElementById('func-doc-info').style.display = 'block';
+                } catch(e) { console.error(e); }
+             }
+        }
+
+        function limparFoto() {
+            document.getElementById('func-foto-input').value = '';
+            document.getElementById('func-foto-base64').value = '';
+            document.getElementById('func-foto-preview-container').style.display = 'none';
+            document.getElementById('func-foto-preview').src = '';
+        }
+
+        function limparDoc() {
+            document.getElementById('func-doc-input').value = '';
+            document.getElementById('func-doc-base64').value = '';
+            document.getElementById('func-doc-info').style.display = 'none';
+        }
+
+        async function novoFuncionario() {
+            document.getElementById('modalTitle').textContent = 'Novo Funcionário';
+            document.getElementById('formFuncionario').reset();
+            document.getElementById('func-id').value = '';
+            document.getElementById('func-ativo').value = '1';
+            document.getElementById('func-trabalha-fds').checked = false;
+            limparFoto();
+            limparDoc();
+        }
+
+        async function toggleStatus(id, ativoAtual) {
+            const novoStatus = ativoAtual ? 0 : 1;
+            const acao = novoStatus ? 'ativar' : 'desativar';
+
+            if (!confirm(`Deseja realmente ${acao} este funcionário?`)) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/funcionarios/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ativo: novoStatus })
+                });
+
+                const result = await response.json();
+
+                if (!result.success) throw new Error(result.message);
+
+                await carregarFuncionarios();
+            } catch (error) {
+                alert('✗ Erro: ' + error.message);
+            }
+        }
+
+        function formatMoney(value) {
+            return new Intl.NumberFormat('pt-AO', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(value || 0);
+        }
+
+        // PDF Rápido (método antigo - window.print)
+        function gerarPDFRapido() {
+            fetch(`${API_BASE}/configuracoes`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            })
+            .then(res => res.json())
+            .then(result => {
+                const config = result.data || {};
+                gerarRelatorio(config);
+            })
+            .catch(() => {
+                gerarRelatorio({});
+            });
+        }
+
+        // PDF Profissional (jsPDF + marca d'água)
+        async function gerarPDFProfissional() {
+            const loadingToast = document.createElement('div');
+            loadingToast.className = 'toast align-items-center text-bg-primary border-0 position-fixed top-0 start-50 translate-middle-x mt-3';
+            loadingToast.style.zIndex = '9999';
+            loadingToast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                        Gerando PDF profissional, aguarde...
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(loadingToast);
+            const toast = new bootstrap.Toast(loadingToast);
+            toast.show();
+
+            try {
+                const config = await fetch(`${API_BASE}/configuracoes`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                }).then(res => res.json()).then(r => r.data || {}).catch(() => ({}));
+
+                await gerarPDFComMarcaDagua(config);
+                
+                loadingToast.remove();
+                showToast('PDF gerado com sucesso!', 'success');
+            } catch (error) {
+                console.error('Erro ao gerar PDF:', error);
+                loadingToast.remove();
+                showToast('Erro ao gerar PDF: ' + error.message, 'danger');
+            }
+        }
+
+        function gerarRelatorio(config) {
+            const printWindow = window.open('', '_blank');
+            const dataHoje = new Date().toLocaleDateString('pt-AO', { year: 'numeric', month: 'long', day: 'numeric' });
+            
+            const totalFuncs = funcionarios.length;
+            const ativos = funcionarios.filter(f => f.ativo === 1).length;
+            const inativos = totalFuncs - ativos;
+            const totalFolha = funcionarios.filter(f => f.ativo === 1).reduce((sum, f) => sum + parseFloat(f.salario_base || 0), 0);
+
+            const titulo = config.titulo || 'Relatório de Funcionários';
+            const subtitulo = config.subtitulo || 'Listagem Completa';
+            const rodape = config.rodape || 'Documento Confidencial';
+            const mostrarFoto = config.mostrar_foto !== 0;
+            const mostrarSalario = config.mostrar_salario !== 0;
+            const mostrarContatos = config.mostrar_contatos !== 0;
+
+            const htmlRelatorio = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>${titulo} - ${dataHoje}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        .header { text-align: center; margin-bottom: 30px; border-bottom: 3px solid #4CAF50; padding-bottom: 15px; }
+                        h1 { color: #333; margin: 0; }
+                        .subtitulo { color: #666; margin-top: 5px; }
+                        .info { margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px; border-left: 4px solid #4CAF50; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+                        th { background-color: #4CAF50; color: white; font-weight: bold; }
+                        tr:nth-child(even) { background-color: #f9f9f9; }
+                        tr:hover { background-color: #f0f0f0; }
+                        .status-ativo { color: green; font-weight: bold; }
+                        .status-inativo { color: #999; }
+                        .assinaturas { display: flex; justify-content: space-around; margin-top: 60px; page-break-inside: avoid; }
+                        .assinatura-box { text-align: center; min-width: 200px; }
+                        .assinatura-linha { border-top: 2px solid #333; padding-top: 5px; margin-top: 50px; }
+                        .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #666; border-top: 1px solid #ddd; padding-top: 15px; }
+                        .avatar-relatorio { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+                        @media print { button { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>📊 ${titulo}</h1>
+                        <p class="subtitulo">${subtitulo}</p>
+                    </div>
+                    
+                    <div class="info">
+                        <p><strong>Data de Emissão:</strong> ${dataHoje}</p>
+                        <p><strong>Total de Funcionários:</strong> ${totalFuncs} (${ativos} Ativos, ${inativos} Inativos)</p>
+                        ${mostrarSalario ? `<p><strong>Total Folha de Pagamento (Ativos):</strong> ${formatMoney(totalFolha)} KZ</p>` : ''}
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                ${mostrarFoto ? '<th>Foto</th>' : ''}
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>Categoria</th>
+                                ${mostrarSalario ? '<th>Salário Base</th>' : ''}
+                                ${mostrarContatos ? '<th>Contactos</th>' : ''}
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${funcionarios.map(f => {
+                                const cat = categorias.find(c => c.id === f.categoria_id);
+                                const avatarUrl = createAvatarUrl(f.nome, f.foto);
+                                const contatos = [];
+                                if (f.email) contatos.push(f.email);
+                                if (f.telefone) contatos.push(f.telefone);
+                                
+                                return `
+                                    <tr class="${f.ativo ? '' : 'status-inativo'}">
+                                        ${mostrarFoto ? `<td><img src="${avatarUrl}" class="avatar-relatorio" alt="${f.nome}"></td>` : ''}
+                                        <td>${f.id}</td>
+                                        <td><strong>${f.nome}</strong></td>
+                                        <td>${cat ? cat.nome : 'Sem categoria'}</td>
+                                        ${mostrarSalario ? `<td>${formatMoney(f.salario_base)} KZ</td>` : ''}
+                                        ${mostrarContatos ? `<td><small>${contatos.join('<br>') || '-'}</small></td>` : ''}
+                                        <td class="${f.ativo ? 'status-ativo' : 'status-inativo'}">${f.ativo ? '✓ Ativo' : '✗ Inativo'}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                    
+                    ${(config.assinatura_gerente || config.assinatura_rh) ? `
+                        <div class="assinaturas">
+                            ${config.assinatura_gerente ? `
+                                <div class="assinatura-box">
+                                    <div class="assinatura-linha">
+                                        <strong>${config.assinatura_gerente}</strong><br>
+                                        <small>${config.cargo_gerente || 'Gerente'}</small>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            ${config.assinatura_rh ? `
+                                <div class="assinatura-box">
+                                    <div class="assinatura-linha">
+                                        <strong>${config.assinatura_rh}</strong><br>
+                                        <small>${config.cargo_rh || 'RH'}</small>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    ` : ''}
+                    
+                    <div class="footer">
+                        <p><strong>${rodape}</strong></p>
+                        <p>SGVA - Sistema de Gestão de Vendas Adaptável</p>
+                        <p>Relatório gerado em ${new Date().toLocaleString('pt-AO')}</p>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button onclick="window.print()" style="padding: 12px 30px; font-size: 16px; cursor: pointer; background: #4CAF50; color: white; border: none; border-radius: 5px; margin-right: 10px;">🖨️ Imprimir</button>
+                        <button onclick="window.close()" style="padding: 12px 30px; font-size: 16px; cursor: pointer; background: #f44336; color: white; border: none; border-radius: 5px;">❌ Fechar</button>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            printWindow.document.write(htmlRelatorio);
+            printWindow.document.close();
+        }
+
+        // Função para gerar PDF profissional com marca d'água
+        async function gerarPDFComMarcaDagua(config) {
+            const { jsPDF } = window.jspdf;
+            
+            // Buscar configurações de marca d'água
+            const orientacao = config.pdf_orientacao || 'portrait'; // portrait ou landscape
+            const marcaDaguaTipo = config.marca_dagua_tipo || 'texto'; // texto ou imagem
+            const marcaDaguaTexto = config.marca_dagua_texto || 'CONFIDENCIAL';
+            const marcaDaguaImagem = config.marca_dagua_imagem || null;
+            
+            const doc = new jsPDF({
+                orientation: orientacao,
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            const dataHoje = new Date().toLocaleDateString('pt-AO', { year: 'numeric', month: 'long', day: 'numeric' });
+            const totalFuncs = funcionarios.length;
+            const ativos = funcionarios.filter(f => f.ativo === 1).length;
+            const inativos = totalFuncs - ativos;
+            const totalFolha = funcionarios.filter(f => f.ativo === 1).reduce((sum, f) => sum + parseFloat(f.salario_base || 0), 0);
+
+            const titulo = config.titulo || 'Relatório de Funcionários';
+            const subtitulo = config.subtitulo || 'Listagem Completa';
+            const rodape = config.rodape || 'Documento Confidencial';
+            const mostrarFoto = config.mostrar_foto !== 0;
+            const mostrarSalario = config.mostrar_salario !== 0;
+            const mostrarContatos = config.mostrar_contatos !== 0;
+
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const margin = 15;
+            let yPos = margin;
+
+            // Função para adicionar marca d'água
+            function adicionarMarcaDagua() {
+                if (marcaDaguaTipo === 'nenhuma') return;
+                
+                doc.saveGraphicsState();
+                doc.setGState(new doc.GState({ opacity: 0.1 }));
+                
+                if (marcaDaguaTipo === 'texto') {
+                    doc.setFontSize(60);
+                    doc.setTextColor(200, 200, 200);
+                    const text = marcaDaguaTexto || 'CONFIDENCIAL';
+                    const textWidth = doc.getTextWidth(text);
+                    doc.text(text, (pageWidth - textWidth) / 2, pageHeight / 2, { 
+                        angle: 45,
+                        align: 'center'
+                    });
+                } else if (marcaDaguaTipo === 'imagem' && marcaDaguaImagem) {
+                    // Adicionar imagem como marca d'água
+                    try {
+                        const imgWidth = 100;
+                        const imgHeight = 100;
+                        doc.addImage(
+                            marcaDaguaImagem, 
+                            'PNG', 
+                            (pageWidth - imgWidth) / 2, 
+                            (pageHeight - imgHeight) / 2, 
+                            imgWidth, 
+                            imgHeight
+                        );
+                    } catch (e) {
+                        console.warn('Erro ao adicionar imagem de marca d\'água:', e);
+                    }
+                }
+                
+                doc.restoreGraphicsState();
+            }
+
+            // Adicionar marca d'água na primeira página
+            adicionarMarcaDagua();
+
+            // Cabeçalho
+            doc.setFillColor(76, 175, 80);
+            doc.rect(0, 0, pageWidth, 25, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(20);
+            doc.setFont('helvetica', 'bold');
+            doc.text(titulo, pageWidth / 2, 12, { align: 'center' });
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'normal');
+            doc.text(subtitulo, pageWidth / 2, 19, { align: 'center' });
+
+            yPos = 35;
+
+            // Informações do relatório
+            doc.setTextColor(0, 0, 0);
+            doc.setFillColor(245, 245, 245);
+            doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 25, 2, 2, 'F');
+            
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            yPos += 7;
+            doc.text(`Data de Emissão: `, margin + 5, yPos);
+            doc.setFont('helvetica', 'normal');
+            doc.text(dataHoje, margin + 40, yPos);
+            
+            yPos += 6;
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Total de Funcionários: `, margin + 5, yPos);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`${totalFuncs} (${ativos} Ativos, ${inativos} Inativos)`, margin + 50, yPos);
+            
+            if (mostrarSalario) {
+                yPos += 6;
+                doc.setFont('helvetica', 'bold');
+                doc.text(`Total Folha de Pagamento: `, margin + 5, yPos);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`${formatMoney(totalFolha)} KZ`, margin + 55, yPos);
+            }
+
+            yPos += 15;
+
+            // Tabela de funcionários
+            const colunas = [];
+            const larguras = [];
+            
+            if (mostrarFoto) {
+                colunas.push('Foto');
+                larguras.push(20);
+            }
+            colunas.push('ID', 'Nome', 'Categoria');
+            larguras.push(15, orientacao === 'portrait' ? 50 : 80, 40);
+            
+            if (mostrarSalario) {
+                colunas.push('Salário');
+                larguras.push(35);
+            }
+            if (mostrarContatos) {
+                colunas.push('Contatos');
+                larguras.push(orientacao === 'portrait' ? 45 : 70);
+            }
+            colunas.push('Status');
+            larguras.push(20);
+
+            // Cabeçalho da tabela
+            doc.setFillColor(76, 175, 80);
+            doc.setTextColor(255, 255, 255);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(9);
+            
+            let xPos = margin;
+            doc.rect(margin, yPos, pageWidth - 2 * margin, 8, 'F');
+            
+            colunas.forEach((col, i) => {
+                doc.text(col, xPos + 2, yPos + 5.5);
+                xPos += larguras[i];
+            });
+
+            yPos += 8;
+
+            // Linhas da tabela
+            doc.setTextColor(0, 0, 0);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
+
+            for (let i = 0; i < funcionarios.length; i++) {
+                const func = funcionarios[i];
+                const cat = categorias.find(c => c.id === func.categoria_id);
+                
+                // Verificar se precisa de nova página
+                if (yPos > pageHeight - 40) {
+                    doc.addPage();
+                    adicionarMarcaDagua(); // Adicionar marca d'água na nova página
+                    yPos = margin;
+                    
+                    // Recriar cabeçalho da tabela
+                    doc.setFillColor(76, 175, 80);
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFont('helvetica', 'bold');
+                    xPos = margin;
+                    doc.rect(margin, yPos, pageWidth - 2 * margin, 8, 'F');
+                    colunas.forEach((col, j) => {
+                        doc.text(col, xPos + 2, yPos + 5.5);
+                        xPos += larguras[j];
+                    });
+                    yPos += 8;
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFont('helvetica', 'normal');
+                }
+
+                // Linha alternada
+                if (i % 2 === 0) {
+                    doc.setFillColor(249, 249, 249);
+                    doc.rect(margin, yPos, pageWidth - 2 * margin, 10, 'F');
+                }
+
+                xPos = margin;
+                let colIndex = 0;
+
+                if (mostrarFoto) {
+                    // Adicionar foto/avatar
+                    const avatarUrl = createAvatarUrl(func.nome, func.foto);
+                    if (avatarUrl.startsWith('data:image')) {
+                        try {
+                            doc.addImage(avatarUrl, 'PNG', xPos + 2, yPos + 1, 8, 8);
+                        } catch (e) {
+                            doc.text('N/A', xPos + 5, yPos + 6);
+                        }
+                    }
+                    xPos += larguras[colIndex++];
+                }
+
+                doc.text(String(func.id), xPos + 2, yPos + 6);
+                xPos += larguras[colIndex++];
+
+                const nomeTexto = func.nome.length > (orientacao === 'portrait' ? 25 : 40) 
+                    ? func.nome.substring(0, orientacao === 'portrait' ? 25 : 40) + '...' 
+                    : func.nome;
+                doc.text(nomeTexto, xPos + 2, yPos + 6);
+                xPos += larguras[colIndex++];
+
+                doc.text(cat ? cat.nome : 'N/A', xPos + 2, yPos + 6);
+                xPos += larguras[colIndex++];
+
+                if (mostrarSalario) {
+                    doc.text(formatMoney(func.salario_base) + ' KZ', xPos + 2, yPos + 6);
+                    xPos += larguras[colIndex++];
+                }
+
+                if (mostrarContatos) {
+                    const contatos = [];
+                    if (func.email) contatos.push(func.email.substring(0, 20));
+                    if (func.telefone) contatos.push(func.telefone);
+                    doc.setFontSize(7);
+                    doc.text(contatos.join(' | ') || 'N/A', xPos + 2, yPos + 6);
+                    doc.setFontSize(8);
+                    xPos += larguras[colIndex++];
+                }
+
+                doc.setTextColor(func.ativo ? 0 : 150);
+                doc.text(func.ativo ? 'Ativo' : 'Inativo', xPos + 2, yPos + 6);
+                doc.setTextColor(0, 0, 0);
+
+                yPos += 10;
+            }
+
+            // Assinaturas
+            if (config.assinatura_gerente || config.assinatura_rh) {
+                if (yPos > pageHeight - 60) {
+                    doc.addPage();
+                    adicionarMarcaDagua();
+                    yPos = margin;
+                }
+
+                yPos += 20;
+                const espacoAssinatura = (pageWidth - 2 * margin) / 2;
+                
+                if (config.assinatura_gerente) {
+                    const xGerente = margin + 20;
+                    doc.line(xGerente, yPos, xGerente + 60, yPos);
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(config.assinatura_gerente, xGerente + 30, yPos + 5, { align: 'center' });
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(8);
+                    doc.text(config.cargo_gerente || 'Gerente', xGerente + 30, yPos + 10, { align: 'center' });
+                }
+
+                if (config.assinatura_rh) {
+                    const xRH = pageWidth - margin - 80;
+                    doc.line(xRH, yPos, xRH + 60, yPos);
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(config.assinatura_rh, xRH + 30, yPos + 5, { align: 'center' });
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(8);
+                    doc.text(config.cargo_rh || 'RH', xRH + 30, yPos + 10, { align: 'center' });
+                }
+            }
+
+            // Rodapé
+            const numPages = doc.internal.pages.length - 1;
+            for (let i = 1; i <= numPages; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.setTextColor(100, 100, 100);
+                doc.text(rodape, pageWidth / 2, pageHeight - 10, { align: 'center' });
+                doc.text(`Página ${i} de ${numPages}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
+                doc.text(`SGVA - ${new Date().toLocaleString('pt-AO')}`, margin, pageHeight - 10);
+            }
+
+            // Salvar PDF
+            const nomeArquivo = `Relatorio_Funcionarios_${new Date().toISOString().split('T')[0]}.pdf`;
+            doc.save(nomeArquivo);
+        }
+
+        // Inicializar
+        carregarDados();
+    </script>
+    <script src="js/folha-footer.js"></script>
+</body>
+</html>

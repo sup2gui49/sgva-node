@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrar | SGVA</title>
+    <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css" data-cdn="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" data-offline-group="core">
+    <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.css" data-cdn="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" data-offline-group="icons">
+    <link rel="stylesheet" href="offline.css" data-offline-style="core" disabled>
+    <link rel="stylesheet" href="offline-icons.css" data-offline-style="icons" disabled>
+    <script src="js/offline-assets.js"></script>
+    <style>
+        body {
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .auth-card {
+            width: min(420px, 92%);
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+            padding: 2.5rem;
+            animation: fadeIn 0.4s ease;
+        }
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .tab-btn {
+            flex: 1;
+            border: none;
+            background: #f2f2f7;
+            color: #6c6c80;
+            padding: 0.75rem;
+            border-radius: 999px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .tab-btn.active {
+            background: #667eea;
+            color: #fff;
+        }
+        .form-control {
+            border-radius: 999px;
+            padding: 0.85rem 1.2rem;
+        }
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 0.35rem;
+        }
+        .auth-submit {
+            width: 100%;
+            padding: 0.9rem;
+            border-radius: 999px;
+            border: none;
+            background: #667eea;
+            color: #fff;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+        .pill-info {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.15rem 0.75rem;
+            border-radius: 999px;
+            background: rgba(102, 126, 234, 0.12);
+            color: #3d3d4f;
+            font-size: 0.85rem;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-card">
+        <div class="text-center mb-4">
+            <div class="pill-info mb-2">
+                <i class="bi bi-shield-lock"></i>
+                Acesso seguro SGVA
+            </div>
+            <h2 class="fw-bold">Bem-vindo</h2>
+            <p class="text-muted mb-0">Entre ou crie uma conta para continuar</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="login">Entrar</button>
+            <button class="tab-btn" data-tab="register">Criar Conta</button>
+        </div>
+
+        <div id="auth-alert" class="alert alert-danger d-none" role="alert"></div>
+
+        <form id="login-form" autocomplete="on">
+            <div class="mb-3">
+                <label class="form-label" for="login-email">Email</label>
+                <input type="email" class="form-control" id="login-email" required />
+            </div>
+            <div class="mb-4">
+                <label class="form-label" for="login-password">Senha</label>
+                <input type="password" class="form-control" id="login-password" required />
+            </div>
+            <button type="submit" class="auth-submit">
+                <span class="spinner-border spinner-border-sm me-2 d-none" id="login-spinner"></span>
+                Entrar
+            </button>
+        </form>
+
+        <form id="register-form" class="d-none">
+            <div class="mb-3">
+                <label class="form-label" for="register-nome">Nome</label>
+                <input type="text" class="form-control" id="register-nome" required />
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="register-email">Email</label>
+                <input type="email" class="form-control" id="register-email" required />
+            </div>
+            <div class="mb-4">
+                <label class="form-label" for="register-password">Senha</label>
+                <input type="password" class="form-control" id="register-password" minlength="6" required />
+            </div>
+            <button type="submit" class="auth-submit">
+                <span class="spinner-border spinner-border-sm me-2 d-none" id="register-spinner"></span>
+                Criar Conta
+            </button>
+        </form>
+
+        <div class="text-center mt-4">
+            <a href="index.html" class="text-decoration-none">
+                <i class="bi bi-arrow-left-circle"></i> Voltar ao painel
+            </a>
+        </div>
+    </div>
+
+    <script>
+        AssetLoader.loadScript(
+            'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js',
+            'vendor/bootstrap/bootstrap.bundle.min.js'
+        );
+    </script>
+    <script src="js/auth.js"></script>
+    <script>
+        (function () {
+            const alertBox = document.getElementById('auth-alert');
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const redirectTarget = new URLSearchParams(window.location.search).get('redirect') || auth.DEFAULT_APP_PAGE;
+
+            const showAlert = (message, variant = 'danger') => {
+                if (!alertBox) return;
+                alertBox.textContent = message;
+                alertBox.className = `alert alert-${variant}`;
+                alertBox.classList.remove('d-none');
+            };
+
+            const hideAlert = () => {
+                if (!alertBox) return;
+                alertBox.classList.add('d-none');
+            };
+
+            const setLoading = (spinner, isLoading) => {
+                if (!spinner) return;
+                spinner.classList.toggle('d-none', !isLoading);
+            };
+
+            const switchTab = (tab) => {
+                tabButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+                loginForm.classList.toggle('d-none', tab !== 'login');
+                registerForm.classList.toggle('d-none', tab !== 'register');
+                hideAlert();
+            };
+
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+            });
+
+            if (auth.isAuthenticated()) {
+                auth.redirectToApp(redirectTarget);
+                return;
+            }
+
+            loginForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                hideAlert();
+                const spinner = document.getElementById('login-spinner');
+                setLoading(spinner, true);
+                try {
+                    const email = document.getElementById('login-email').value.trim();
+                    const senha = document.getElementById('login-password').value;
+                    if (!email || !senha) {
+                        throw new Error('Informe email e senha');
+                    }
+                    await auth.login(email, senha);
+                    auth.redirectToApp(redirectTarget);
+                } catch (error) {
+                    showAlert(error.message || 'Não foi possível autenticar');
+                } finally {
+                    setLoading(spinner, false);
+                }
+            });
+
+            registerForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                hideAlert();
+                const spinner = document.getElementById('register-spinner');
+                setLoading(spinner, true);
+                try {
+                    const nome = document.getElementById('register-nome').value.trim();
+                    const email = document.getElementById('register-email').value.trim();
+                    const senha = document.getElementById('register-password').value;
+                    if (!nome || !email || !senha) {
+                        throw new Error('Preencha todos os campos');
+                    }
+                    await auth.register({ nome, email, senha });
+                    showAlert('Conta criada com sucesso! Faça login para continuar.', 'success');
+                    switchTab('login');
+                } catch (error) {
+                    showAlert(error.message || 'Não foi possível criar a conta');
+                } finally {
+                    setLoading(spinner, false);
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

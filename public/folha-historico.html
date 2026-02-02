@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico de Folhas - SGVA</title>
+    <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="folha-shared.css">
+    <style>
+        .folha-row {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .folha-row:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+        .recibo-modal {
+            max-width: 900px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-md-block sidebar p-3">
+                <div class="text-white mb-4">
+                    <h4><i class="bi bi-cash-stack"></i> SGVA Folha</h4>
+                    <small>Sistema Profissional</small>
+                </div>
+                
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-dashboard.html">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-funcionarios.html">
+                            <i class="bi bi-people"></i> Funcionários
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-subsidios.html">
+                            <i class="bi bi-wallet2"></i> Subsídios
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-categorias.html">
+                            <i class="bi bi-diagram-3"></i> Categorias
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-calculo.html">
+                            <i class="bi bi-calculator"></i> Calcular Folha
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-salarios.html">
+                            <i class="bi bi-table"></i> Folha de Salários
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-irt.html">
+                            <i class="bi bi-bar-chart-steps"></i> Escalões IRT
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link active" href="folha-historico.html">
+                            <i class="bi bi-clock-history"></i> Histórico
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-excel.html">
+                            <i class="bi bi-file-earmark-excel"></i> Exportar Excel
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-notificacoes.html">
+                            <i class="bi bi-bell"></i> Notificações
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-backup.html">
+                            <i class="bi bi-hdd"></i> Backup
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-configuracoes.html">
+                            <i class="bi bi-gear"></i> Configurações
+                        </a>
+                    </li>
+                </ul>
+                
+                <!-- Botão Voltar ao Painel -->
+                <div class="mt-4 pt-3 border-top border-light">
+                    <a href="index.html" class="btn btn-outline-light btn-sm w-100">
+                        <i class="bi bi-arrow-left"></i> Voltar ao Painel
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-10 ms-sm-auto px-4 py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2><i class="bi bi-clock-history"></i> Histórico de Folhas de Pagamento</h2>
+                        <p class="text-muted">Consulte todas as folhas processadas</p>
+                    </div>
+                    <button class="btn btn-success" onclick="exportarExcel()">
+                        <i class="bi bi-file-earmark-excel"></i> Exportar Excel
+                    </button>
+                </div>
+
+                <!-- Filtros -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Funcionário</label>
+                                <select class="form-select" id="filtroFuncionario" onchange="aplicarFiltros()">
+                                    <option value="">Todos</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Mês</label>
+                                <select class="form-select" id="filtroMes" onchange="aplicarFiltros()">
+                                    <option value="">Todos</option>
+                                    <option value="1">Janeiro</option>
+                                    <option value="2">Fevereiro</option>
+                                    <option value="3">Março</option>
+                                    <option value="4">Abril</option>
+                                    <option value="5">Maio</option>
+                                    <option value="6">Junho</option>
+                                    <option value="7">Julho</option>
+                                    <option value="8">Agosto</option>
+                                    <option value="9">Setembro</option>
+                                    <option value="10">Outubro</option>
+                                    <option value="11">Novembro</option>
+                                    <option value="12">Dezembro</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Ano</label>
+                                <select class="form-select" id="filtroAno" onchange="aplicarFiltros()">
+                                    <option value="">Todos</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2024">2024</option>
+                                    <option value="2023">2023</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Período</label>
+                                <div class="input-group">
+                                    <input type="date" class="form-control" id="dataInicio">
+                                    <input type="date" class="form-control" id="dataFim">
+                                </div>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button class="btn btn-outline-secondary w-100" onclick="limparFiltros()">
+                                    <i class="bi bi-arrow-clockwise"></i> Limpar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumo -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <h6>Total Registros</h6>
+                                <h3 id="totalRegistros">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <h6>Total Líquido</h6>
+                                <h3 id="totalLiquidoGeral">0 KZ</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <h6>Total Descontos</h6>
+                                <h3 id="totalDescontosGeral">0 KZ</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <h6>Custo Total Empresa</h6>
+                                <h3 id="custoTotalGeral">0 KZ</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabela de Folhas -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Funcionário</th>
+                                        <th>Mês/Ano</th>
+                                        <th>Salário Base</th>
+                                        <th>Subsídios</th>
+                                        <th>Bruto</th>
+                                        <th>Descontos</th>
+                                        <th>Líquido</th>
+                                        <th>Status</th>
+                                        <th>Data</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabelaFolhas">
+                                    <tr>
+                                        <td colspan="11" class="text-center text-muted py-4">
+                                            <i class="bi bi-hourglass-split"></i> Carregando...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Paginação -->
+                        <nav class="mt-3">
+                            <ul class="pagination justify-content-center" id="paginacao">
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal Ver Recibo -->
+    <div class="modal fade" id="modalRecibo" tabindex="-1">
+        <div class="modal-dialog modal-xl recibo-modal">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-receipt"></i> Recibo de Salário
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="conteudoRecibo">
+                    <!-- Carregado via JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button class="btn btn-primary" onclick="imprimirRecibo()">
+                        <i class="bi bi-printer"></i> Imprimir
+                    </button>
+                    <button class="btn btn-success" onclick="exportarPDF()">
+                        <i class="bi bi-file-pdf"></i> Exportar PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let folhas = [];
+        let folhasFiltradas = [];
+        let funcionarios = [];
+        let folhaSelecionada = null;
+        let paginaAtual = 1;
+        const itensPorPagina = 20;
+
+        // Carregar dados
+        async function carregarDados() {
+            try {
+                // Carregar funcionários para filtro
+                const funcResp = await fetch(`${API_URL}/funcionarios`);
+                const funcData = await funcResp.json();
+                funcionarios = funcData.data || [];
+                
+                const selectFunc = document.getElementById('filtroFuncionario');
+                selectFunc.innerHTML = '<option value="">Todos</option>' + 
+                    funcionarios.filter(f => f.ativo).map(f => 
+                        `<option value="${f.id}">${f.nome}</option>`
+                    ).join('');
+
+                // Carregar folhas
+                const folhasResp = await fetch(`${API_URL}/folha-profissional/folhas`);
+                const folhasData = await folhasResp.json();
+                folhas = folhasData.data || [];
+                
+                // Buscar nomes dos funcionários
+                folhas = await Promise.all(folhas.map(async (f) => {
+                    const func = funcionarios.find(fn => fn.id === f.funcionario_id);
+                    return {
+                        ...f,
+                        funcionario_nome: func ? func.nome : 'Desconhecido'
+                    };
+                }));
+
+                aplicarFiltros();
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                document.getElementById('tabelaFolhas').innerHTML = `
+                    <tr>
+                        <td colspan="10" class="text-center text-danger py-4">
+                            <i class="bi bi-exclamation-triangle"></i> Erro ao carregar dados
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Aplicar filtros
+        function aplicarFiltros() {
+            const filtroFunc = document.getElementById('filtroFuncionario').value;
+            const filtroMes = document.getElementById('filtroMes').value;
+            const filtroAno = document.getElementById('filtroAno').value;
+
+            folhasFiltradas = folhas.filter(f => {
+                const matchFunc = !filtroFunc || f.funcionario_id == filtroFunc;
+                const matchMes = !filtroMes || f.mes == filtroMes;
+                const matchAno = !filtroAno || f.ano == filtroAno;
+                return matchFunc && matchMes && matchAno;
+            });
+
+            atualizarResumo();
+            paginaAtual = 1;
+            renderizarTabela();
+        }
+
+        // Atualizar resumo
+        function atualizarResumo() {
+            document.getElementById('totalRegistros').textContent = folhasFiltradas.length;
+            
+            const totalLiq = folhasFiltradas.reduce((sum, f) => sum + f.salario_liquido, 0);
+            const totalDesc = folhasFiltradas.reduce((sum, f) => sum + f.total_descontos, 0);
+            const totalBruto = folhasFiltradas.reduce((sum, f) => sum + f.salario_bruto, 0);
+            const totalINSS = folhasFiltradas.reduce((sum, f) => sum + f.inss_patronal, 0);
+
+            document.getElementById('totalLiquidoGeral').textContent = formatMoney(totalLiq) + ' KZ';
+            document.getElementById('totalDescontosGeral').textContent = formatMoney(totalDesc) + ' KZ';
+            document.getElementById('custoTotalGeral').textContent = formatMoney(totalBruto + totalINSS) + ' KZ';
+        }
+
+        // Renderizar tabela com paginação
+        function renderizarTabela() {
+            const inicio = (paginaAtual - 1) * itensPorPagina;
+            const fim = inicio + itensPorPagina;
+            const folhasPagina = folhasFiltradas.slice(inicio, fim);
+
+            const tbody = document.getElementById('tabelaFolhas');
+            
+            if (folhasPagina.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="10" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox"></i> Nenhuma folha encontrada
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = folhasPagina.map(f => {
+                const statusPago = f.status_pagamento === 'pago';
+                const badgeStatus = statusPago 
+                    ? '<span class="badge bg-success"><i class="bi bi-check-circle"></i> Pago</span>'
+                    : '<span class="badge bg-warning text-dark"><i class="bi bi-clock"></i> Pendente</span>';
+                
+                return `
+                    <tr class="folha-row" onclick="verRecibo(${f.id})">
+                        <td><strong>#${f.id}</strong></td>
+                        <td>${f.funcionario_nome}</td>
+                        <td><span class="badge bg-info">${f.mes}/${f.ano}</span></td>
+                        <td>${formatMoney(f.salario_base)} KZ</td>
+                        <td class="text-primary">+${formatMoney(f.total_subsidios)} KZ</td>
+                        <td><strong>${formatMoney(f.salario_bruto)} KZ</strong></td>
+                        <td class="text-danger">-${formatMoney(f.total_descontos)} KZ</td>
+                        <td class="text-success"><strong>${formatMoney(f.salario_liquido)} KZ</strong></td>
+                        <td>${badgeStatus}</td>
+                        <td><small>${new Date(f.calculado_em).toLocaleString('pt-AO')}</small></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); verRecibo(${f.id})">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" onclick="event.stopPropagation(); exportarPDFUnico(${f.id})">
+                                <i class="bi bi-file-pdf"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            renderizarPaginacao();
+        }
+
+        // Renderizar paginação
+        function renderizarPaginacao() {
+            const totalPaginas = Math.ceil(folhasFiltradas.length / itensPorPagina);
+            const paginacao = document.getElementById('paginacao');
+
+            if (totalPaginas <= 1) {
+                paginacao.innerHTML = '';
+                return;
+            }
+
+            let html = `
+                <li class="page-item ${paginaAtual === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="mudarPagina(${paginaAtual - 1}); return false;">Anterior</a>
+                </li>
+            `;
+
+            for (let i = 1; i <= totalPaginas; i++) {
+                if (i === 1 || i === totalPaginas || (i >= paginaAtual - 2 && i <= paginaAtual + 2)) {
+                    html += `
+                        <li class="page-item ${i === paginaAtual ? 'active' : ''}">
+                            <a class="page-link" href="#" onclick="mudarPagina(${i}); return false;">${i}</a>
+                        </li>
+                    `;
+                } else if (i === paginaAtual - 3 || i === paginaAtual + 3) {
+                    html += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                }
+            }
+
+            html += `
+                <li class="page-item ${paginaAtual === totalPaginas ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="mudarPagina(${paginaAtual + 1}); return false;">Próximo</a>
+                </li>
+            `;
+
+            paginacao.innerHTML = html;
+        }
+
+        function mudarPagina(pagina) {
+            const totalPaginas = Math.ceil(folhasFiltradas.length / itensPorPagina);
+            if (pagina < 1 || pagina > totalPaginas) return;
+            paginaAtual = pagina;
+            renderizarTabela();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Ver recibo detalhado
+        async function verRecibo(id) {
+            const folha = folhasFiltradas.find(f => f.id === id);
+            if (!folha) return;
+
+            folhaSelecionada = folha;
+
+            // Buscar detalhes dos subsídios
+            const response = await fetch(`${API_URL}/folha-profissional/folhas/${id}/detalhes`);
+            const data = await response.json();
+            const detalhes = data.data || [];
+
+            const meses = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+            document.getElementById('conteudoRecibo').innerHTML = `
+                <div class="recibo-print">
+                    <div class="text-center mb-4">
+                        <h3>RECIBO DE SALÁRIO</h3>
+                        <h5>${meses[folha.mes]}/${folha.ano}</h5>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <strong>Funcionário:</strong> ${folha.funcionario_nome}<br>
+                            <strong>ID:</strong> #${folha.funcionario_id}
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <strong>Data Processamento:</strong><br>
+                            ${new Date(folha.calculado_em).toLocaleString('pt-AO')}
+                        </div>
+                    </div>
+
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th colspan="2">REMUNERAÇÃO</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Salário Base</td>
+                                <td class="text-end">${formatMoney(folha.salario_base)} KZ</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    ${detalhes.length > 0 ? `
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th colspan="2">SUBSÍDIOS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${detalhes.map(d => `
+                                <tr>
+                                    <td>${d.nome_subsidio}</td>
+                                    <td class="text-end">${formatMoney(d.valor)} KZ</td>
+                                </tr>
+                                ${d.valor_isento > 0 ? `
+                                    <tr class="table-light">
+                                        <td class="ps-4 small">└─ Isento IRT</td>
+                                        <td class="text-end small">${formatMoney(d.valor_isento)} KZ</td>
+                                    </tr>
+                                ` : ''}
+                                ${d.valor_tributavel > 0 ? `
+                                    <tr class="table-light">
+                                        <td class="ps-4 small">└─ Tributável</td>
+                                        <td class="text-end small">${formatMoney(d.valor_tributavel)} KZ</td>
+                                    </tr>
+                                ` : ''}
+                            `).join('')}
+                            <tr class="fw-bold">
+                                <td>TOTAL SUBSÍDIOS</td>
+                                <td class="text-end">${formatMoney(folha.total_subsidios)} KZ</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    ` : ''}
+
+                    <table class="table table-bordered">
+                        <thead class="table-primary">
+                            <tr>
+                                <th colspan="2">SALÁRIO BRUTO</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="fw-bold">
+                                <td>Total Bruto</td>
+                                <td class="text-end">${formatMoney(folha.salario_bruto)} KZ</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th colspan="2">DESCONTOS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>INSS Empregado (3%)</td>
+                                <td class="text-end text-danger">-${formatMoney(folha.inss_empregado)} KZ</td>
+                            </tr>
+                            <tr>
+                                <td>Dedução Fixa IRT</td>
+                                <td class="text-end">${formatMoney(folha.deducao_fixa)} KZ</td>
+                            </tr>
+                            <tr>
+                                <td>Rendimento Colectável</td>
+                                <td class="text-end">${formatMoney(folha.rendimento_colectavel)} KZ</td>
+                            </tr>
+                            <tr>
+                                <td>IRT</td>
+                                <td class="text-end text-danger">-${formatMoney(folha.irt)} KZ</td>
+                            </tr>
+                            <tr class="fw-bold border-top">
+                                <td>TOTAL DESCONTOS</td>
+                                <td class="text-end text-danger">-${formatMoney(folha.total_descontos)} KZ</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table class="table table-bordered">
+                        <thead class="table-success">
+                            <tr>
+                                <th colspan="2">SALÁRIO LÍQUIDO</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="fw-bold fs-5">
+                                <td>A Receber</td>
+                                <td class="text-end text-success">${formatMoney(folha.salario_liquido)} KZ</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <h6>Custos da Empresa</h6>
+                        <div class="row">
+                            <div class="col-6">
+                                <small>INSS Patronal (8%)</small><br>
+                                <strong>${formatMoney(folha.inss_patronal)} KZ</strong>
+                            </div>
+                            <div class="col-6 text-end">
+                                <small>Custo Total</small><br>
+                                <strong>${formatMoney(folha.salario_bruto + folha.inss_patronal)} KZ</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            new bootstrap.Modal(document.getElementById('modalRecibo')).show();
+        }
+
+        // Limpar filtros
+        function limparFiltros() {
+            document.getElementById('filtroFuncionario').value = '';
+            document.getElementById('filtroMes').value = '';
+            document.getElementById('filtroAno').value = '';
+            document.getElementById('dataInicio').value = '';
+            document.getElementById('dataFim').value = '';
+            aplicarFiltros();
+        }
+
+        // Exportar Excel
+        function exportarExcel() {
+            const dados = folhasFiltradas.map(f => ({
+                'ID': f.id,
+                'Funcionário': f.funcionario_nome,
+                'Mês': f.mes,
+                'Ano': f.ano,
+                'Salário Base': f.salario_base,
+                'Subsídios': f.total_subsidios,
+                'Salário Bruto': f.salario_bruto,
+                'INSS Empregado': f.inss_empregado,
+                'IRT': f.irt,
+                'Total Descontos': f.total_descontos,
+                'Salário Líquido': f.salario_liquido,
+                'INSS Patronal': f.inss_patronal,
+                'Custo Total': f.salario_bruto + f.inss_patronal,
+                'Data': new Date(f.calculado_em).toLocaleString('pt-AO')
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(dados);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Folhas");
+            XLSX.writeFile(wb, `folhas_pagamento_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        // Exportar PDF único
+        function exportarPDFUnico(id) {
+            alert('Funcionalidade de PDF será implementada em breve');
+        }
+
+        function imprimirRecibo() {
+            window.print();
+        }
+
+        function exportarPDF() {
+            alert('Funcionalidade de PDF será implementada em breve');
+        }
+
+        function formatMoney(value) {
+            return new Intl.NumberFormat('pt-AO', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(value || 0);
+        }
+
+        // Inicializar
+        carregarDados();
+    </script>
+
+    <style>
+        @media print {
+            .sidebar, .modal-header, .modal-footer, nav { display: none !important; }
+            .modal-dialog { max-width: 100% !important; }
+            .recibo-print { padding: 20px; }
+        }
+    </style>
+</body>
+</html>

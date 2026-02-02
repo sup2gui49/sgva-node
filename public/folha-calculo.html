@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cálculo de Folha - SGVA</title>
+    <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.css">
+    <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="folha-shared.css">
+    <style>
+        .recibo-card {
+            background: white;
+            border: 2px solid #dee2e6;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .recibo-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+        }
+        .linha-total {
+            background: #f8f9fa;
+            font-weight: bold;
+            font-size: 1.2em;
+            padding: 1rem;
+            border-top: 3px solid #667eea;
+        }
+        .funcionario-item {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .funcionario-item:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+        .funcionario-item.selecionado {
+            background: #e7f1ff;
+            border-left: 4px solid #667eea;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-md-block sidebar p-3">
+                <div class="text-white mb-4">
+                    <h4><i class="bi bi-cash-stack"></i> SGVA Folha</h4>
+                    <small>Sistema Profissional</small>
+                </div>
+                
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-dashboard.html">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-funcionarios.html">
+                            <i class="bi bi-people"></i> Funcionários
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-subsidios.html">
+                            <i class="bi bi-wallet2"></i> Subsídios
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-categorias.html">
+                            <i class="bi bi-diagram-3"></i> Categorias
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link active" href="folha-calculo.html">
+                            <i class="bi bi-calculator"></i> Calcular Folha
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-salarios.html">
+                            <i class="bi bi-table"></i> Folha de Salários
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-irt.html">
+                            <i class="bi bi-bar-chart-steps"></i> Escalões IRT
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-historico.html">
+                            <i class="bi bi-clock-history"></i> Histórico
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-excel.html">
+                            <i class="bi bi-file-earmark-excel"></i> Exportar Excel
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-notificacoes.html">
+                            <i class="bi bi-bell"></i> Notificações
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-backup.html">
+                            <i class="bi bi-hdd"></i> Backup
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-presencas.html">
+                            <i class="bi bi-calendar-check"></i> Presenças
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-configuracoes.html">
+                            <i class="bi bi-gear"></i> Configurações
+                        </a>
+                    </li>
+                </ul>
+                
+                <!-- Botão Voltar ao Painel -->
+                <div class="mt-4 pt-3 border-top border-light">
+                    <a href="index.html" class="btn btn-outline-light btn-sm w-100">
+                        <i class="bi bi-arrow-left"></i> Voltar ao Painel
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-10 ms-sm-auto px-4 py-4">
+                <div class="row">
+                    <!-- Coluna Esquerda: Seleção -->
+                    <div class="col-md-4">
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5><i class="bi bi-calculator"></i> Calcular Folha</h5>
+                                <p class="text-muted small">Selecione mês/ano e funcionário</p>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Mês</label>
+                                    <select class="form-select" id="mesFolha">
+                                        <option value="1">Janeiro</option>
+                                        <option value="2">Fevereiro</option>
+                                        <option value="3">Março</option>
+                                        <option value="4">Abril</option>
+                                        <option value="5">Maio</option>
+                                        <option value="6">Junho</option>
+                                        <option value="7">Julho</option>
+                                        <option value="8">Agosto</option>
+                                        <option value="9">Setembro</option>
+                                        <option value="10">Outubro</option>
+                                        <option value="11">Novembro</option>
+                                        <option value="12" selected>Dezembro</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Ano</label>
+                                    <input type="number" class="form-control" id="anoFolha" value="2025">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Buscar Funcionário</label>
+                                    <input type="text" class="form-control" id="buscaFuncionario" placeholder="Digite o nome...">
+                                </div>
+
+                                <button class="btn btn-primary w-100 mb-3" onclick="calcularTodos()">
+                                    <i class="bi bi-people"></i> Calcular Todos
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Lista de Funcionários -->
+                        <div class="card">
+                            <div class="card-header bg-white">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-people"></i> Funcionários
+                                    <span class="badge bg-primary" id="totalFuncionarios">0</span>
+                                </h6>
+                            </div>
+                            <div class="list-group list-group-flush" id="listaFuncionarios" style="max-height: 500px; overflow-y: auto;">
+                                <!-- Carregado via JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Coluna Direita: Recibo -->
+                    <div class="col-md-8">
+                        <div id="reciboContainer">
+                            <div class="alert alert-info text-center">
+                                <i class="bi bi-info-circle"></i> Selecione um funcionário para calcular a folha
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let funcionarios = [];
+        let funcionarioSelecionado = null;
+        let calculoAtual = null;
+
+        // Carregar funcionários
+        async function carregarFuncionarios() {
+            try {
+                const response = await fetch(`${API_URL}/funcionarios`);
+                const data = await response.json();
+                funcionarios = data.data || [];
+                renderizarFuncionarios();
+            } catch (error) {
+                console.error('Erro ao carregar funcionários:', error);
+            }
+        }
+
+        // Renderizar lista de funcionários
+        function renderizarFuncionarios() {
+            const lista = document.getElementById('listaFuncionarios');
+            const busca = document.getElementById('buscaFuncionario').value.toLowerCase();
+            
+            const funcionariosFiltrados = funcionarios.filter(f => 
+                f.nome.toLowerCase().includes(busca) && f.ativo
+            );
+
+            document.getElementById('totalFuncionarios').textContent = funcionariosFiltrados.length;
+
+            lista.innerHTML = funcionariosFiltrados.map(f => `
+                <div class="list-group-item funcionario-item ${funcionarioSelecionado?.id === f.id ? 'selecionado' : ''}" 
+                     onclick="selecionarFuncionario(${f.id})">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">${f.nome}</h6>
+                            <small class="text-muted">${f.categoria || 'Sem categoria'}</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="text-primary fw-bold">${formatMoney(f.salario_base)} KZ</div>
+                            <small class="text-muted">Base</small>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Selecionar funcionário e calcular
+        async function selecionarFuncionario(id) {
+            funcionarioSelecionado = funcionarios.find(f => f.id === id);
+            renderizarFuncionarios();
+            
+            const mes = document.getElementById('mesFolha').value;
+            const ano = document.getElementById('anoFolha').value;
+            
+            await calcularFolha(id, mes, ano);
+        }
+
+        // Calcular folha individual
+        async function calcularFolha(funcionarioId, mes, ano) {
+            try {
+                const response = await fetch(`${API_URL}/folha-profissional/calcular/${funcionarioId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ mes: parseInt(mes), ano: parseInt(ano) })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    calculoAtual = data.data;
+                    renderizarRecibo(data.data);
+                } else {
+                    alert('Erro ao calcular folha: ' + (data.message || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao calcular folha');
+            }
+        }
+
+        // Renderizar recibo
+        function renderizarRecibo(calculo) {
+            const container = document.getElementById('reciboContainer');
+            const meses = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            const periodo = calculo.periodo || { mes: calculo.mes, ano: calculo.ano };
+            const dadosInss = calculo.inss || {};
+            const dadosIrt = calculo.irt || {};
+            const textoEscalao = formatarEscalaoTexto(dadosIrt.escalao);
+            const nomeMes = meses[periodo.mes] || 'N/D';
+
+            container.innerHTML = `
+                <div class="recibo-card">
+                    <div class="recibo-header">
+                        <div class="text-center">
+                            <h3><i class="bi bi-receipt"></i> RECIBO DE SALÁRIO</h3>
+                            <h5>${nomeMes}/${periodo.ano || 'N/D'}</h5>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4">
+                        <!-- Dados do Funcionário -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2">
+                                <i class="bi bi-person-badge"></i> FUNCIONÁRIO
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <strong>Nome:</strong> ${calculo.funcionario.nome}
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Categoria:</strong> ${calculo.funcionario.categoria || 'N/A'}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Remuneração -->
+                        <div class="mb-4">
+                            <h6 class="text-muted">
+                                <i class="bi bi-graph-up"></i> REMUNERAÇÃO
+                            </h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td>Salário Base</td>
+                                    <td class="text-end">${formatMoney(calculo.salario_base)} KZ</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Subsídios -->
+                        ${calculo.subsidios?.detalhes?.length > 0 ? `
+                        <div class="mb-4">
+                            <h6 class="text-muted">
+                                <i class="bi bi-wallet2"></i> SUBSÍDIOS
+                            </h6>
+                            <table class="table table-sm">
+                                ${calculo.subsidios.detalhes.map(s => `
+                                    <tr>
+                                        <td>${s.nome}</td>
+                                        <td class="text-end">${formatMoney(s.valor)} KZ</td>
+                                    </tr>
+                                    ${s.isento > 0 ? `
+                                        <tr class="text-muted small">
+                                            <td class="ps-4">- Isento</td>
+                                            <td class="text-end">${formatMoney(s.isento)} KZ</td>
+                                        </tr>
+                                    ` : ''}
+                                    ${s.tributavel > 0 ? `
+                                        <tr class="text-muted small">
+                                            <td class="ps-4">- Tributável</td>
+                                            <td class="text-end">${formatMoney(s.tributavel)} KZ</td>
+                                        </tr>
+                                    ` : ''}
+                                `).join('')}
+                                <tr class="fw-bold">
+                                    <td>TOTAL SUBSÍDIOS</td>
+                                    <td class="text-end">${formatMoney(calculo.subsidios.total)} KZ</td>
+                                </tr>
+                            </table>
+                        </div>
+                        ` : ''}
+
+                        <!-- Salário Bruto -->
+                        <div class="mb-4">
+                            <table class="table table-sm">
+                                <tr class="table-primary">
+                                    <td><strong>💼 SALÁRIO BRUTO</strong></td>
+                                    <td class="text-end"><strong>${formatMoney(calculo.salario_bruto)} KZ</strong></td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Descontos -->
+                        <div class="mb-4">
+                            <h6 class="text-muted">
+                                <i class="bi bi-arrow-down-circle"></i> DESCONTOS
+                            </h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td>INSS Empregado (3%)</td>
+                                    <td class="text-end text-danger">-${formatMoney(dadosInss.empregado)} KZ</td>
+                                </tr>
+                                <tr>
+                                    <td>Rendimento Colectável</td>
+                                    <td class="text-end">${formatMoney(calculo.rendimento_colectavel)} KZ</td>
+                                </tr>
+                                <tr>
+                                    <td>IRT ${textoEscalao ? `(${textoEscalao})` : ''}</td>
+                                    <td class="text-end text-danger">-${formatMoney(dadosIrt.valor)} KZ</td>
+                                </tr>
+                                <tr class="fw-bold border-top">
+                                    <td>TOTAL DESCONTOS</td>
+                                    <td class="text-end text-danger">-${formatMoney(calculo.total_descontos)} KZ</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Salário Líquido -->
+                        <div class="linha-total">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>✅ SALÁRIO LÍQUIDO</span>
+                                <span class="text-success">${formatMoney(calculo.salario_liquido)} KZ</span>
+                            </div>
+                        </div>
+
+                        <!-- Custos Empresa -->
+                        <div class="mt-4 p-3 bg-light rounded">
+                            <h6 class="text-muted mb-3">
+                                <i class="bi bi-building"></i> CUSTOS DA EMPRESA
+                            </h6>
+                            <div class="row">
+                                <div class="col-6">
+                                    <small>INSS Patronal (8%)</small>
+                                    <div class="fw-bold">${formatMoney(dadosInss.patronal)} KZ</div>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <small>CUSTO TOTAL</small>
+                                    <div class="fw-bold text-primary">${formatMoney(calculo.salario_bruto + (dadosInss.patronal || 0))} KZ</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ações -->
+                        <div class="mt-4 d-flex gap-2">
+                            <button class="btn btn-success flex-grow-1" onclick="salvarFolha()">
+                                <i class="bi bi-check-circle"></i> Confirmar e Salvar
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="imprimirRecibo()">
+                                <i class="bi bi-printer"></i> Imprimir
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="exportarPDF()">
+                                <i class="bi bi-file-pdf"></i> Baixar PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Salvar folha calculada
+        async function salvarFolha() {
+            if (!calculoAtual) return;
+
+            try {
+                const mesEnvio = parseInt(calculoAtual.periodo?.mes || calculoAtual.mes, 10);
+                const anoEnvio = parseInt(calculoAtual.periodo?.ano || calculoAtual.ano, 10);
+
+                const response = await fetch(`${API_URL}/folha-profissional/calcular/${calculoAtual.funcionario.id}`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        mes: mesEnvio,
+                        ano: anoEnvio
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert('✅ Folha salva com sucesso!');
+                } else {
+                    alert('Erro ao salvar folha');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao salvar folha');
+            }
+        }
+
+        // Calcular todos os funcionários
+        async function calcularTodos() {
+            const mes = document.getElementById('mesFolha').value;
+            const ano = document.getElementById('anoFolha').value;
+
+            if (!confirm(`Calcular folha de ${mes}/${ano} para todos os funcionários ativos?`)) return;
+
+            const container = document.getElementById('reciboContainer');
+            container.innerHTML = '<div class="alert alert-info"><i class="bi bi-hourglass-split"></i> Processando...</div>';
+
+            try {
+                const response = await fetch(`${API_URL}/folha-profissional/calcular-completa`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mes: parseInt(mes), ano: parseInt(ano) })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    // Salvar dados globalmente para confirmação
+                    window.folhaCalculada = {
+                        mes: parseInt(mes),
+                        ano: parseInt(ano),
+                        folha_pagamento: data.data.folhas,
+                        resumo: {
+                            total_funcionarios: data.data.total,
+                            total_salario_base: data.data.total_salario_base,
+                            total_inss_empregado: data.data.total_inss_empregado,
+                            total_inss_patronal: data.data.total_inss_patronal,
+                            total_irt: data.data.total_irt,
+                            total_descontos: data.data.total_descontos,
+                            total_salario_liquido: data.data.total_liquido,
+                            total_custo_empresa: data.data.total_empresa,
+                            // Compatibilidade com exibição
+                            total_liquido: data.data.total_liquido,
+                            total_empresa: data.data.total_empresa
+                        }
+                    };
+
+                    container.innerHTML = `
+                        <div class="alert alert-success">
+                            <h5><i class="bi bi-check-circle"></i> Folha Completa Calculada</h5>
+                            <p><strong>${data.data.total}</strong> funcionários processados</p>
+                            <p>Total líquido: <strong>${formatMoney(data.data.total_liquido)} KZ</strong></p>
+                            <p>Total empresa: <strong>${formatMoney(data.data.total_empresa)} KZ</strong></p>
+                            
+                            <hr class="my-3">
+                            
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-success btn-lg" onclick="confirmarPagamento()">
+                                    <i class="bi bi-check-circle-fill"></i> Confirmar Pagamento e Registrar nas Despesas
+                                </button>
+                                <small class="text-muted text-center">
+                                    Ao confirmar, os valores serão registrados no sistema de vendas como despesas
+                                </small>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    alert('Erro ao calcular folha completa');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao calcular folha completa');
+            }
+        }
+
+        function imprimirRecibo() {
+            if (!calculoAtual) {
+                alert('Nenhum recibo para imprimir');
+                return;
+            }
+
+            const reciboHTML = document.getElementById('reciboContainer').innerHTML;
+            const printWindow = window.open('', '_blank', 'width=900,height=1200');
+
+            if (!printWindow) {
+                alert('Não foi possível abrir a janela de impressão. Permita pop-ups para continuar.');
+                return;
+            }
+
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Recibo de Salário</title>
+                    <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
+                    <link rel="stylesheet" href="folha-shared.css">
+                    <style>
+                        body { background: #f4f6f9; padding: 2rem; }
+                        .recibo-card { box-shadow: none; border: none; }
+                        @media print {
+                            body { background: white; padding: 0; }
+                            .recibo-card { margin: 0; }
+                            .btn, nav, .sidebar, .nav { display: none !important; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${reciboHTML}
+                    <script>
+                        window.onload = function() {
+                            window.focus();
+                            window.print();
+                        };
+                    <\/script>
+                </body>
+                </html>
+            `);
+
+            printWindow.document.close();
+        }
+
+        async function exportarPDF() {
+            if (!calculoAtual) {
+                alert('Nenhum recibo para exportar');
+                return;
+            }
+
+            // Importar jsPDF dinamicamente
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+            script.onload = () => gerarPDFRecibo();
+            document.head.appendChild(script);
+        }
+
+        function gerarPDFRecibo() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const meses = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            const periodo = calculoAtual.periodo || { mes: calculoAtual.mes, ano: calculoAtual.ano };
+            const dadosInss = calculoAtual.inss || {};
+            const dadosIrt = calculoAtual.irt || {};
+            const textoEscalao = formatarEscalaoTexto(dadosIrt.escalao);
+            const nomeMes = meses[periodo.mes] || 'N/D';
+            
+            let y = 20;
+            
+            // Header
+            doc.setFillColor(102, 126, 234);
+            doc.rect(0, 0, 210, 40, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(20);
+            doc.text('RECIBO DE SALÁRIO', 105, 20, { align: 'center' });
+            doc.setFontSize(14);
+            doc.text(`${nomeMes}/${periodo.ano || 'N/D'}`, 105, 32, { align: 'center' });
+            
+            y = 50;
+            doc.setTextColor(0, 0, 0);
+            
+            // Funcionário
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('FUNCIONÁRIO', 20, y);
+            y += 7;
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(11);
+            doc.text(`Nome: ${calculoAtual.funcionario.nome}`, 20, y);
+            y += 6;
+            doc.text(`Categoria: ${calculoAtual.funcionario.categoria || 'N/A'}`, 20, y);
+            y += 10;
+            
+            // Remuneração
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(12);
+            doc.text('REMUNERAÇÃO', 20, y);
+            y += 7;
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(11);
+            doc.text('Salário Base', 20, y);
+            doc.text(`${formatMoney(calculoAtual.salario_base)} KZ`, 190, y, { align: 'right' });
+            y += 10;
+            
+            // Subsídios
+            if (calculoAtual.subsidios?.detalhes?.length > 0) {
+                doc.setFont(undefined, 'bold');
+                doc.setFontSize(12);
+                doc.text('SUBSÍDIOS', 20, y);
+                y += 7;
+                doc.setFont(undefined, 'normal');
+                doc.setFontSize(10);
+                
+                calculoAtual.subsidios.detalhes.forEach(s => {
+                    doc.text(s.nome, 20, y);
+                    doc.text(`${formatMoney(s.valor)} KZ`, 190, y, { align: 'right' });
+                    y += 5;
+                    if (s.isento > 0) {
+                        doc.setTextColor(100, 100, 100);
+                        doc.text(`   - Isento: ${formatMoney(s.isento)} KZ`, 25, y);
+                        y += 5;
+                    }
+                    if (s.tributavel > 0) {
+                        doc.text(`   - Tributável: ${formatMoney(s.tributavel)} KZ`, 25, y);
+                        y += 5;
+                    }
+                    doc.setTextColor(0, 0, 0);
+                });
+                
+                doc.setFont(undefined, 'bold');
+                doc.text('TOTAL SUBSÍDIOS', 20, y);
+                doc.text(`${formatMoney(calculoAtual.subsidios.total)} KZ`, 190, y, { align: 'right' });
+                y += 10;
+            }
+            
+            // Salário Bruto
+            doc.setFillColor(102, 126, 234);
+            doc.rect(15, y - 5, 180, 10, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont(undefined, 'bold');
+            doc.text('SALÁRIO BRUTO', 20, y);
+            doc.text(`${formatMoney(calculoAtual.salario_bruto)} KZ`, 190, y, { align: 'right' });
+            y += 15;
+            doc.setTextColor(0, 0, 0);
+            
+            // Descontos
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(12);
+            doc.text('DESCONTOS', 20, y);
+            y += 7;
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(11);
+            doc.text('INSS Empregado (3%)', 20, y);
+            doc.setTextColor(220, 53, 69);
+            doc.text(`-${formatMoney(dadosInss.empregado)} KZ`, 190, y, { align: 'right' });
+            doc.setTextColor(0, 0, 0);
+            y += 6;
+            doc.text('Rendimento Colectável', 20, y);
+            doc.text(`${formatMoney(calculoAtual.rendimento_colectavel)} KZ`, 190, y, { align: 'right' });
+            y += 6;
+            doc.text(`IRT ${textoEscalao ? `(${textoEscalao})` : ''}`, 20, y);
+            doc.setTextColor(220, 53, 69);
+            doc.text(`-${formatMoney(dadosIrt.valor)} KZ`, 190, y, { align: 'right' });
+            doc.setTextColor(0, 0, 0);
+            y += 8;
+            
+            doc.setFont(undefined, 'bold');
+            doc.text('TOTAL DESCONTOS', 20, y);
+            doc.setTextColor(220, 53, 69);
+            doc.text(`-${formatMoney(calculoAtual.total_descontos)} KZ`, 190, y, { align: 'right' });
+            doc.setTextColor(0, 0, 0);
+            y += 15;
+            
+            // Salário Líquido
+            doc.setFillColor(40, 167, 69);
+            doc.rect(15, y - 7, 180, 15, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('SALÁRIO LÍQUIDO', 20, y);
+            doc.text(`${formatMoney(calculoAtual.salario_liquido)} KZ`, 190, y, { align: 'right' });
+            y += 15;
+            doc.setTextColor(0, 0, 0);
+            
+            // Custos Empresa
+            doc.setFillColor(240, 240, 240);
+            doc.rect(15, y, 180, 20, 'F');
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.text('CUSTOS DA EMPRESA', 20, y + 7);
+            doc.setFont(undefined, 'normal');
+            doc.text(`INSS Patronal (8%): ${formatMoney(dadosInss.patronal)} KZ`, 20, y + 13);
+            doc.setFont(undefined, 'bold');
+            doc.text(`CUSTO TOTAL: ${formatMoney(calculoAtual.salario_bruto + (dadosInss.patronal || 0))} KZ`, 20, y + 18);
+            
+            // Footer
+            doc.setFontSize(8);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(100, 100, 100);
+            doc.text(`Gerado em: ${new Date().toLocaleString('pt-AO')}`, 105, 285, { align: 'center' });
+            doc.text('SGVA - Sistema de Gestão de Vendas Adaptável', 105, 290, { align: 'center' });
+            
+            // Salvar
+            const filename = `Recibo_${calculoAtual.funcionario.nome.replace(/\s+/g, '_')}_${nomeMes}_${periodo.ano}.pdf`;
+            const pdfUrl = doc.output('bloburl', { filename });
+            const previewWindow = window.open(pdfUrl, '_blank');
+            if (!previewWindow) {
+                alert('Não foi possível abrir a pré-visualização. Permita pop-ups para visualizar o PDF.');
+            }
+            setTimeout(() => URL.revokeObjectURL(pdfUrl), 60000);
+        }
+
+        function formatMoney(value) {
+            const numero = Number(value);
+            return new Intl.NumberFormat('pt-AO', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(Number.isFinite(numero) ? numero : 0);
+        }
+
+        function formatarEscalaoTexto(escalao) {
+            if (!escalao) {
+                return '';
+            }
+            const texto = String(escalao).trim();
+            return texto
+                .replace(/(º\s*Escal[ãa]o){2,}/gi, 'º Escalão')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        // Confirmar pagamento da folha
+        async function confirmarPagamento() {
+            if (!window.folhaCalculada) {
+                alert('Nenhuma folha calculada para confirmar');
+                return;
+            }
+
+            const dados = window.folhaCalculada;
+            const confirmacao = confirm(`Confirmar pagamento da folha de ${dados.mes}/${dados.ano}?\n\n` +
+                `Total Líquido: ${formatMoney(dados.resumo.total_liquido)} KZ\n` +
+                `INSS Patronal: ${formatMoney(dados.resumo.total_inss_patronal)} KZ\n` +
+                `Total Empresa: ${formatMoney(dados.resumo.total_empresa)} KZ\n\n` +
+                `Isso registrará as despesas no sistema de vendas.`);
+
+            if (!confirmacao) return;
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/folha/confirmar-pagamento`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(dados)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    const valores = result.data.valores || {};
+                    alert(`✅ Pagamento confirmado!\n\n` +
+                        `Despesa de Salários: ${formatMoney(valores.salarios_liquidos || 0)} KZ\n` +
+                        `Despesa de INSS Patronal: ${formatMoney(valores.inss_patronal || 0)} KZ\n` +
+                        `Total Custo Empresa: ${formatMoney(valores.custo_total_empresa || 0)} KZ\n\n` +
+                        `${result.data.integracao.ativo ? 'Os valores foram registrados no sistema de vendas.' : 'Registro concluído sem integração com vendas.'}`);
+                    
+                    // Limpar folha calculada
+                    window.folhaCalculada = null;
+                    
+                    // Recarregar para limpar tela
+                    document.getElementById('reciboContainer').innerHTML = `
+                        <div class="alert alert-info text-center">
+                            <i class="bi bi-check-circle text-success fs-1"></i>
+                            <h5 class="mt-3">Pagamento Confirmado</h5>
+                            <p>Folha de ${dados.mes}/${dados.ano} registrada com sucesso!</p>
+                            <button class="btn btn-primary" onclick="location.reload()">
+                                <i class="bi bi-arrow-clockwise"></i> Calcular Nova Folha
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    alert('Erro ao confirmar pagamento: ' + (result.message || result.error || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao confirmar pagamento. Verifique a conexão.');
+            }
+        }
+
+        // Event listeners
+        document.getElementById('buscaFuncionario').addEventListener('input', renderizarFuncionarios);
+
+        // Inicializar
+        carregarFuncionarios();
+    </script>
+    <script src="js/folha-footer.js"></script>
+</body>
+</html>

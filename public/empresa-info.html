@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informações da Empresa - SGVA</title>
+    <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.css">
+    <link rel="stylesheet" href="folha-shared.css">
+    <style>
+        .logo-preview {
+            max-width: 300px;
+            max-height: 200px;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            background: #f8f9fa;
+        }
+        .logo-preview img {
+            max-width: 100%;
+            max-height: 160px;
+            object-fit: contain;
+        }
+        .logo-preview.empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 160px;
+            color: #6c757d;
+        }
+        .info-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+        .info-section h5 {
+            color: #667eea;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #667eea;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-md-block sidebar p-3">
+                <div class="text-white mb-4">
+                    <h4><i class="bi bi-building"></i> SGVA</h4>
+                    <small>Configurações</small>
+                </div>
+                
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="index.html">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="configuracoes.html">
+                            <i class="bi bi-gear"></i> Config. Financeiras
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link active" href="empresa-info.html">
+                            <i class="bi bi-building"></i> Dados da Empresa
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="gestao-produtos.html">
+                            <i class="bi bi-box-seam"></i> Produtos/Serviços
+                        </a>
+                    </li>
+                </ul>
+                
+                <div class="mt-4 pt-3 border-top border-light">
+                    <a href="index.html" class="btn btn-outline-light btn-sm w-100">
+                        <i class="bi bi-arrow-left"></i> Voltar
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-10 ms-sm-auto px-4 py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2><i class="bi bi-building text-primary"></i> Informações da Empresa</h2>
+                        <p class="text-muted">Configure os dados que aparecerão em documentos e impressões</p>
+                    </div>
+                </div>
+
+                <form id="formEmpresa">
+                    <!-- Dados Básicos -->
+                    <div class="info-section">
+                        <h5><i class="bi bi-info-circle"></i> Dados Básicos</h5>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Nome da Empresa *</label>
+                                    <input type="text" class="form-control" id="nome" name="nome" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">NIF/Contribuinte</label>
+                                    <input type="text" class="form-control" id="nif" name="nif">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Endereço -->
+                    <div class="info-section">
+                        <h5><i class="bi bi-geo-alt"></i> Endereço</h5>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Endereço Completo</label>
+                                    <input type="text" class="form-control" id="endereco" name="endereco" placeholder="Rua, nº, bairro">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Cidade/Província</label>
+                                    <input type="text" class="form-control" id="cidade" name="cidade" placeholder="Luanda, Angola">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contato -->
+                    <div class="info-section">
+                        <h5><i class="bi bi-telephone"></i> Contato</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Telefone</label>
+                                    <input type="text" class="form-control" id="telefone" name="telefone" placeholder="+244 900 000 000">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">E-mail</label>
+                                    <input type="email" class="form-control" id="email" name="email" placeholder="contato@empresa.ao">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Website</label>
+                                    <input type="text" class="form-control" id="website" name="website" placeholder="www.empresa.ao">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Logo -->
+                    <div class="info-section">
+                        <h5><i class="bi bi-image"></i> Logotipo</h5>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Carregar Logo</label>
+                                    <input type="file" class="form-control" id="logoFile" accept="image/*">
+                                    <small class="text-muted">Formatos aceitos: JPG, PNG, GIF (máx. 2MB)</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Rodapé dos Documentos</label>
+                                    <textarea class="form-control" id="rodape_documentos" name="rodape_documentos" rows="2" placeholder="Texto que aparecerá no rodapé de relatórios e recibos"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Pré-visualização</label>
+                                <div class="logo-preview empty" id="logoPreview">
+                                    <i class="bi bi-image fs-1"></i>
+                                    <p class="mb-0 mt-2">Nenhuma logo carregada</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botões -->
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle"></i> Salvar Informações
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-lg" onclick="carregarDados()">
+                            <i class="bi bi-arrow-clockwise"></i> Recarregar
+                        </button>
+                    </div>
+                </form>
+            </main>
+        </div>
+    </div>
+
+    <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let logoBase64 = null;
+
+        // Carregar dados ao iniciar
+        window.addEventListener('DOMContentLoaded', carregarDados);
+
+        async function carregarDados() {
+            try {
+                const response = await fetch(`${API_URL}/empresa`);
+                const result = await response.json();
+
+                if (result.success) {
+                    const empresa = result.data;
+                    
+                    document.getElementById('nome').value = empresa.nome || '';
+                    document.getElementById('nif').value = empresa.nif || '';
+                    document.getElementById('endereco').value = empresa.endereco || '';
+                    document.getElementById('cidade').value = empresa.cidade || '';
+                    document.getElementById('telefone').value = empresa.telefone || '';
+                    document.getElementById('email').value = empresa.email || '';
+                    document.getElementById('website').value = empresa.website || '';
+                    document.getElementById('rodape_documentos').value = empresa.rodape_documentos || '';
+                    
+                    if (empresa.logo_base64) {
+                        logoBase64 = empresa.logo_base64;
+                        mostrarPreview(empresa.logo_base64);
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                alert('Erro ao carregar informações da empresa');
+            }
+        }
+
+        // Preview da logo
+        document.getElementById('logoFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (file.size > 2 * 1024 * 1024) {
+                alert('Arquivo muito grande. Máximo 2MB.');
+                e.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                logoBase64 = event.target.result;
+                mostrarPreview(logoBase64);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        function mostrarPreview(base64) {
+            const preview = document.getElementById('logoPreview');
+            preview.classList.remove('empty');
+            preview.innerHTML = `<img src="${base64}" alt="Logo da empresa">`;
+        }
+
+        // Salvar dados
+        document.getElementById('formEmpresa').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const dados = {
+                nome: document.getElementById('nome').value,
+                nif: document.getElementById('nif').value,
+                endereco: document.getElementById('endereco').value,
+                cidade: document.getElementById('cidade').value,
+                telefone: document.getElementById('telefone').value,
+                email: document.getElementById('email').value,
+                website: document.getElementById('website').value,
+                rodape_documentos: document.getElementById('rodape_documentos').value,
+                logo_base64: logoBase64
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/empresa`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dados)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('✅ Informações da empresa salvas com sucesso!');
+                } else {
+                    alert('Erro: ' + (result.error || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                console.error('Erro ao salvar:', error);
+                alert('Erro ao salvar informações da empresa');
+            }
+        });
+    </script>
+</body>
+</html>

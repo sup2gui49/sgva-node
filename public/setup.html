@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Primeiro Acesso - SGVA</title>
+    <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .setup-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 3rem;
+            max-width: 500px;
+            width: 100%;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .logo h1 {
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .logo p {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 0.75rem;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .alert {
+            border-radius: 10px;
+        }
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        .step {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #6c757d;
+            margin: 0 0.5rem;
+        }
+        .step.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <div class="logo">
+            <i class="bi bi-shield-check" style="font-size: 4rem; color: #667eea;"></i>
+            <h1>SGVA</h1>
+            <p>Configuração Inicial do Sistema</p>
+        </div>
+
+        <div class="step-indicator">
+            <div class="step active">1</div>
+            <div class="step">2</div>
+        </div>
+
+        <div id="alert-container"></div>
+
+        <div id="step1">
+            <h4 class="mb-4">Criar Primeiro Usuário</h4>
+            
+            <form id="formUsuario">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nome Completo *</label>
+                    <input type="text" class="form-control" id="nome" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">E-mail *</label>
+                    <input type="email" class="form-control" id="email" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Senha *</label>
+                    <input type="password" class="form-control" id="senha" required minlength="6">
+                    <small class="text-muted">Mínimo 6 caracteres</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Confirmar Senha *</label>
+                    <input type="password" class="form-control" id="senhaConfirm" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Tipo de Acesso *</label>
+                    <select class="form-select" id="role" required>
+                        <option value="admin">Administrador (acesso total)</option>
+                        <option value="gerente">Gerente (acesso intermediário)</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 btn-lg">
+                    <i class="bi bi-check-circle"></i> Criar Usuário e Continuar
+                </button>
+            </form>
+        </div>
+
+        <div id="step2" style="display: none;">
+            <div class="text-center">
+                <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
+                <h4 class="mt-3">Usuário Criado com Sucesso!</h4>
+                <p class="text-muted">Sistema configurado e pronto para uso</p>
+                
+                <div class="d-grid gap-2 mt-4">
+                    <a href="empresa-info.html" class="btn btn-outline-primary">
+                        <i class="bi bi-building"></i> Configurar Dados da Empresa
+                    </a>
+                    <a href="login.html" class="btn btn-primary">
+                        <i class="bi bi-box-arrow-in-right"></i> Fazer Login
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <small class="text-muted">
+                <i class="bi bi-info-circle"></i> 
+                Esta página só aparece no primeiro acesso
+            </small>
+        </div>
+    </div>
+
+    <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+
+        // Verificar se já existem usuários
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch(`${API_URL}/auth/check-users`);
+                const result = await response.json();
+                
+                if (result.hasUsers) {
+                    // Já existem usuários, redirecionar para login
+                    window.location.href = 'login.html';
+                }
+            } catch (error) {
+                console.error('Erro ao verificar usuários:', error);
+            }
+        });
+
+        document.getElementById('formUsuario').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const nome = document.getElementById('nome').value;
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+            const senhaConfirm = document.getElementById('senhaConfirm').value;
+            const role = document.getElementById('role').value;
+
+            // Validações
+            if (senha !== senhaConfirm) {
+                showAlert('As senhas não coincidem', 'danger');
+                return;
+            }
+
+            if (senha.length < 6) {
+                showAlert('A senha deve ter no mínimo 6 caracteres', 'danger');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, email, senha, role })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Atualizar indicador de passos
+                    document.querySelectorAll('.step')[1].classList.add('active');
+                    
+                    // Mostrar step 2
+                    document.getElementById('step1').style.display = 'none';
+                    document.getElementById('step2').style.display = 'block';
+                } else {
+                    showAlert(result.error || 'Erro ao criar usuário', 'danger');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showAlert('Erro ao conectar com o servidor', 'danger');
+            }
+        });
+
+        function showAlert(message, type) {
+            const container = document.getElementById('alert-container');
+            container.innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

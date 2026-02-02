@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste de Salvamento de Produto</title>
+</head>
+<body>
+    <h1>🧪 Teste de Salvamento de Produto</h1>
+    <div id="resultado"></div>
+    
+    <script>
+        async function testarSalvamentoProduto() {
+            console.log('🧪 Testando salvamento de produto...');
+            const resultado = document.getElementById('resultado');
+            
+            try {
+                const dados = {
+                    nome: 'Produto Teste ' + Date.now(),
+                    categoria: 'Categoria Teste',
+                    tipo: 'produto',
+                    unidade_medida: 'unidade',
+                    custo_unitario: 10.50,
+                    preco_venda: 15.00,
+                    categoria_id: 1,
+                    descricao: 'Produto criado por teste automático'
+                };
+                
+                console.log('📊 Enviando dados:', dados);
+                
+                const response = await fetch('/api/produtos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(dados)
+                });
+                
+                console.log('📡 Status resposta:', response.status);
+                const resultData = await response.json();
+                console.log('📝 Dados resposta:', resultData);
+                
+                if (response.ok) {
+                    resultado.innerHTML = `
+                        <h2>✅ SUCESSO!</h2>
+                        <p>Produto salvo: <strong>${resultData.data.nome}</strong></p>
+                        <p>ID: ${resultData.data.id}</p>
+                        <p>Preço: ${resultData.data.preco_venda} KZ</p>
+                        <p>Mensagem: ${resultData.message}</p>
+                    `;
+                } else {
+                    resultado.innerHTML = `
+                        <h2>❌ ERRO!</h2>
+                        <p>Status: ${response.status}</p>
+                        <p>Mensagem: ${resultData.message}</p>
+                        <pre>${JSON.stringify(resultData, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                console.error('❌ Erro:', error);
+                resultado.innerHTML = `
+                    <h2>❌ ERRO DE CONEXÃO!</h2>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+        
+        // Executar teste automaticamente
+        window.onload = () => {
+            setTimeout(testarSalvamentoProduto, 1000);
+        };
+    </script>
+</body>
+</html>

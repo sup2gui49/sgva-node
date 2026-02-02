@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações do Sistema | SGVA</title>
+    <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.css">
+    <link rel="stylesheet" href="folha-shared.css">
+    <style>
+        .config-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .config-section h4 {
+            color: #667eea;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .regime-card {
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            height: 100%;
+        }
+        .regime-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .regime-card.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+        .regime-card .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        .badge-regime {
+            font-size: 0.85rem;
+            padding: 0.4rem 0.8rem;
+        }
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 4px;
+        }
+        .info-box i {
+            color: #667eea;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-folha">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <i class="bi bi-gear-fill"></i> Configurações
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="bi bi-house-door"></i> Início
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index-old.html">
+                            <i class="bi bi-cart3"></i> Vendas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="folha-dashboard.html">
+                            <i class="bi bi-cash-coin"></i> Folha
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <!-- Header -->
+        <div class="text-center mb-5">
+            <h2><i class="bi bi-gear-fill text-primary"></i> Configurações do Sistema</h2>
+            <p class="text-muted">Configure o comportamento fiscal e operacional do seu sistema</p>
+        </div>
+
+        <!-- Integração de Módulos -->
+        <div class="config-section">
+            <h4><i class="bi bi-diagram-3"></i> Integração de Módulos</h4>
+            <p class="text-muted mb-4">Ative ou desative os módulos de Vendas e Folha de Pagamento e escolha como eles trocam informações.</p>
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="toggleVendas" checked onchange="atualizarUIIntegracao()">
+                        <label class="form-check-label" for="toggleVendas">
+                            <strong>Módulo de Vendas</strong><br>
+                            <small class="text-muted">Produtos, clientes, ponto de venda, dashboards financeiros.</small>
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="toggleFolha" checked onchange="atualizarUIIntegracao()">
+                        <label class="form-check-label" for="toggleFolha">
+                            <strong>Módulo de Folha</strong><br>
+                            <small class="text-muted">Funcionários, cálculo de salários, subsídios e relatórios legais.</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="modoIntegracao" id="modoNenhuma" value="nenhuma" checked onchange="atualizarTextoIntegracao()">
+                        <label class="form-check-label" for="modoNenhuma">
+                            Sem dependência
+                            <small class="d-block text-muted">Os módulos funcionam isolados.</small>
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="modoIntegracao" id="modoFolhaVendas" value="folha->vendas" onchange="atualizarTextoIntegracao()">
+                        <label class="form-check-label" for="modoFolhaVendas">
+                            Folha alimenta Vendas
+                            <small class="d-block text-muted">Confirmação da folha gera despesas automaticamente.</small>
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="modoIntegracao" id="modoVendasFolha" value="vendas->folha" onchange="atualizarTextoIntegracao()">
+                        <label class="form-check-label" for="modoVendasFolha">
+                            Vendas alimenta Folha
+                            <small class="d-block text-muted">Receitas/Despesas das vendas impactam projeções de folha.</small>
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="modoIntegracao" id="modoBidirecional" value="bidirecional" onchange="atualizarTextoIntegracao()">
+                        <label class="form-check-label" for="modoBidirecional">
+                            Bidirecional
+                            <small class="d-block text-muted">Mantém a lógica atual (folha e vendas trocando dados).</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-box" id="modulosStatusHint">
+                <i class="bi bi-info-circle"></i>
+                Configure os switches e o modo para ajustar a dependência entre módulos.
+            </div>
+
+            <div class="text-end mt-4">
+                <button class="btn btn-outline-primary" onclick="salvarModulosSistema()">
+                    <i class="bi bi-toggle-on"></i> Salvar Integração de Módulos
+                </button>
+            </div>
+        </div>
+
+        <!-- Regime de IVA -->
+        <div class="config-section">
+            <h4><i class="bi bi-cash-stack"></i> Regime de Facturação - IVA</h4>
+            <p class="text-muted mb-4">Selecione o regime de IVA da sua empresa conforme enquadramento fiscal</p>
+
+            <div class="row g-4 mb-4">
+                <!-- Regime de Integração -->
+                <div class="col-md-6">
+                    <div class="regime-card" id="card-integracao" onclick="selecionarRegime('integracao')">
+                        <div class="text-center">
+                            <i class="bi bi-check-circle icon text-success"></i>
+                            <h5>Regime de Integração</h5>
+                            <span class="badge bg-success badge-regime">REGIME NORMAL</span>
+                        </div>
+                        <p class="mt-3 text-muted">
+                            Empresas sujeitas ao pagamento e cobrança de IVA. Aplica-se a taxas de 14%, 7% ou 0% (isento) 
+                            conforme a categoria dos produtos/serviços.
+                        </p>
+                        <ul class="list-unstyled mt-3">
+                            <li><i class="bi bi-check2 text-success"></i> Calcula IVA nas vendas</li>
+                            <li><i class="bi bi-check2 text-success"></i> Pode deduzir IVA pago</li>
+                            <li><i class="bi bi-check2 text-success"></i> Emite faturas com IVA</li>
+                            <li><i class="bi bi-check2 text-success"></i> Declaração periódica de IVA</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Regime de Exclusão -->
+                <div class="col-md-6">
+                    <div class="regime-card" id="card-exclusao" onclick="selecionarRegime('exclusao')">
+                        <div class="text-center">
+                            <i class="bi bi-x-circle icon text-warning"></i>
+                            <h5>Regime de Exclusão</h5>
+                            <span class="badge bg-warning text-dark badge-regime">SIMPLIFICADO</span>
+                        </div>
+                        <p class="mt-3 text-muted">
+                            Empresas NÃO sujeitas ao IVA. Geralmente aplicável a pequenos contribuintes ou 
+                            atividades específicas isentas de IVA.
+                        </p>
+                        <ul class="list-unstyled mt-3">
+                            <li><i class="bi bi-x text-danger"></i> Não calcula IVA nas vendas</li>
+                            <li><i class="bi bi-x text-danger"></i> Não deduz IVA pago</li>
+                            <li><i class="bi bi-check2 text-success"></i> Emite faturas sem IVA</li>
+                            <li><i class="bi bi-check2 text-success"></i> Processo simplificado</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <i class="bi bi-info-circle"></i>
+                <strong>Importante:</strong> A mudança de regime afeta todos os cálculos de vendas. Produtos e serviços 
+                terão o IVA aplicado ou não conforme o regime selecionado. Consulte seu contador antes de alterar.
+            </div>
+
+            <!-- Observações -->
+            <div class="mt-4">
+                <label for="regimeObservacao" class="form-label">Observações sobre o Regime (opcional)</label>
+                <textarea id="regimeObservacao" class="form-control" rows="3" 
+                    placeholder="Ex: Empresa enquadrada no regime de exclusão conforme art. X do Código do IVA..."></textarea>
+            </div>
+
+            <div class="text-end mt-4">
+                <button class="btn btn-primary btn-lg" onclick="salvarRegimeIva()">
+                    <i class="bi bi-save"></i> Salvar Configuração
+                </button>
+            </div>
+        </div>
+
+        <!-- Configurações INSS -->
+        <div class="config-section">
+            <h4><i class="bi bi-shield-check"></i> Taxas INSS</h4>
+            <p class="text-muted mb-4">Configure as taxas de contribuição para a Segurança Social</p>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="inssEmpregado" class="form-label">Taxa INSS Empregado (%)</label>
+                    <input type="number" id="inssEmpregado" class="form-control" step="0.1" value="3.0">
+                    <small class="text-muted">Desconto no salário do trabalhador</small>
+                </div>
+                <div class="col-md-6">
+                    <label for="inssPatronal" class="form-label">Taxa INSS Patronal (%)</label>
+                    <input type="number" id="inssPatronal" class="form-control" step="0.1" value="8.0">
+                    <small class="text-muted">Contribuição da empresa</small>
+                </div>
+            </div>
+
+            <div class="text-end mt-4">
+                <button class="btn btn-secondary" onclick="salvarConfigInss()">
+                    <i class="bi bi-save"></i> Salvar Taxas INSS
+                </button>
+            </div>
+        </div>
+
+        <!-- Configurações Financeiras -->
+        <div class="config-section">
+            <h4><i class="bi bi-graph-up"></i> Parâmetros Financeiros</h4>
+            <p class="text-muted mb-4">Defina margens e percentuais para análise financeira</p>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="margemMinima" class="form-label">Margem Mínima (%)</label>
+                    <input type="number" id="margemMinima" class="form-control" step="0.1" value="30">
+                    <small class="text-muted">Margem de lucro mínima desejada</small>
+                </div>
+                <div class="col-md-6">
+                    <label for="capitalGiro" class="form-label">Capital de Giro (%)</label>
+                    <input type="number" id="capitalGiro" class="form-control" step="0.1" value="40">
+                    <small class="text-muted">Percentual ideal para capital de giro</small>
+                </div>
+                <div class="col-md-6">
+                    <label for="fundoReserva" class="form-label">Fundo de Reserva (%)</label>
+                    <input type="number" id="fundoReserva" class="form-control" step="0.1" value="10">
+                    <small class="text-muted">Reserva de segurança</small>
+                </div>
+                <div class="col-md-6">
+                    <label for="distribuicaoLucro" class="form-label">Distribuição de Lucro (%)</label>
+                    <input type="number" id="distribuicaoLucro" class="form-control" step="0.1" value="50">
+                    <small class="text-muted">Percentual de lucro a distribuir</small>
+                </div>
+            </div>
+
+            <div class="text-end mt-4">
+                <button class="btn btn-secondary" onclick="salvarConfigFinanceira()">
+                    <i class="bi bi-save"></i> Salvar Parâmetros
+                </button>
+            </div>
+        </div>
+
+        <!-- Configurações de Impostos -->
+        <div class="config-section">
+            <h4><i class="bi bi-receipt"></i> Impostos (Configuração)</h4>
+            <p class="text-muted mb-4">Configure impostos conforme enquadramento fiscal da empresa</p>
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="irtEstimadoPercentual" class="form-label">Imposto Industrial (Estimado) - %</label>
+                    <input type="number" id="irtEstimadoPercentual" class="form-control" step="0.1" value="0">
+                    <small class="text-muted">Defina 0 para não aplicar</small>
+                </div>
+                <div class="col-md-4">
+                    <label for="impostoSeloPercentual" class="form-label">Imposto de Selo (%)</label>
+                    <input type="number" id="impostoSeloPercentual" class="form-control" step="0.01" value="0">
+                    <small class="text-muted">Aplicado sobre a faturação</small>
+                </div>
+                <div class="col-md-4">
+                    <label for="impostoSeloLimite" class="form-label">Limite de Faturação (KZ)</label>
+                    <input type="number" id="impostoSeloLimite" class="form-control" step="1" value="0">
+                    <small class="text-muted">0 = sem limite</small>
+                </div>
+            </div>
+
+            <div class="text-end mt-4">
+                <button class="btn btn-secondary" onclick="salvarConfigImpostos()">
+                    <i class="bi bi-save"></i> Salvar Impostos
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let regimeSelecionado = 'normal'; // ou 'integracao'
+        let moduloConfigAtual = {
+            vendasEnabled: true,
+            folhaEnabled: true,
+            integracaoModo: 'bidirecional'
+        };
+
+        // Carregar configurações ao iniciar
+        window.addEventListener('DOMContentLoaded', carregarConfiguracoes);
+
+        async function carregarConfiguracoes() {
+            try {
+                const response = await fetch(`${API_URL}/financeiro/config`);
+                const data = await response.json();
+                
+                if (data.success && data.data) {
+                    const config = data.data;
+                    
+                    // Regime de IVA
+                    regimeSelecionado = config.regime_iva || 'normal';
+                    if (regimeSelecionado === 'normal') regimeSelecionado = 'integracao';
+                    atualizarSelecaoRegime(regimeSelecionado);
+                    
+                    // Observação
+                    if (config.regime_iva_observacao) {
+                        document.getElementById('regimeObservacao').value = config.regime_iva_observacao;
+                    }
+                    
+                    // INSS
+                    document.getElementById('inssEmpregado').value = config.inss_empregado || 3.0;
+                    document.getElementById('inssPatronal').value = config.inss_patronal || 8.0;
+                    
+                    // Financeiro
+                    document.getElementById('margemMinima').value = config.margem_minima || 30;
+                    document.getElementById('capitalGiro').value = config.capital_giro_percentual || 40;
+                    document.getElementById('fundoReserva').value = config.fundo_reserva_percentual || 10;
+                    document.getElementById('distribuicaoLucro').value = config.distribuicao_lucro_percentual || 50;
+
+                    // Impostos
+                    const irtEstimado = document.getElementById('irtEstimadoPercentual');
+                    if (irtEstimado) irtEstimado.value = config.irt_estimado_percentual || 0;
+                    const impostoSelo = document.getElementById('impostoSeloPercentual');
+                    if (impostoSelo) impostoSelo.value = config.imposto_selo_percentual || 0;
+                    const impostoSeloLimite = document.getElementById('impostoSeloLimite');
+                    if (impostoSeloLimite) impostoSeloLimite.value = config.imposto_selo_limite_faturacao || 0;
+                }
+            } catch (error) {
+                console.error('Erro ao carregar configurações:', error);
+            } finally {
+                await carregarModulosSistema();
+            }
+        }
+        async function carregarModulosSistema() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                atualizarUIIntegracao();
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/modulos`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    moduloConfigAtual = data.data;
+                    document.getElementById('toggleVendas').checked = moduloConfigAtual.vendasEnabled;
+                    document.getElementById('toggleFolha').checked = moduloConfigAtual.folhaEnabled;
+
+                    const modoAtual = moduloConfigAtual.integracaoModo || 'nenhuma';
+                    const radio = document.querySelector(`input[name="modoIntegracao"][value="${modoAtual}"]`);
+                    if (radio) {
+                        radio.checked = true;
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao carregar módulos:', error);
+            } finally {
+                atualizarUIIntegracao();
+            }
+        }
+
+        function atualizarUIIntegracao() {
+            const vendasAtivo = document.getElementById('toggleVendas').checked;
+            const folhaAtivo = document.getElementById('toggleFolha').checked;
+            const radios = document.querySelectorAll('input[name="modoIntegracao"]');
+
+            radios.forEach(radio => {
+                const requiresBoth = radio.value !== 'nenhuma';
+                const enableRadio = vendasAtivo && folhaAtivo;
+                radio.disabled = requiresBoth && !enableRadio;
+                if (radio.disabled && radio.checked) {
+                    document.getElementById('modoNenhuma').checked = true;
+                }
+            });
+
+            atualizarTextoIntegracao();
+        }
+
+        function atualizarTextoIntegracao() {
+            const hint = document.getElementById('modulosStatusHint');
+            if (!hint) return;
+
+            const vendasAtivo = document.getElementById('toggleVendas').checked;
+            const folhaAtivo = document.getElementById('toggleFolha').checked;
+            const modoSelecionado = document.querySelector('input[name="modoIntegracao"]:checked')?.value || 'nenhuma';
+
+            if (!vendasAtivo && !folhaAtivo) {
+                hint.textContent = 'Todos os módulos estão desativados. Ative pelo menos um para operar o sistema.';
+                return;
+            }
+
+            if (!(vendasAtivo && folhaAtivo)) {
+                hint.textContent = 'Com apenas um módulo ativo a integração é desativada automaticamente.';
+                return;
+            }
+
+            const mensagens = {
+                'nenhuma': 'Os módulos funcionam de forma independente, sem troca automática de dados.',
+                'folha->vendas': 'Ao confirmar a folha, as despesas serão lançadas automaticamente no módulo de vendas.',
+                'vendas->folha': 'Resultados de vendas impactarão projeções da folha e relatórios trabalhistas.',
+                'bidirecional': 'Folha e Vendas trocarão dados nos dois sentidos, mantendo a lógica completa do SGVA.'
+            };
+
+            hint.textContent = mensagens[modoSelecionado] || mensagens.nenhuma;
+        }
+
+        async function salvarModulosSistema() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Faça login para alterar a configuração de módulos.');
+                return;
+            }
+
+            const vendasAtivo = document.getElementById('toggleVendas').checked;
+            const folhaAtivo = document.getElementById('toggleFolha').checked;
+            let modoSelecionado = document.querySelector('input[name="modoIntegracao"]:checked')?.value || 'nenhuma';
+
+            if (!(vendasAtivo && folhaAtivo)) {
+                modoSelecionado = 'nenhuma';
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/modulos`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        vendasEnabled: vendasAtivo,
+                        folhaEnabled: folhaAtivo,
+                        integracaoModo: modoSelecionado
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    alert('✅ Configuração de módulos atualizada!');
+                    moduloConfigAtual = data.data;
+                } else {
+                    alert('❌ Erro ao salvar configuração: ' + (data.message || 'sem detalhes'));
+                }
+            } catch (error) {
+                console.error('Erro ao salvar módulos:', error);
+                alert('Erro ao salvar configuração de módulos');
+            } finally {
+                await carregarModulosSistema();
+            }
+        }
+
+        function selecionarRegime(regime) {
+            regimeSelecionado = regime;
+            atualizarSelecaoRegime(regime);
+        }
+
+        function atualizarSelecaoRegime(regime) {
+            const cardIntegracao = document.getElementById('card-integracao');
+            const cardExclusao = document.getElementById('card-exclusao');
+            
+            cardIntegracao.classList.remove('selected');
+            cardExclusao.classList.remove('selected');
+            
+            if (regime === 'integracao' || regime === 'normal') {
+                cardIntegracao.classList.add('selected');
+            } else if (regime === 'exclusao') {
+                cardExclusao.classList.add('selected');
+            }
+        }
+
+        async function salvarRegimeIva() {
+            const observacao = document.getElementById('regimeObservacao').value;
+            
+            // Converter 'integracao' para 'normal' para compatibilidade com o banco
+            const regimeParaSalvar = regimeSelecionado === 'integracao' ? 'normal' : regimeSelecionado;
+            
+            try {
+                const response = await fetch(`${API_URL}/financeiro/config`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        regime_iva: regimeParaSalvar,
+                        regime_iva_observacao: observacao
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Regime de IVA salvo com sucesso!\n\nTodas as vendas seguirão este regime.');
+                    await carregarConfiguracoes();
+                } else {
+                    alert('❌ Erro ao salvar: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao salvar configuração');
+            }
+        }
+
+        async function salvarConfigInss() {
+            const inssEmpregado = parseFloat(document.getElementById('inssEmpregado').value);
+            const inssPatronal = parseFloat(document.getElementById('inssPatronal').value);
+            
+            try {
+                const response = await fetch(`${API_URL}/financeiro/config`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        inss_empregado: inssEmpregado,
+                        inss_patronal: inssPatronal
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Taxas INSS atualizadas com sucesso!');
+                } else {
+                    alert('❌ Erro ao salvar: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao salvar configuração');
+            }
+        }
+
+        async function salvarConfigFinanceira() {
+            const margemMinima = parseFloat(document.getElementById('margemMinima').value);
+            const capitalGiro = parseFloat(document.getElementById('capitalGiro').value);
+            const fundoReserva = parseFloat(document.getElementById('fundoReserva').value);
+            const distribuicaoLucro = parseFloat(document.getElementById('distribuicaoLucro').value);
+            
+            try {
+                const response = await fetch(`${API_URL}/financeiro/config`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        margem_minima: margemMinima,
+                        capital_giro_percentual: capitalGiro,
+                        fundo_reserva_percentual: fundoReserva,
+                        distribuicao_lucro_percentual: distribuicaoLucro
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Parâmetros financeiros atualizados!');
+                } else {
+                    alert('❌ Erro ao salvar: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao salvar configuração');
+            }
+        }
+
+        async function salvarConfigImpostos() {
+            const irtEstimadoPercentual = parseFloat(document.getElementById('irtEstimadoPercentual').value) || 0;
+            const impostoSeloPercentual = parseFloat(document.getElementById('impostoSeloPercentual').value) || 0;
+            const impostoSeloLimite = parseFloat(document.getElementById('impostoSeloLimite').value) || 0;
+
+            try {
+                const response = await fetch(`${API_URL}/financeiro/config`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        irt_estimado_percentual: irtEstimadoPercentual,
+                        imposto_selo_percentual: impostoSeloPercentual,
+                        imposto_selo_limite_faturacao: impostoSeloLimite
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('✅ Impostos atualizados!');
+                } else {
+                    alert('❌ Erro ao salvar: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao salvar configuração');
+            }
+        }
+    </script>
+</body>
+</html>

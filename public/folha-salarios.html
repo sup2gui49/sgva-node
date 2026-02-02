@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Folha de Salários - SGVA</title>
+    <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css" data-cdn="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" data-offline-group="core">
+    <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.css" data-cdn="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" data-offline-group="icons">
+    <link rel="stylesheet" href="folha-shared.css">
+    <link rel="stylesheet" href="offline.css" data-offline-style="core" disabled>
+    <link rel="stylesheet" href="offline-icons.css" data-offline-style="icons" disabled>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23667eea'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='16' fill='white' font-family='Arial'%3EFS%3C/text%3E%3C/svg%3E">
+    <script src="js/offline-assets.js"></script>
+    <style>
+        .status-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        .status-pago {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-pendente {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .table-hover tbody tr:hover {
+            background: #f8f9fa;
+        }
+        .subsidios-clickable {
+            cursor: pointer;
+            color: #007bff;
+            text-decoration: underline;
+            transition: all 0.2s;
+        }
+        .subsidios-clickable:hover {
+            color: #0056b3;
+            font-weight: bold;
+        }
+        .subsidios-detalhes {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+        }
+        .subsidios-detalhes td {
+            padding: 15px !important;
+        }
+        .subsidio-item {
+            padding: 8px;
+            margin: 4px 0;
+            background: white;
+            border-radius: 4px;
+            border-left: 3px solid #667eea;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-md-block sidebar p-3">
+                <div class="text-white mb-4">
+                    <h4><i class="bi bi-cash-stack"></i> SGVA Folha</h4>
+                    <small>Sistema Profissional</small>
+                </div>
+                
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-dashboard.html">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-funcionarios.html">
+                            <i class="bi bi-people"></i> Funcionários
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-subsidios.html">
+                            <i class="bi bi-wallet2"></i> Subsídios
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-categorias.html">
+                            <i class="bi bi-diagram-3"></i> Categorias
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-calculo.html">
+                            <i class="bi bi-calculator"></i> Calcular Folha
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link active" href="folha-salarios.html">
+                            <i class="bi bi-table"></i> Folha de Salários
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-irt.html">
+                            <i class="bi bi-percent"></i> Escalões IRT
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-historico.html">
+                            <i class="bi bi-clock-history"></i> Histórico
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-excel.html">
+                            <i class="bi bi-file-earmark-spreadsheet"></i> Exportar Excel
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-notificacoes.html">
+                            <i class="bi bi-bell"></i> Notificações
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-backup.html">
+                            <i class="bi bi-hdd"></i> Backup
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-configuracoes.html">
+                            <i class="bi bi-gear"></i> Configurações
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="mt-4 pt-3 border-top border-light">
+                    <a href="index.html" class="btn btn-light btn-sm w-100">
+                        <i class="bi bi-box-arrow-left"></i> Voltar ao Painel
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Content -->
+            <main class="col-md-10 ms-sm-auto px-4 py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2><i class="bi bi-table"></i> Folha de Salários</h2>
+                        <p class="text-muted">Gestão de pagamentos mensais</p>
+                    </div>
+                </div>
+
+                <!-- Filtros -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Mês</label>
+                                <select class="form-select" id="filtro-mes">
+                                    <option value="1">Janeiro</option>
+                                    <option value="2">Fevereiro</option>
+                                    <option value="3">Março</option>
+                                    <option value="4">Abril</option>
+                                    <option value="5">Maio</option>
+                                    <option value="6">Junho</option>
+                                    <option value="7">Julho</option>
+                                    <option value="8">Agosto</option>
+                                    <option value="9">Setembro</option>
+                                    <option value="10">Outubro</option>
+                                    <option value="11">Novembro</option>
+                                    <option value="12">Dezembro</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Ano</label>
+                                <select class="form-select" id="filtro-ano">
+                                    <option value="2024">2024</option>
+                                    <option value="2025" selected>2025</option>
+                                    <option value="2026">2026</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="filtro-status">
+                                    <option value="">Todos</option>
+                                    <option value="pago">Pago</option>
+                                    <option value="pendente">Pendente</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button class="btn btn-primary w-100" onclick="carregarFolha()">
+                                    <i class="bi bi-search"></i> Buscar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumo -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <h6>Total Bruto</h6>
+                                <h3 id="total-bruto">0,00 KZ</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <h6>Total Líquido</h6>
+                                <h3 id="total-liquido">0,00 KZ</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <h6>Total IRT</h6>
+                                <h3 id="total-irt">0,00 KZ</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabela -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Lista de Salários</h5>
+                        <button class="btn btn-success" onclick="pagarTodosSalarios()" id="btn-pagar-todos">
+                            <i class="bi bi-cash-coin"></i> Pagar Todos os Salários
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="tabela-folha">
+                                <thead>
+                                    <tr id="cabecalho-tabela">
+                                        <th>Funcionário</th>
+                                        <th>Categoria</th>
+                                        <th>Salário Base</th>
+                                        <th style="cursor: pointer;" onclick="toggleTodasColunaSubsidios()" title="Clique para expandir/recolher colunas de subsídios">
+                                            Subsídios <i class="bi bi-chevron-right" id="chevron-header"></i>
+                                        </th>
+                                        <!-- Colunas de subsídios serão inseridas aqui dinamicamente -->
+                                        <th>Total Bruto</th>
+                                        <th>Base Tributável</th>
+                                        <th>Segurança Social</th>
+                                        <th>IRT</th>
+                                        <th>Total Descontos</th>
+                                        <th>Total Líquido</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabela-salarios">
+                                    <tr>
+                                        <td colspan="12" class="text-center">
+                                            <i class="bi bi-search"></i> Selecione o mês e clique em Buscar
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        AssetLoader.loadScript(
+            'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js',
+            'vendor/bootstrap/bootstrap.bundle.min.js'
+        );
+    </script>
+    <script>window.bootstrap = window.bootstrap || {};</script>
+    <script>
+        const API_URL = 'http://localhost:3000/api/folha-profissional';
+        let folhaAtual = [];
+
+        // Definir mês atual
+        document.addEventListener('DOMContentLoaded', () => {
+            const mesAtual = new Date().getMonth() + 1;
+            document.getElementById('filtro-mes').value = mesAtual;
+            carregarFolha();
+        });
+
+        // Carregar folha
+        async function carregarFolha() {
+            const mes = document.getElementById('filtro-mes').value;
+            const ano = document.getElementById('filtro-ano').value;
+            const statusFiltro = document.getElementById('filtro-status').value;
+
+            try {
+                // Carregar todos os funcionários ativos
+                const response = await fetch(`${API_URL.replace('/folha-profissional', '')}/funcionarios`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    const funcionarios = data.data.filter(f => f.ativo);
+                    console.log('📋 Funcionários ativos:', funcionarios.length);
+                    
+                    // Calcular cada funcionário
+                    const calculos = await Promise.all(
+                        funcionarios.map(async (func) => {
+                            try {
+                                const calcResponse = await fetch(`${API_URL}/calcular/${func.id}`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                    },
+                                    body: JSON.stringify({ mes: parseInt(mes), ano: parseInt(ano) })
+                                });
+                                
+                                const calcData = await calcResponse.json();
+                                
+                                console.log(`💰 Cálculo ${func.nome}:`, {
+                                    status: calcResponse.status,
+                                    success: calcData.success,
+                                    data: calcData.data,
+                                    error: calcData.error,
+                                    message: calcData.message
+                                });
+                                
+                                if (calcData.success && calcData.data) {
+                                    return {
+                                        ...calcData.data,
+                                        status: 'pendente' // Por enquanto todos pendentes
+                                    };
+                                }
+                                return null;
+                            } catch (error) {
+                                console.error(`❌ Erro ao calcular ${func.nome}:`, error);
+                                return null;
+                            }
+                        })
+                    );
+
+                    const calculosValidos = calculos.filter(c => c !== null);
+                    const statusMap = await carregarStatusPagamentos(mes, ano);
+
+                    folhaAtual = calculosValidos.map(calc => ({
+                        ...calc,
+                        status: statusMap.get(calc.funcionario.id) || 'pendente'
+                    }));
+
+                    console.log('✅ Folha calculada:', folhaAtual);
+                    
+                    // Aplicar filtro de status
+                    let folhaFiltrada = folhaAtual;
+                    if (statusFiltro) {
+                        folhaFiltrada = folhaAtual.filter(f => f.status === statusFiltro);
+                    }
+
+                    renderizarTabela(folhaFiltrada);
+                    atualizarResumo(folhaAtual);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar folha:', error);
+                alert('Erro ao carregar folha de salários');
+            }
+        }
+
+        async function carregarStatusPagamentos(mes, ano) {
+            try {
+                const response = await fetch(`${API_URL}/pagamentos/status?mes=${mes}&ano=${ano}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (!data.success || !Array.isArray(data.data)) {
+                    return new Map();
+                }
+
+                return new Map(
+                    data.data.map(item => [
+                        parseInt(item.funcionario_id, 10),
+                        item.status || 'pendente'
+                    ])
+                );
+            } catch (error) {
+                console.warn('Não foi possível carregar status dos pagamentos:', error);
+                return new Map();
+            }
+        }
+
+        // Renderizar tabela
+        function renderizarTabela(folha) {
+            const tbody = document.getElementById('tabela-salarios');
+            const cabecalho = document.getElementById('cabecalho-tabela');
+            
+            if (folha.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="12" class="text-center">Nenhum funcionário encontrado</td></tr>';
+                return;
+            }
+
+            // Coletar todos os subsídios únicos para colunas
+            const todosSubsidios = new Set();
+            folha.forEach(calc => {
+                if (calc.subsidios?.detalhes) {
+                    calc.subsidios.detalhes.forEach(sub => todosSubsidios.add(sub.nome));
+                }
+            });
+            const listaSubsidios = Array.from(todosSubsidios);
+
+            // Reconstruir cabeçalho
+            let cabecalhoHTML = `
+                <th>Funcionário</th>
+                <th>Categoria</th>
+                <th>Salário Base</th>
+                <th style="cursor: pointer;" onclick="toggleTodasColunaSubsidios()" title="Clique para expandir/recolher colunas de subsídios">
+                    Subsídios <i class="bi ${colunasSubsidiosExpandidas ? 'bi-chevron-down' : 'bi-chevron-right'}" id="chevron-header"></i>
+                </th>
+            `;
+
+            // Adicionar colunas de subsídios se expandido
+            if (colunasSubsidiosExpandidas && listaSubsidios.length > 0) {
+                listaSubsidios.forEach(nome => {
+                    cabecalhoHTML += `<th class="text-center" style="background: #e3f2fd; font-size: 0.85em;">${nome}</th>`;
+                });
+            }
+
+            cabecalhoHTML += `
+                <th>Total Bruto</th>
+                <th>Base Tributável</th>
+                <th>Segurança Social</th>
+                <th>IRT</th>
+                <th>Total Descontos</th>
+                <th>Total Líquido</th>
+                <th>Status</th>
+                <th>Ações</th>
+            `;
+
+            cabecalho.innerHTML = cabecalhoHTML;
+
+            let html = '';
+            
+            folha.forEach((calc, index) => {
+                console.log(`🔍 Debug ${calc.funcionario.nome}:`, {
+                    subsidios: calc.subsidios,
+                    inss: calc.inss,
+                    irt: calc.irt,
+                    salario_bruto: calc.salario_bruto,
+                    rendimento_colectavel: calc.rendimento_colectavel
+                });
+
+                const inssValor = parseFloat(calc.inss?.empregado) || 0;
+                const irtValor = parseFloat(calc.irt?.valor || calc.irt) || 0;
+                const totalDescontos = inssValor + irtValor;
+                const subsidiosTotal = calc.subsidios?.total || 0;
+                const salarioBruto = calc.salario_bruto || (calc.salario_base + subsidiosTotal);
+                
+                // Linha principal
+                html += `
+                    <tr data-funcionario-id="${calc.funcionario.id}">
+                        <td><strong>${calc.funcionario.nome}</strong></td>
+                        <td>${calc.funcionario.categoria}</td>
+                        <td>${formatarValor(calc.salario_base)}</td>
+                        <td class="subsidios-clickable" onclick="toggleSubsidios(${index})" title="Clique para ver detalhes completos">
+                            ${formatarValor(subsidiosTotal)}
+                            <i class="bi bi-chevron-down" id="chevron-${index}"></i>
+                        </td>
+                `;
+
+                // Colunas individuais de subsídios (se expandido)
+                if (colunasSubsidiosExpandidas && listaSubsidios.length > 0) {
+                    listaSubsidios.forEach(nomeSubsidio => {
+                        const subsidio = calc.subsidios?.detalhes?.find(s => s.nome === nomeSubsidio);
+                        html += `<td class="text-center" style="background: #f8f9fa; font-size: 0.9em;">${subsidio ? formatarValor(subsidio.valor) : '-'}</td>`;
+                    });
+                }
+
+                html += `
+                        <td><strong>${formatarValor(salarioBruto)}</strong></td>
+                        <td class="text-warning"><strong>${formatarValor(calc.rendimento_colectavel || 0)}</strong></td>
+                        <td>${formatarValor(inssValor)}</td>
+                        <td>${formatarValor(irtValor)}</td>
+                        <td class="text-danger"><strong>${formatarValor(totalDescontos)}</strong></td>
+                        <td class="text-success"><strong>${formatarValor(calc.salario_liquido)}</strong></td>
+                        <td>
+                            <span class="status-badge status-${calc.status}">
+                                ${calc.status === 'pago' ? '✓ Pago' : '⏳ Pendente'}
+                            </span>
+                        </td>
+                        <td>
+                            ${calc.status === 'pendente' ? `
+                                <button class="btn btn-sm btn-success" onclick="pagarSalario(${calc.funcionario.id})">
+                                    <i class="bi bi-cash"></i> Pagar
+                                </button>
+                            ` : `
+                                <button class="btn btn-sm btn-secondary" disabled>
+                                    <i class="bi bi-check-circle"></i> Pago
+                                </button>
+                            `}
+                            <button class="btn btn-sm btn-info" onclick="verRecibo(${calc.funcionario.id})">
+                                <i class="bi bi-receipt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+
+                // Linha de detalhes dos subsídios (oculta por padrão)
+                const subsidiosDetalhes = calc.subsidios?.detalhes || [];
+                if (subsidiosDetalhes.length > 0) {
+                    const colspanTotal = 12 + (colunasSubsidiosExpandidas ? listaSubsidios.length : 0);
+                    html += `
+                        <tr id="subsidios-${index}" class="subsidios-detalhes" style="display: none;">
+                            <td colspan="${colspanTotal}">
+                                <div style="padding: 10px;">
+                                    <h6><i class="bi bi-wallet2"></i> Detalhes dos Subsídios:</h6>
+                                    ${subsidiosDetalhes.map(sub => `
+                                        <div class="subsidio-item mb-2">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <strong>${sub.nome}:</strong>
+                                                <span class="text-primary fw-bold">${formatarValor(sub.valor)}</span>
+                                                ${sub.incide_inss ? 
+                                                    `<span class="badge bg-primary" title="Incide INSS (3% empregado + 8% empresa)">
+                                                        <i class="bi bi-shield-check"></i> INSS
+                                                    </span>` : 
+                                                    `<span class="badge bg-secondary" title="Isento de INSS">
+                                                        <i class="bi bi-shield-x"></i> Sem INSS
+                                                    </span>`
+                                                }
+                                                ${sub.incide_irt ? 
+                                                    (sub.tributavel > 0 ? 
+                                                        `<span class="badge bg-warning text-dark" title="Tributável para IRT">
+                                                            <i class="bi bi-percent"></i> IRT: ${formatarValor(sub.tributavel)}
+                                                        </span>` : 
+                                                        `<span class="badge bg-success" title="Isento de IRT">
+                                                            <i class="bi bi-check-circle"></i> IRT Isento: ${formatarValor(sub.isento)}
+                                                        </span>`)
+                                                    : 
+                                                    `<span class="badge bg-success" title="Não incide IRT">
+                                                        <i class="bi bi-check-circle"></i> Isento IRT: ${formatarValor(sub.valor)}
+                                                    </span>`
+                                                }
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                    <div class="mt-3">
+                                        <strong>Total Subsídios:</strong> ${formatarValor(calc.subsidios.total)} 
+                                        | <strong>Isento:</strong> ${formatarValor(calc.subsidios.isento)} 
+                                        | <strong>Tributável:</strong> ${formatarValor(calc.subsidios.tributavel)}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        // Toggle subsídios
+        function toggleSubsidios(index) {
+            const row = document.getElementById(`subsidios-${index}`);
+            const chevron = document.getElementById(`chevron-${index}`);
+            
+            if (row.style.display === 'none') {
+                row.style.display = 'table-row';
+                chevron.classList.remove('bi-chevron-down');
+                chevron.classList.add('bi-chevron-up');
+            } else {
+                row.style.display = 'none';
+                chevron.classList.remove('bi-chevron-up');
+                chevron.classList.add('bi-chevron-down');
+            }
+        }
+
+        // Toggle todas as colunas de subsídios
+        let colunasSubsidiosExpandidas = false;
+        function toggleTodasColunaSubsidios() {
+            colunasSubsidiosExpandidas = !colunasSubsidiosExpandidas;
+            const chevron = document.getElementById('chevron-header');
+            
+            if (colunasSubsidiosExpandidas) {
+                chevron.classList.remove('bi-chevron-right');
+                chevron.classList.add('bi-chevron-down');
+            } else {
+                chevron.classList.remove('bi-chevron-down');
+                chevron.classList.add('bi-chevron-right');
+            }
+            
+            // Re-renderizar tabela com colunas expandidas
+            renderizarTabela(folhaAtual);
+        }
+
+        // Atualizar resumo
+        function atualizarResumo(folha) {
+            const totalBruto = folha.reduce((sum, calc) => {
+                return sum + (calc.salario_bruto || (calc.salario_base + (calc.subsidios?.total || 0)));
+            }, 0);
+            
+            const totalLiquido = folha.reduce((sum, calc) => sum + calc.salario_liquido, 0);
+            
+            const totalIRT = folha.reduce((sum, calc) => {
+                const irtValor = parseFloat(calc.irt?.valor || calc.irt) || 0;
+                return sum + (isNaN(irtValor) ? 0 : irtValor);
+            }, 0);
+
+            document.getElementById('total-bruto').textContent = formatarValor(totalBruto);
+            document.getElementById('total-liquido').textContent = formatarValor(totalLiquido);
+            document.getElementById('total-irt').textContent = formatarValor(totalIRT);
+        }
+
+        async function registrarPagamentos(calculos, mes, ano) {
+            const payload = {
+                mes: parseInt(mes, 10),
+                ano: parseInt(ano, 10),
+                pagamentos: calculos.map(calc => ({
+                    funcionario_id: calc.funcionario.id,
+                    valor: calc.salario_liquido,
+                    descricao: `Pagamento Salário - ${calc.funcionario.nome} - ${mes}/${ano}`,
+                    observacoes: `Ref: ${calc.funcionario.nome} - ${mes}/${ano}`
+                }))
+            };
+
+            const response = await fetch(`${API_URL}/pagamentos`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            if (!data.success) {
+                throw new Error(data.message || 'Erro ao registrar pagamentos');
+            }
+
+            return data;
+        }
+
+        // Pagar salário individual
+        async function pagarSalario(funcionarioId) {
+            const mes = document.getElementById('filtro-mes').value;
+            const ano = document.getElementById('filtro-ano').value;
+            const calc = folhaAtual.find(f => f.funcionario.id === funcionarioId);
+
+            if (!calc) {
+                alert('Funcionário não encontrado');
+                return;
+            }
+
+            if (!confirm(`Confirma o pagamento de ${formatarValor(calc.salario_liquido)} para ${calc.funcionario.nome}?`)) {
+                return;
+            }
+
+            try {
+                // Verificar configuração de integração
+                const configResponse = await fetch('http://localhost:3000/api/config/modulos', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                const configData = await configResponse.json();
+                const temIntegracao = configData.data?.integracao_modo && configData.data.integracao_modo !== 'nenhuma';
+
+                // Verificar saldo apenas se houver integração com vendas
+                if (temIntegracao) {
+                    const saldoResponse = await fetch('http://localhost:3000/api/financeiro/saldo', {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    const saldoData = await saldoResponse.json();
+
+                    if (!saldoData.success || saldoData.data.saldo < calc.salario_liquido) {
+                        alert(`Saldo insuficiente! Saldo disponível: ${formatarValor(saldoData.data.saldo)}`);
+                        return;
+                    }
+                }
+
+                const resultado = await registrarPagamentos([calc], mes, ano);
+                alert(resultado.message || 'Salário pago com sucesso!');
+                carregarFolha();
+            } catch (error) {
+                console.error('Erro ao pagar salário:', error);
+                alert('Erro ao processar pagamento');
+            }
+        }
+
+        // Pagar todos os salários
+        async function pagarTodosSalarios() {
+            const pendentes = folhaAtual.filter(f => f.status === 'pendente');
+            
+            if (pendentes.length === 0) {
+                alert('Não há salários pendentes para pagar');
+                return;
+            }
+
+            const mes = document.getElementById('filtro-mes').value;
+            const ano = document.getElementById('filtro-ano').value;
+            const totalPagar = pendentes.reduce((sum, calc) => sum + calc.salario_liquido, 0);
+
+            if (!confirm(`Confirma o pagamento total de ${formatarValor(totalPagar)} para ${pendentes.length} funcionário(s)?`)) {
+                return;
+            }
+
+            try {
+                // Verificar configuração de integração
+                const configResponse = await fetch('http://localhost:3000/api/config/modulos', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                const configData = await configResponse.json();
+                const temIntegracao = configData.data?.integracao_modo && configData.data.integracao_modo !== 'nenhuma';
+
+                // Verificar saldo apenas se houver integração com vendas
+                if (temIntegracao) {
+                    const saldoResponse = await fetch('http://localhost:3000/api/financeiro/saldo', {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    const saldoData = await saldoResponse.json();
+
+                    if (!saldoData.success || saldoData.data.saldo < totalPagar) {
+                        alert(`Saldo insuficiente! Necessário: ${formatarValor(totalPagar)}, Disponível: ${formatarValor(saldoData.data.saldo)}`);
+                        return;
+                    }
+                }
+
+                await registrarPagamentos(pendentes, mes, ano);
+                alert('Todos os salários foram pagos!');
+                carregarFolha();
+            } catch (error) {
+                console.error('Erro ao pagar salários:', error);
+                alert('Erro ao processar pagamentos');
+            }
+        }
+
+        // Ver recibo
+        function verRecibo(funcionarioId) {
+            const mes = document.getElementById('filtro-mes').value;
+            const ano = document.getElementById('filtro-ano').value;
+            window.location.href = `folha-calculo.html?funcionario=${funcionarioId}&mes=${mes}&ano=${ano}`;
+        }
+
+        // Formatar valor
+        function formatarValor(valor) {
+            const num = parseFloat(valor);
+            if (isNaN(num)) {
+                console.warn('Valor inválido para formatação:', valor);
+                return '0,00 KZ';
+            }
+            return new Intl.NumberFormat('pt-AO', {
+                style: 'currency',
+                currency: 'AOA',
+                minimumFractionDigits: 2
+            }).format(num).replace('AOA', 'KZ');
+        }
+    </script>
+</body>
+</html>

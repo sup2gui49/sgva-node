@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGVA - Sistema de Gestão de Vendas Adaptável</title>
+    <link rel="stylesheet" href="style.css">
+    <link id="bootstrap-css" rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css" data-cdn="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" data-offline-group="core">
+    <link id="bootstrap-icons" rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.css" data-cdn="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" data-offline-group="icons">
+    <link rel="stylesheet" href="offline.css" id="fallback-css" data-offline-style="core" disabled>
+    <link rel="stylesheet" href="offline-icons.css" id="fallback-icons" data-offline-style="icons" disabled>
+    <script src="js/offline-assets.js"></script>
+    <script>
+        AssetLoader.loadScript(
+            'https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js',
+            'vendor/chartjs/chart.umd.min.js',
+            { target: 'head' }
+        );
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- Dashboard -->
+        <div id="dashboard-section" class="section active">
+            <nav class="navbar">
+                <h2>SGVA Dashboard</h2>
+                <div class="user-info">
+                    <span id="user-name"></span>
+                    <button onclick="window.location.href='index.html'" style="margin-right: 10px; background: #6c757d;">
+                        ⬅️ Voltar ao Painel
+                    </button>
+                    <button onclick="logout()">Sair</button>
+                </div>
+            </nav>
+
+            <div class="menu">
+                <button class="menu-btn active" onclick="showPage('dashboard')">📊 Dashboard</button>
+                <button class="menu-btn" onclick="showPage('categorias')">🏷️ Categorias</button>
+                <button class="menu-btn" onclick="showPage('produtos')">📦 Produtos</button>
+                <button class="menu-btn" onclick="showPage('vendas')">💰 Vendas</button>
+                <button class="menu-btn" onclick="showPage('financeiro')">💵 Financeiro</button>
+                <button class="menu-btn" onclick="showPage('configuracoes')">⚙️ Configurações</button>
+            </div>
+
+            <!-- Dashboard Home -->
+            <div id="page-dashboard" class="page active">
+                <h2>Dashboard Financeiro</h2>
+                <div id="dashboard-cards" class="cards"></div>
+                <div id="dashboard-offline-banner" class="offline-banner" style="display:none;"></div>
+                
+                <!-- Gráficos -->
+                <div id="dashboard-charts" class="charts-container">
+                    <div class="chart-box">
+                        <h3>Receitas vs Despesas</h3>
+                        <canvas id="chart-receita-despesa"></canvas>
+                    </div>
+                    <div class="chart-box">
+                        <h3>Despesas por Categoria</h3>
+                        <canvas id="chart-despesas-categoria"></canvas>
+                    </div>
+                    <div class="chart-box">
+                        <h3>Evolução Mensal</h3>
+                        <canvas id="chart-evolucao"></canvas>
+                    </div>
+                    <div class="chart-box">
+                        <h3>Produtos Mais Vendidos</h3>
+                        <canvas id="chart-produtos"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produtos -->
+            <div id="page-produtos" class="page">
+                <h2>Gestão de Produtos</h2>
+                <button onclick="showAddProduct()">➕ Novo Produto</button>
+                <button onclick="loadProducts()">🔄 Atualizar</button>
+                
+                <div style="margin: 15px 0;">
+                    <input type="text" id="filter-produto" placeholder="🔍 Buscar produto..." style="width: 300px; padding: 10px;" onkeyup="filterProducts()" />
+                    <select id="filter-categoria" onchange="filterProducts()" style="padding: 10px;">
+                        <option value="">Todas Categorias</option>
+                        <option value="padaria">Padaria</option>
+                        <option value="bebidas">Bebidas</option>
+                        <option value="lanche">Lanche</option>
+                        <option value="outros">Outros</option>
+                    </select>
+                </div>
+                
+                <div id="add-product-form" class="form-card" style="display:none;">
+                    <h3>Adicionar Produto</h3>
+                    <input type="text" id="prod-nome" placeholder="Nome do Produto" />
+                    
+                    <label for="produto-categoria">Categoria Fiscal *</label>
+                    <select id="produto-categoria" required>
+                        <option value="">Selecione uma categoria</option>
+                        <!-- Categorias carregadas dinamicamente via JavaScript -->
+                    </select>
+                    <div class="iva-preview" id="iva-preview" style="display:none;">
+                        <small><i class="fas fa-info-circle"></i> <strong>IVA:</strong> <span id="iva-taxa">14%</span> - <span id="iva-tipo">Produto</span></small>
+                    </div>
+                    
+                    <input type="number" id="prod-custo" placeholder="Custo Unitário (KZ)" step="0.01" />
+                    <input type="number" id="prod-preco" placeholder="Preço de Venda (KZ)" step="0.01" />
+                    <input type="number" id="prod-estoque" placeholder="Estoque Inicial" />
+                    <input type="number" id="prod-estoque-minimo" placeholder="Estoque Mínimo" value="10" />
+                    <button onclick="addProduct()">Salvar</button>
+                    <button onclick="hideAddProduct()">Cancelar</button>
+                </div>
+                
+                <div id="produtos-list"></div>
+            </div>
+
+            <!-- Categorias -->
+            <div id="page-categorias" class="page">
+                <h2>🏷️ Gestão de Categorias Fiscais</h2>
+                
+                <div class="tabs">
+                    <button class="tab active" onclick="showCategoriasTab('produtos')">Categorias de Produtos</button>
+                    <button class="tab" onclick="showCategoriasTab('despesas')">Categorias de Despesas</button>
+                    <button class="tab" onclick="showCategoriasTab('estatisticas')">Estatísticas</button>
+                </div>
+
+                <!-- Categorias de Produtos -->
+                <div id="categorias-produtos" class="tab-content active">
+                    <div class="action-buttons">
+                        <button class="btn-primary" onclick="categoriasManager.mostrarModalCategoriaProduto()">
+                            ➕ Nova Categoria de Produto
+                        </button>
+                        <button class="btn-secondary" onclick="categoriasManager.carregarCategorias()">
+                            🔄 Atualizar
+                        </button>
+                    </div>
+
+                    <div class="info-box">
+                        <h4>📋 Categorias de Produtos e Serviços</h4>
+                        <p>Configure as categorias fiscais dos seus produtos. O IVA será calculado automaticamente baseado na categoria:</p>
+                        <ul>
+                            <li><strong>0% (Isento)</strong>: Produtos alimentares básicos, medicamentos, livros escolares</li>
+                            <li><strong>7%</strong>: Produtos alimentares gerais, bebidas não alcoólicas</li>
+                            <li><strong>14%</strong>: Demais produtos e serviços (padrão Angola)</li>
+                        </ul>
+                    </div>
+
+                    <table id="tabela-categorias-produtos" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nome da Categoria</th>
+                                <th>Tipo</th>
+                                <th>Taxa IVA</th>
+                                <th>Produtos</th>
+                                <th>Descrição</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dados carregados via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Categorias de Despesas -->
+                <div id="categorias-despesas" class="tab-content">
+                    <div class="action-buttons">
+                        <button class="btn-primary" onclick="categoriasManager.mostrarModalCategoriaDespesa()">
+                            ➕ Nova Categoria de Despesa
+                        </button>
+                        <button class="btn-secondary" onclick="categoriasManager.carregarCategorias()">
+                            🔄 Atualizar
+                        </button>
+                    </div>
+
+                    <div class="info-box">
+                        <h4>💼 Categorias de Despesas</h4>
+                        <p>Classifique suas despesas para controle fiscal e cálculo correto do IRT:</p>
+                        <ul>
+                            <li><strong>Dedutíveis IRT</strong>: Salários, aluguel, energia, material de escritório</li>
+                            <li><strong>Não Dedutíveis</strong>: Despesas pessoais, alguns impostos</li>
+                        </ul>
+                    </div>
+
+                    <table id="tabela-categorias-despesas" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nome da Categoria</th>
+                                <th>Código Fiscal</th>
+                                <th>Dedutível IRT</th>
+                                <th>Descrição</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dados carregados via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Estatísticas -->
+                <div id="categorias-estatisticas" class="tab-content">
+                    <div id="stats-cards" class="cards">
+                        <!-- Cards de estatísticas carregados via JavaScript -->
+                    </div>
+                    
+                    <div class="charts-container">
+                        <div class="chart-box">
+                            <h3>Distribuição por Taxa de IVA</h3>
+                            <canvas id="chart-iva-distribuicao"></canvas>
+                        </div>
+                        <div class="chart-box">
+                            <h3>Produtos vs Serviços</h3>
+                            <canvas id="chart-produtos-servicos"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vendas -->
+            <div id="page-vendas" class="page">
+                <h2>Registro de Vendas</h2>
+                <button onclick="showNewSale()">➕ Nova Venda</button>
+                
+                <div id="new-sale-form" class="form-card" style="display:none;">
+                    <h3>Registrar Venda</h3>
+                    
+                    <label for="sale-cliente-nome">Nome do Cliente:</label>
+                    <input type="text" id="sale-cliente-nome" placeholder="Digite o nome do cliente" />
+                    
+                    <select id="sale-produto"></select>
+                    <input type="number" id="sale-quantidade" placeholder="Quantidade" />
+                    <button onclick="addItemToSale()">Adicionar Item</button>
+                    
+                    <div id="sale-items"></div>
+                    
+                    <input type="number" id="sale-desconto" placeholder="Desconto (KZ)" step="0.01" />
+                    <div class="iva-info">
+                        <p><i class="fas fa-info-circle"></i> <strong>IVA Automático:</strong> O IVA será calculado automaticamente baseado na categoria fiscal de cada produto</p>
+                        <small>• Produtos alimentares básicos, medicamentos: 0% (Isento)<br>
+                               • Produtos alimentares gerais: 7%<br>  
+                               • Demais produtos e serviços: 14%</small>
+                    </div>
+                    <select id="sale-pagamento">
+                        <option value="dinheiro">Dinheiro</option>
+                        <option value="multicaixa">Multicaixa</option>
+                        <option value="transferencia">Transferência</option>
+                    </select>
+                    <button onclick="finalizeSale()">Finalizar Venda</button>
+                    <button onclick="hideNewSale()">Cancelar</button>
+                </div>
+                
+                <div id="vendas-list"></div>
+            </div>
+
+            <!-- Financeiro -->
+            <div id="page-financeiro" class="page">
+                <h2>Gestão Financeira</h2>
+                
+                <div class="tabs">
+                    <button class="tab active" onclick="showFinanceiroTab('dre')">DRE</button>
+                    <button class="tab" onclick="showFinanceiroTab('capital')">Capital de Giro</button>
+                    <button class="tab" onclick="showFinanceiroTab('precificacao')">Precificação</button>
+                    <button class="tab" onclick="showFinanceiroTab('despesas')">Despesas</button>
+                </div>
+                
+                <div id="financeiro-dre" class="tab-content active"></div>
+                <div id="financeiro-capital" class="tab-content"></div>
+                <div id="financeiro-precificacao" class="tab-content"></div>
+                <div id="financeiro-despesas" class="tab-content"></div>
+            </div>
+
+            <!-- Folha de Pagamento -->
+            <div id="page-configuracoes" class="page">
+                <h2>⚙️ Configurações do Sistema</h2>
+                <p class="text-muted">Acesse os módulos de configuração do sistema</p>
+                
+                <div class="row mt-4">
+                    <div class="col-md-4 mb-3">
+                        <div class="card" style="cursor: pointer; transition: all 0.3s;" onclick="window.location.href='configuracoes.html'" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.05)'">
+                            <div class="card-body text-center p-4">
+                                <i class="bi bi-gear" style="font-size: 3rem; color: #667eea;"></i>
+                                <h5 class="mt-3">Configurações Financeiras</h5>
+                                <p class="text-muted small">Regime IVA, INSS e margens</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="card" style="cursor: pointer; transition: all 0.3s;" onclick="window.location.href='gestao-produtos.html'" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.05)'">
+                            <div class="card-body text-center p-4">
+                                <i class="bi bi-box-seam" style="font-size: 3rem; color: #764ba2;"></i>
+                                <h5 class="mt-3">Gestão de Produtos</h5>
+                                <p class="text-muted small">Produtos e serviços</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="card" style="cursor: pointer; transition: all 0.3s;" onclick="window.location.href='teste-categorias.html'" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.05)'">
+                            <div class="card-body text-center p-4">
+                                <i class="bi bi-tags" style="font-size: 3rem; color: #f093fb;"></i>
+                                <h5 class="mt-3">Categorias IVA</h5>
+                                <p class="text-muted small">Gestão de categorias e taxas</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mt-4">
+                    <i class="bi bi-info-circle"></i> 
+                    <strong>Dica:</strong> Configure o regime de IVA antes de cadastrar produtos. 
+                    A gestão de folha de pagamento está disponível no painel principal (index.html).
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal - Nova Categoria de Produto -->
+    <div id="modal-categoria-produto" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-categoria-produto-title">Nova Categoria de Produto</h3>
+                <span class="modal-close" onclick="categoriasManager.fecharModal('modal-categoria-produto')">&times;</span>
+            </div>
+            
+            <form id="form-categoria-produto">
+                <input type="hidden" name="categoria_id" />
+                
+                <label for="categoria-nome">Nome da Categoria *</label>
+                <input type="text" name="nome" id="categoria-nome" placeholder="Ex: Produtos Alimentares" required />
+                
+                <label for="categoria-descricao">Descrição</label>
+                <textarea name="descricao" id="categoria-descricao" placeholder="Descrição detalhada da categoria" rows="3"></textarea>
+                
+                <label for="categoria-tipo">Tipo *</label>
+                <select name="tipo" id="categoria-tipo" required>
+                    <option value="produto">Produto</option>
+                    <option value="servico">Serviço</option>
+                </select>
+                
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="sujeito_iva" id="categoria-sujeito-iva" checked />
+                        Sujeito a IVA
+                    </label>
+                </div>
+                
+                <label for="categoria-taxa-iva">Taxa de IVA (%)</label>
+                <input type="number" name="taxa_iva_padrao" id="categoria-taxa-iva" 
+                       min="0" max="100" step="0.01" value="14" placeholder="14.00" />
+                
+                <div class="iva-examples">
+                    <small>
+                        <strong>Exemplos:</strong><br>
+                        • 0% - Produtos alimentares básicos, medicamentos<br>
+                        • 7% - Produtos alimentares gerais, bebidas<br>
+                        • 14% - Demais produtos e serviços
+                    </small>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-primary" onclick="salvarCategoriaProdutoDirecto()">Salvar</button>
+                    <button type="button" class="btn-secondary" onclick="categoriasManager.fecharModal('modal-categoria-produto')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal - Nova Categoria de Despesa -->
+    <div id="modal-categoria-despesa" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-categoria-despesa-title">Nova Categoria de Despesa</h3>
+                <span class="modal-close" onclick="categoriasManager.fecharModal('modal-categoria-despesa')">&times;</span>
+            </div>
+            
+            <form id="form-categoria-despesa">
+                <input type="hidden" name="categoria_id" />
+                
+                <label for="despesa-nome">Nome da Categoria *</label>
+                <input type="text" name="nome" id="despesa-nome" placeholder="Ex: Salários e Encargos" required />
+                
+                <label for="despesa-descricao">Descrição</label>
+                <textarea name="descricao" id="despesa-descricao" placeholder="Descrição detalhada da categoria" rows="3"></textarea>
+                
+                <label for="despesa-codigo-fiscal">Código Fiscal</label>
+                <input type="text" name="codigo_fiscal" id="despesa-codigo-fiscal" placeholder="Ex: SAL001" />
+                
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="dedutivel_irt" id="despesa-dedutivel-irt" checked />
+                        Dedutível no IRT
+                    </label>
+                </div>
+                
+                <div class="info-box">
+                    <small>
+                        <strong>Dedutíveis IRT:</strong> Salários, aluguel, energia, material de escritório<br>
+                        <strong>Não Dedutíveis:</strong> Despesas pessoais, alguns impostos
+                    </small>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-primary" onclick="salvarCategoriaDespesaDirecto()">Salvar</button>
+                    <button type="button" class="btn-secondary" onclick="categoriasManager.fecharModal('modal-categoria-despesa')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        AssetLoader.loadScript(
+            'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js',
+            'vendor/bootstrap/bootstrap.bundle.min.js'
+        );
+    </script>
+    <script src="js/auth.js"></script>
+    <script src="js/categorias.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

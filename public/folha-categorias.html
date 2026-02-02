@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Categorias - SGVA</title>
+    <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="folha-shared.css">
+    <style>
+        .categoria-card {
+            transition: all 0.3s;
+            cursor: pointer;
+            border-left: 4px solid transparent;
+        }
+        .categoria-card:hover {
+            transform: translateY(-5px);
+            border-left-color: #667eea;
+        }
+        .funcionario-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.5em 1em;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        .categoria-icon {
+            font-size: 3em;
+            opacity: 0.2;
+            position: absolute;
+            right: 20px;
+            top: 20px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-md-block sidebar p-3">
+                <div class="text-white mb-4">
+                    <h4><i class="bi bi-cash-stack"></i> SGVA Folha</h4>
+                    <small>Sistema Profissional</small>
+                </div>
+                
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-dashboard.html">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-funcionarios.html">
+                            <i class="bi bi-people"></i> Funcionários
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-subsidios.html">
+                            <i class="bi bi-wallet2"></i> Subsídios
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link active" href="folha-categorias.html">
+                            <i class="bi bi-diagram-3"></i> Categorias
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-calculo.html">
+                            <i class="bi bi-calculator"></i> Calcular Folha
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-salarios.html">
+                            <i class="bi bi-table"></i> Folha de Salários
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-irt.html">
+                            <i class="bi bi-bar-chart-steps"></i> Escalões IRT
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-historico.html">
+                            <i class="bi bi-clock-history"></i> Histórico
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-excel.html">
+                            <i class="bi bi-file-earmark-excel"></i> Exportar Excel
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-notificacoes.html">
+                            <i class="bi bi-bell"></i> Notificações
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-backup.html">
+                            <i class="bi bi-hdd"></i> Backup
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-configuracoes.html">
+                            <i class="bi bi-gear"></i> Configurações
+                        </a>
+                    </li>
+                </ul>
+                
+                <!-- Botão Voltar ao Painel -->
+                <div class="mt-4 pt-3 border-top border-light">
+                    <a href="index.html" class="btn btn-outline-light btn-sm w-100">
+                        <i class="bi bi-arrow-left"></i> Voltar ao Painel
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-10 ms-sm-auto px-4 py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2><i class="bi bi-diagram-3"></i> Gestão de Categorias Profissionais</h2>
+                        <p class="text-muted">Configure categorias e gerencie funcionários</p>
+                    </div>
+                    <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#modalCategoria">
+                        <i class="bi bi-plus-circle"></i> Nova Categoria
+                    </button>
+                </div>
+
+                <!-- Estatísticas -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <h6>Total Categorias</h6>
+                                <h3 id="totalCategorias">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <h6>Funcionários Categorizados</h6>
+                                <h3 id="totalFuncionariosCateg">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <h6>Sem Categoria</h6>
+                                <h3 id="totalSemCategoria">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <h6>Categoria Maior</h6>
+                                <div id="categoriaMaior" style="font-size: 0.9em;">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid de Categorias -->
+                <div id="categoriasGrid" class="row g-4">
+                    <!-- Carregado via JavaScript -->
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal Criar/Editar Categoria -->
+    <div class="modal fade" id="modalCategoria" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <h5 class="modal-title" id="modalCategoriaTitle">
+                        <i class="bi bi-diagram-3"></i> Nova Categoria
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formCategoria">
+                        <input type="hidden" id="categoriaId">
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Nome da Categoria *</label>
+                            <input type="text" class="form-control" id="categoriaNome" required 
+                                   placeholder="Ex: Diretoria Executiva">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Descrição</label>
+                            <textarea class="form-control" id="categoriaDescricao" rows="3"
+                                      placeholder="Descreva as responsabilidades e características desta categoria"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Encargos Específicos</label>
+                            <textarea class="form-control" id="categoriaEncargos" rows="2"
+                                      placeholder="Ex: Subsídio de representação 15%, Fundo de pensões 5%"></textarea>
+                            <small class="text-muted">Encargos ou benefícios específicos desta categoria</small>
+                        </div>
+                        
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="categoriaAtivo" checked>
+                            <label class="form-check-label">Categoria Ativa</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="salvarCategoria()">
+                        <i class="bi bi-check-circle"></i> Salvar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Funcionários da Categoria -->
+    <div class="modal fade" id="modalFuncionarios" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-people"></i> Funcionários - <span id="modalFuncCategoriaNome"></span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <h6>Atribuir Funcionário</h6>
+                        <div class="input-group">
+                            <select class="form-select" id="selectFuncionario">
+                                <option value="">Selecione um funcionário...</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="atribuirFuncionario()">
+                                <i class="bi bi-plus"></i> Atribuir
+                            </button>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <h6>Funcionários Nesta Categoria (<span id="totalFuncCategoria">0</span>)</h6>
+                    <div id="listaFuncionariosCategoria" class="list-group">
+                        <!-- Carregado via JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let categorias = [];
+        let funcionarios = [];
+        let editandoId = null;
+        let categoriaAtual = null;
+
+        // Carregar categorias
+        async function carregarCategorias() {
+            try {
+                const response = await fetch(`${API_URL}/folha-profissional`);
+                const data = await response.json();
+                categorias = data.data || [];
+                await carregarFuncionarios();
+                renderizarCategorias();
+                atualizarEstatisticas();
+            } catch (error) {
+                console.error('Erro ao carregar categorias:', error);
+                alert('Erro ao carregar categorias');
+            }
+        }
+
+        // Carregar funcionários
+        async function carregarFuncionarios() {
+            try {
+                const response = await fetch(`${API_URL}/funcionarios`);
+                const data = await response.json();
+                funcionarios = data.data || [];
+            } catch (error) {
+                console.error('Erro ao carregar funcionários:', error);
+            }
+        }
+
+        // Renderizar grid de categorias
+        function renderizarCategorias() {
+            const grid = document.getElementById('categoriasGrid');
+            
+            grid.innerHTML = categorias.map(c => {
+                const funcCount = funcionarios.filter(f => f.categoria_id === c.id).length;
+                const iconClass = getIconeCategoria(c.nome);
+                
+                return `
+                    <div class="col-md-4">
+                        <div class="card categoria-card h-100" onclick="verFuncionariosCategoria(${c.id})">
+                            <div class="card-body position-relative">
+                                <i class="bi ${iconClass} categoria-icon"></i>
+                                
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5 class="card-title mb-0">${c.nome}</h5>
+                                    ${c.ativo ? '<span class="badge bg-success">Ativa</span>' : '<span class="badge bg-secondary">Inativa</span>'}
+                                </div>
+                                
+                                <p class="text-muted small mb-3">${c.descricao || 'Sem descrição'}</p>
+                                
+                                ${c.encargos_especificos ? `
+                                    <div class="alert alert-light mb-3 py-2">
+                                        <small><strong>Encargos:</strong> ${c.encargos_especificos}</small>
+                                    </div>
+                                ` : ''}
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="funcionario-badge">
+                                            <i class="bi bi-people"></i> ${funcCount} funcionário${funcCount !== 1 ? 's' : ''}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); editarCategoria(${c.id})">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); eliminarCategoria(${c.id})">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Atualizar estatísticas
+        function atualizarEstatisticas() {
+            document.getElementById('totalCategorias').textContent = categorias.length;
+            
+            const categorizados = funcionarios.filter(f => f.categoria_id && f.ativo).length;
+            document.getElementById('totalFuncionariosCateg').textContent = categorizados;
+            
+            const semCategoria = funcionarios.filter(f => !f.categoria_id && f.ativo).length;
+            document.getElementById('totalSemCategoria').textContent = semCategoria;
+            
+            // Categoria com mais funcionários
+            const catCount = {};
+            funcionarios.forEach(f => {
+                if (f.categoria_id) {
+                    catCount[f.categoria_id] = (catCount[f.categoria_id] || 0) + 1;
+                }
+            });
+            
+            let maxCat = null;
+            let maxCount = 0;
+            for (const [catId, count] of Object.entries(catCount)) {
+                if (count > maxCount) {
+                    maxCount = count;
+                    maxCat = categorias.find(c => c.id === parseInt(catId));
+                }
+            }
+            
+            document.getElementById('categoriaMaior').textContent = maxCat ? `${maxCat.nome} (${maxCount})` : '-';
+        }
+
+        // Ícones por categoria
+        function getIconeCategoria(nome) {
+            const nomeLower = nome.toLowerCase();
+            if (nomeLower.includes('ceo') || nomeLower.includes('diretor') || nomeLower.includes('executiv')) return 'bi-star-fill';
+            if (nomeLower.includes('financ') || nomeLower.includes('contab')) return 'bi-cash-coin';
+            if (nomeLower.includes('rh') || nomeLower.includes('recursos')) return 'bi-people-fill';
+            if (nomeLower.includes('vendas') || nomeLower.includes('comercial')) return 'bi-cart-fill';
+            if (nomeLower.includes('ti') || nomeLower.includes('tecnolog')) return 'bi-cpu-fill';
+            if (nomeLower.includes('operac') || nomeLower.includes('produç')) return 'bi-gear-fill';
+            if (nomeLower.includes('admin')) return 'bi-building';
+            return 'bi-briefcase-fill';
+        }
+
+        // Salvar categoria
+        async function salvarCategoria() {
+            const dados = {
+                nome: document.getElementById('categoriaNome').value,
+                descricao: document.getElementById('categoriaDescricao').value,
+                encargos_especificos: document.getElementById('categoriaEncargos').value,
+                ativo: document.getElementById('categoriaAtivo').checked ? 1 : 0
+            };
+
+            if (!dados.nome) {
+                alert('Nome da categoria é obrigatório');
+                return;
+            }
+
+            try {
+                const url = editandoId ? `${API_URL}/folha-profissional/${editandoId}` : `${API_URL}/folha-profissional`;
+                const method = editandoId ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dados)
+                });
+
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalCategoria')).hide();
+                    await carregarCategorias();
+                    document.getElementById('formCategoria').reset();
+                    editandoId = null;
+                } else {
+                    alert('Erro ao salvar categoria');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao salvar categoria');
+            }
+        }
+
+        // Editar categoria
+        function editarCategoria(id) {
+            const categoria = categorias.find(c => c.id === id);
+            if (!categoria) return;
+
+            editandoId = id;
+            document.getElementById('modalCategoriaTitle').innerHTML = '<i class="bi bi-pencil"></i> Editar Categoria';
+            document.getElementById('categoriaId').value = categoria.id;
+            document.getElementById('categoriaNome').value = categoria.nome;
+            document.getElementById('categoriaDescricao').value = categoria.descricao || '';
+            document.getElementById('categoriaEncargos').value = categoria.encargos_especificos || '';
+            document.getElementById('categoriaAtivo').checked = categoria.ativo;
+
+            new bootstrap.Modal(document.getElementById('modalCategoria')).show();
+        }
+
+        // Eliminar categoria
+        async function eliminarCategoria(id) {
+            const funcCount = funcionarios.filter(f => f.categoria_id === id).length;
+            
+            if (funcCount > 0) {
+                alert(`Não é possível eliminar esta categoria pois tem ${funcCount} funcionário(s) atribuído(s).`);
+                return;
+            }
+
+            if (!confirm('Tem certeza que deseja eliminar esta categoria?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/folha-profissional/${id}`, { 
+                    method: 'DELETE' 
+                });
+                
+                if (response.ok) {
+                    await carregarCategorias();
+                } else {
+                    alert('Erro ao eliminar categoria');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao eliminar categoria');
+            }
+        }
+
+        // Ver funcionários da categoria
+        async function verFuncionariosCategoria(categoriaId) {
+            categoriaAtual = categorias.find(c => c.id === categoriaId);
+            if (!categoriaAtual) return;
+
+            document.getElementById('modalFuncCategoriaNome').textContent = categoriaAtual.nome;
+            
+            // Preencher select com funcionários sem categoria ou desta categoria
+            const select = document.getElementById('selectFuncionario');
+            select.innerHTML = '<option value="">Selecione um funcionário...</option>' +
+                funcionarios.filter(f => f.ativo && (!f.categoria_id || f.categoria_id === categoriaId))
+                    .map(f => `<option value="${f.id}">${f.nome}</option>`)
+                    .join('');
+
+            renderizarFuncionariosCategoria();
+            new bootstrap.Modal(document.getElementById('modalFuncionarios')).show();
+        }
+
+        // Renderizar lista de funcionários da categoria
+        function renderizarFuncionariosCategoria() {
+            const lista = document.getElementById('listaFuncionariosCategoria');
+            const funcionariosCategoria = funcionarios.filter(f => f.categoria_id === categoriaAtual.id);
+            
+            document.getElementById('totalFuncCategoria').textContent = funcionariosCategoria.length;
+
+            if (funcionariosCategoria.length === 0) {
+                lista.innerHTML = '<div class="text-center text-muted py-4"><i class="bi bi-inbox"></i> Nenhum funcionário nesta categoria</div>';
+                return;
+            }
+
+            lista.innerHTML = funcionariosCategoria.map(f => `
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">${f.nome}</h6>
+                        <small class="text-muted">${formatMoney(f.salario_base)} KZ</small>
+                    </div>
+                    <button class="btn btn-sm btn-outline-danger" onclick="removerFuncionarioCategoria(${f.id})">
+                        <i class="bi bi-x"></i> Remover
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Atribuir funcionário à categoria
+        async function atribuirFuncionario() {
+            const funcionarioId = document.getElementById('selectFuncionario').value;
+            if (!funcionarioId) {
+                alert('Selecione um funcionário');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/funcionarios/${funcionarioId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ categoria_id: categoriaAtual.id })
+                });
+
+                if (response.ok) {
+                    await carregarFuncionarios();
+                    renderizarFuncionariosCategoria();
+                    renderizarCategorias();
+                    atualizarEstatisticas();
+                    document.getElementById('selectFuncionario').value = '';
+                } else {
+                    alert('Erro ao atribuir funcionário');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao atribuir funcionário');
+            }
+        }
+
+        // Remover funcionário da categoria
+        async function removerFuncionarioCategoria(funcionarioId) {
+            if (!confirm('Remover este funcionário da categoria?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/funcionarios/${funcionarioId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ categoria_id: null })
+                });
+
+                if (response.ok) {
+                    await carregarFuncionarios();
+                    renderizarFuncionariosCategoria();
+                    renderizarCategorias();
+                    atualizarEstatisticas();
+                } else {
+                    alert('Erro ao remover funcionário');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao remover funcionário');
+            }
+        }
+
+        function formatMoney(value) {
+            return new Intl.NumberFormat('pt-AO', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(value || 0);
+        }
+
+        // Event listeners
+        document.getElementById('modalCategoria').addEventListener('hidden.bs.modal', () => {
+            document.getElementById('formCategoria').reset();
+            document.getElementById('modalCategoriaTitle').innerHTML = '<i class="bi bi-diagram-3"></i> Nova Categoria';
+            editandoId = null;
+        });
+
+        // Inicializar
+        carregarCategorias();
+    </script>
+    <script src="js/folha-footer.js"></script>
+</body>
+</html>

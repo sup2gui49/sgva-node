@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste Direto das Categorias</title>
+</head>
+<body>
+    <h1>🧪 Teste das Categorias</h1>
+    <button onclick="testarCategorias()">Testar Carregamento</button>
+    <div id="resultado"></div>
+
+    <script>
+        async function testarCategorias() {
+            console.log('🔍 Testando carregamento de categorias...');
+            const resultado = document.getElementById('resultado');
+            
+            try {
+                // Teste 1: Categorias de produtos
+                console.log('📡 Tentando carregar categorias de produtos...');
+                const resProdutos = await fetch('/api/categorias-produtos');
+                console.log('Status produtos:', resProdutos.status);
+                
+                let htmlResult = '<h2>Resultado dos Testes:</h2>';
+                
+                if (resProdutos.ok) {
+                    const dataProdutos = await resProdutos.json();
+                    console.log('✅ Categorias produtos:', dataProdutos);
+                    
+                    htmlResult += `<h3>✅ Categorias de Produtos (${dataProdutos.data.length})</h3>`;
+                    htmlResult += '<ul>';
+                    dataProdutos.data.forEach(cat => {
+                        htmlResult += `<li><strong>${cat.nome}</strong> - ${cat.tipo} - IVA: ${cat.taxa_iva_padrao}%</li>`;
+                    });
+                    htmlResult += '</ul>';
+                } else {
+                    const errorProdutos = await resProdutos.text();
+                    console.error('❌ Erro produtos:', errorProdutos);
+                    htmlResult += `<h3>❌ Erro ao carregar produtos:</h3><pre>${errorProdutos}</pre>`;
+                }
+                
+                // Teste 2: Categorias de despesas
+                console.log('📡 Tentando carregar categorias de despesas...');
+                const resDespesas = await fetch('/api/categorias-despesas');
+                console.log('Status despesas:', resDespesas.status);
+                
+                if (resDespesas.ok) {
+                    const dataDespesas = await resDespesas.json();
+                    console.log('✅ Categorias despesas:', dataDespesas);
+                    
+                    htmlResult += `<h3>✅ Categorias de Despesas (${dataDespesas.data.length})</h3>`;
+                    htmlResult += '<ul>';
+                    dataDespesas.data.forEach(cat => {
+                        htmlResult += `<li><strong>${cat.nome}</strong> - Dedutível: ${cat.dedutivel_irt ? 'Sim' : 'Não'}</li>`;
+                    });
+                    htmlResult += '</ul>';
+                } else {
+                    const errorDespesas = await resDespesas.text();
+                    console.error('❌ Erro despesas:', errorDespesas);
+                    htmlResult += `<h3>❌ Erro ao carregar despesas:</h3><pre>${errorDespesas}</pre>`;
+                }
+                
+                resultado.innerHTML = htmlResult;
+                
+            } catch (error) {
+                console.error('❌ Erro geral:', error);
+                resultado.innerHTML = `<h3>❌ Erro:</h3><pre>${error.message}</pre>`;
+            }
+        }
+        
+        // Teste automático ao carregar
+        window.onload = () => {
+            setTimeout(testarCategorias, 1000);
+        };
+    </script>
+</body>
+</html>

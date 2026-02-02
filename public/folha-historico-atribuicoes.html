@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico de Atribuições - SGVA</title>
+    <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="folha-shared.css">
+    <style>
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #dee2e6;
+        }
+        .timeline-item {
+            position: relative;
+            padding-bottom: 20px;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -24px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #667eea;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px #667eea;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-md-block sidebar p-3">
+                <div class="text-white mb-4">
+                    <h4><i class="bi bi-cash-stack"></i> SGVA Folha</h4>
+                    <small>Sistema Profissional</small>
+                </div>
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-dashboard.html">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-subsidios.html">
+                            <i class="bi bi-wallet2"></i> Subsídios
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-categorias.html">
+                            <i class="bi bi-diagram-3"></i> Categorias
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-calculo.html">
+                            <i class="bi bi-calculator"></i> Calcular Folha
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-irt.html">
+                            <i class="bi bi-bar-chart-steps"></i> Escalões IRT
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link active" href="folha-historico-atribuicoes.html">
+                            <i class="bi bi-clock-history"></i> Histórico
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-backup.html">
+                            <i class="bi bi-hdd"></i> Backup
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-configuracoes.html">
+                            <i class="bi bi-gear"></i> Configurações
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-10 ms-sm-auto px-4 py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2><i class="bi bi-clock-history"></i> Histórico de Atribuições de Subsídios</h2>
+                        <p class="text-muted">Auditoria completa de atribuições e modificações</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-primary" onclick="exportarHistorico()">
+                            <i class="bi bi-download"></i> Exportar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filtros -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Funcionário</label>
+                                <select class="form-select" id="filtroFuncionario" onchange="aplicarFiltros()">
+                                    <option value="">Todos</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Subsídio</label>
+                                <select class="form-select" id="filtroSubsidio" onchange="aplicarFiltros()">
+                                    <option value="">Todos</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Data Início</label>
+                                <input type="date" class="form-control" id="filtroDataInicio" onchange="aplicarFiltros()">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Data Fim</label>
+                                <input type="date" class="form-control" id="filtroDataFim" onchange="aplicarFiltros()">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">&nbsp;</label>
+                                <button class="btn btn-outline-secondary w-100" onclick="limparFiltros()">
+                                    <i class="bi bi-arrow-clockwise"></i> Limpar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estatísticas -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <h6>Total Atribuições</h6>
+                                <h3 id="totalAtribuicoes">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <h6>Ativas</h6>
+                                <h3 id="totalAtivas">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <h6>Esta Semana</h6>
+                                <h3 id="totalSemana">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <h6>Subsídio Mais Usado</h6>
+                                <div id="subsidioMaisUsado" style="font-size: 0.9em;">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline de Atribuições -->
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-list-ul"></i> Linha do Tempo de Atribuições
+                            <span class="badge bg-primary" id="totalExibidas">0</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="timelineAtribuicoes" class="timeline">
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-hourglass-split"></i> Carregando histórico...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let atribuicoes = [];
+        let funcionarios = [];
+        let subsidios = [];
+
+        // Carregar dados
+        async function carregarDados() {
+            try {
+                // Funcionários
+                const respFunc = await fetch(`${API_URL}/funcionarios`);
+                const dataFunc = await respFunc.json();
+                funcionarios = dataFunc.data || [];
+                
+                const selectFunc = document.getElementById('filtroFuncionario');
+                selectFunc.innerHTML = '<option value="">Todos</option>' +
+                    funcionarios.map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
+
+                // Subsídios
+                const respSubs = await fetch(`${API_URL}/subsidios`);
+                const dataSubs = await respSubs.json();
+                subsidios = dataSubs.data || [];
+                
+                const selectSubs = document.getElementById('filtroSubsidio');
+                selectSubs.innerHTML = '<option value="">Todos</option>' +
+                    subsidios.map(s => `<option value="${s.id}">${s.nome}</option>`).join('');
+
+                // Carregar todas as atribuições
+                await carregarAtribuicoes();
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+            }
+        }
+
+        async function carregarAtribuicoes() {
+            try {
+                // Buscar atribuições de todos os subsídios
+                const promessas = subsidios.map(s => 
+                    fetch(`${API_URL}/subsidios/atribuicoes/${s.id}`)
+                        .then(r => r.json())
+                        .then(data => ({
+                            subsidio_id: s.id,
+                            subsidio_nome: s.nome,
+                            atribuicoes: data.data || []
+                        }))
+                );
+
+                const resultados = await Promise.all(promessas);
+                
+                // Flatten e ordenar por data
+                atribuicoes = [];
+                resultados.forEach(r => {
+                    r.atribuicoes.forEach(a => {
+                        atribuicoes.push({
+                            ...a,
+                            subsidio_id: r.subsidio_id,
+                            subsidio_nome: r.subsidio_nome
+                        });
+                    });
+                });
+
+                atribuicoes.sort((a, b) => new Date(b.atribuido_em) - new Date(a.atribuido_em));
+                
+                renderizarTimeline();
+                atualizarEstatisticas();
+            } catch (error) {
+                console.error('Erro ao carregar atribuições:', error);
+                document.getElementById('timelineAtribuicoes').innerHTML = 
+                    '<div class="alert alert-danger">Erro ao carregar histórico</div>';
+            }
+        }
+
+        function renderizarTimeline() {
+            const timeline = document.getElementById('timelineAtribuicoes');
+            const atribuicoesFiltradas = filtrarAtribuicoes();
+            
+            document.getElementById('totalExibidas').textContent = atribuicoesFiltradas.length;
+
+            if (atribuicoesFiltradas.length === 0) {
+                timeline.innerHTML = '<div class="text-center text-muted py-4">Nenhuma atribuição encontrada</div>';
+                return;
+            }
+
+            timeline.innerHTML = atribuicoesFiltradas.map((a, idx) => `
+                <div class="timeline-item">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <i class="bi bi-person-check text-primary"></i> 
+                                        <strong>${a.nome}</strong>
+                                    </h6>
+                                    <div class="text-muted small mb-2">
+                                        <i class="bi bi-wallet2"></i> ${a.subsidio_nome}
+                                    </div>
+                                    ${a.valor_especifico ? `
+                                        <div class="badge bg-info">
+                                            Valor específico: ${formatMoney(a.valor_especifico)} KZ
+                                        </div>
+                                    ` : ''}
+                                </div>
+                                <div class="text-end">
+                                    <div class="text-muted small">
+                                        <i class="bi bi-calendar"></i> ${formatData(a.atribuido_em)}
+                                    </div>
+                                    <div class="text-muted small">
+                                        <i class="bi bi-clock"></i> ${formatHora(a.atribuido_em)}
+                                    </div>
+                                    ${a.ativo ? 
+                                        '<span class="badge bg-success mt-2">Ativo</span>' : 
+                                        '<span class="badge bg-secondary mt-2">Inativo</span>'
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filtrarAtribuicoes() {
+            const funcionarioId = document.getElementById('filtroFuncionario').value;
+            const subsidioId = document.getElementById('filtroSubsidio').value;
+            const dataInicio = document.getElementById('filtroDataInicio').value;
+            const dataFim = document.getElementById('filtroDataFim').value;
+
+            return atribuicoes.filter(a => {
+                const matchFunc = !funcionarioId || a.funcionario_id === parseInt(funcionarioId);
+                const matchSubs = !subsidioId || a.subsidio_id === parseInt(subsidioId);
+                
+                let matchData = true;
+                if (dataInicio || dataFim) {
+                    const dataAtrib = new Date(a.atribuido_em);
+                    if (dataInicio) matchData = matchData && dataAtrib >= new Date(dataInicio);
+                    if (dataFim) matchData = matchData && dataAtrib <= new Date(dataFim + 'T23:59:59');
+                }
+                
+                return matchFunc && matchSubs && matchData;
+            });
+        }
+
+        function aplicarFiltros() {
+            renderizarTimeline();
+            atualizarEstatisticas();
+        }
+
+        function limparFiltros() {
+            document.getElementById('filtroFuncionario').value = '';
+            document.getElementById('filtroSubsidio').value = '';
+            document.getElementById('filtroDataInicio').value = '';
+            document.getElementById('filtroDataFim').value = '';
+            aplicarFiltros();
+        }
+
+        function atualizarEstatisticas() {
+            const filtradas = filtrarAtribuicoes();
+            document.getElementById('totalAtribuicoes').textContent = filtradas.length;
+            
+            const ativas = filtradas.filter(a => a.ativo).length;
+            document.getElementById('totalAtivas').textContent = ativas;
+            
+            // Esta semana
+            const hoje = new Date();
+            const umaSemanaAtras = new Date(hoje.getTime() - 7 * 24 * 60 * 60 * 1000);
+            const semana = filtradas.filter(a => new Date(a.atribuido_em) >= umaSemanaAtras).length;
+            document.getElementById('totalSemana').textContent = semana;
+            
+            // Subsídio mais usado
+            const contagem = {};
+            filtradas.forEach(a => {
+                contagem[a.subsidio_nome] = (contagem[a.subsidio_nome] || 0) + 1;
+            });
+            
+            let maisUsado = { nome: '-', count: 0 };
+            for (const [nome, count] of Object.entries(contagem)) {
+                if (count > maisUsado.count) {
+                    maisUsado = { nome, count };
+                }
+            }
+            
+            document.getElementById('subsidioMaisUsado').textContent = 
+                maisUsado.nome !== '-' ? `${maisUsado.nome} (${maisUsado.count})` : '-';
+        }
+
+        function exportarHistorico() {
+            const filtradas = filtrarAtribuicoes();
+            
+            let csv = 'Funcionário,Subsídio,Valor Específico,Data,Ativo\n';
+            filtradas.forEach(a => {
+                csv += `"${a.nome}","${a.subsidio_nome}","${a.valor_especifico || '-'}","${formatData(a.atribuido_em)} ${formatHora(a.atribuido_em)}","${a.ativo ? 'Sim' : 'Não'}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `historico_atribuicoes_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        function formatData(dataString) {
+            const data = new Date(dataString);
+            return data.toLocaleDateString('pt-AO');
+        }
+
+        function formatHora(dataString) {
+            const data = new Date(dataString);
+            return data.toLocaleTimeString('pt-AO', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function formatMoney(value) {
+            return new Intl.NumberFormat('pt-AO', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(value || 0);
+        }
+
+        // Inicializar
+        carregarDados();
+    </script>
+</body>
+</html>

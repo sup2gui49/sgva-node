@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Produtos e Serviços | SGVA</title>
+    <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.css">
+    <link rel="stylesheet" href="folha-shared.css">
+    <style>
+        .product-card {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+        }
+        .product-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        .product-type-badge {
+            font-size: 0.85rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+        }
+        .badge-produto {
+            background: #e7f3ff;
+            color: #0066cc;
+        }
+        .badge-servico {
+            background: #fff3e7;
+            color: #cc6600;
+        }
+        .filter-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .add-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+        .add-btn:hover {
+            background: #5568d3;
+            transform: scale(1.1);
+        }
+        .form-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .tipo-selector {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .tipo-option {
+            flex: 1;
+            padding: 1.5rem;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .tipo-option:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+        .tipo-option.active {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+        .tipo-option i {
+            font-size: 2.5rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .servico-fields {
+            display: none;
+        }
+        .servico-fields.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-folha">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index-old.html">
+                <i class="bi bi-box-seam"></i> Produtos e Serviços
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="bi bi-house-door"></i> Início
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="configuracoes.html">
+                            <i class="bi bi-gear"></i> Configurações
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index-old.html">
+                            <i class="bi bi-cart3"></i> Vendas
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <!-- Filtros -->
+        <div class="filter-section">
+            <div class="row align-items-end g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Buscar por Nome</label>
+                    <input type="text" id="filtroNome" class="form-control" placeholder="Digite o nome...">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Tipo</label>
+                    <select id="filtroTipo" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="produto">Produtos</option>
+                        <option value="servico">Serviços</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Categoria</label>
+                    <select id="filtroCategoria" class="form-select">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary w-100" onclick="aplicarFiltros()">
+                        <i class="bi bi-search"></i> Filtrar
+                    </button>
+                </div>
+            </div>
+            <div class="mt-3">
+                <span class="badge bg-secondary" id="totalItens">0 itens</span>
+            </div>
+        </div>
+
+        <!-- Lista de Produtos/Serviços -->
+        <div id="listaItens" class="row g-3">
+            <div class="col-12 text-center text-muted py-5">
+                <i class="bi bi-box-seam" style="font-size: 3rem;"></i>
+                <p class="mt-3">Carregando...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botão Adicionar -->
+    <button class="add-btn" onclick="abrirModalAdicionar()" title="Adicionar Novo">
+        <i class="bi bi-plus"></i>
+    </button>
+
+    <!-- Modal Adicionar/Editar -->
+    <div class="modal fade" id="modalItem" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modalTitle">
+                        <i class="bi bi-plus-circle"></i> Novo Item
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formItem">
+                        <!-- Seletor de Tipo -->
+                        <div class="tipo-selector">
+                            <div class="tipo-option active" id="tipoProduto" onclick="selecionarTipo('produto')">
+                                <i class="bi bi-box-seam text-primary"></i>
+                                <strong>Produto</strong>
+                                <p class="text-muted small mb-0">Bem físico com estoque</p>
+                            </div>
+                            <div class="tipo-option" id="tipoServico" onclick="selecionarTipo('servico')">
+                                <i class="bi bi-tools text-warning"></i>
+                                <strong>Serviço</strong>
+                                <p class="text-muted small mb-0">Prestação de serviço</p>
+                            </div>
+                        </div>
+
+                        <input type="hidden" id="itemId">
+                        <input type="hidden" id="itemTipo" value="produto">
+
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label for="itemNome" class="form-label">Nome <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="itemNome" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="itemCategoria" class="form-label">Categoria <span class="text-danger">*</span></label>
+                                <select class="form-select" id="itemCategoria" required></select>
+                            </div>
+
+                            <!-- Campos específicos de Produto -->
+                            <div class="col-md-6 produto-fields">
+                                <label for="itemUnidade" class="form-label">Unidade de Medida</label>
+                                <select class="form-select" id="itemUnidade">
+                                    <option value="un">Unidade</option>
+                                    <option value="kg">Quilograma</option>
+                                    <option value="lt">Litro</option>
+                                    <option value="mt">Metro</option>
+                                    <option value="cx">Caixa</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 produto-fields">
+                                <label for="itemEstoque" class="form-label">Estoque Atual</label>
+                                <input type="number" class="form-control" id="itemEstoque" value="0" step="0.01">
+                            </div>
+                            <div class="col-md-3 produto-fields">
+                                <label for="itemEstoqueMin" class="form-label">Estoque Mínimo</label>
+                                <input type="number" class="form-control" id="itemEstoqueMin" value="10">
+                            </div>
+
+                            <!-- Campos específicos de Serviço -->
+                            <div class="col-12 servico-fields">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle"></i> 
+                                    <strong>Serviços</strong> não possuem controle de estoque. O valor cobrado é por prestação de serviço.
+                                </div>
+                            </div>
+                            <div class="col-md-6 servico-fields">
+                                <label for="itemDuracao" class="form-label">Duração Estimada</label>
+                                <input type="text" class="form-control" id="itemDuracao" placeholder="Ex: 2 horas">
+                            </div>
+
+                            <!-- Campos comuns -->
+                            <div class="col-md-6">
+                                <label for="itemCusto" class="form-label">Custo</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="itemCusto" step="0.01" value="0">
+                                    <span class="input-group-text">KZ</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="itemPreco" class="form-label">Preço de Venda <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="itemPreco" step="0.01" required>
+                                    <span class="input-group-text">KZ</span>
+                                </div>
+                            </div>
+
+                            <!-- Preview de IVA -->
+                            <div class="col-12">
+                                <div class="alert alert-light border" id="previewIva">
+                                    <small class="text-muted">Selecione uma categoria para ver o IVA aplicado</small>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="salvarItem()">
+                        <i class="bi bi-save"></i> Salvar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let itens = [];
+        let categorias = [];
+        let tipoAtual = 'produto';
+        let editandoId = null;
+
+        window.addEventListener('DOMContentLoaded', init);
+
+        async function init() {
+            await carregarCategorias();
+            await carregarItens();
+        }
+
+        async function carregarCategorias() {
+            try {
+                const response = await fetch(`${API_URL}/categorias-produtos`);
+                const data = await response.json();
+                categorias = data.data || [];
+                
+                // Popular filtro
+                const filtroSelect = document.getElementById('filtroCategoria');
+                filtroSelect.innerHTML = '<option value="">Todas</option>';
+                categorias.forEach(cat => {
+                    filtroSelect.innerHTML += `<option value="${cat.id}">${cat.nome} (${cat.tipo})</option>`;
+                });
+            } catch (error) {
+                console.error('Erro ao carregar categorias:', error);
+            }
+        }
+
+        async function carregarItens() {
+            try {
+                const response = await fetch(`${API_URL}/produtos`);
+                const data = await response.json();
+                itens = data.data || [];
+                renderizarItens();
+            } catch (error) {
+                console.error('Erro ao carregar itens:', error);
+            }
+        }
+
+        function renderizarItens() {
+            const lista = document.getElementById('listaItens');
+            const filtroNome = document.getElementById('filtroNome').value.toLowerCase();
+            const filtroTipo = document.getElementById('filtroTipo').value;
+            const filtroCategoria = document.getElementById('filtroCategoria').value;
+
+            let itensFiltrados = itens.filter(item => {
+                const matchNome = !filtroNome || item.nome.toLowerCase().includes(filtroNome);
+                const matchTipo = !filtroTipo || item.tipo === filtroTipo;
+                const matchCategoria = !filtroCategoria || item.categoria_id == filtroCategoria;
+                return matchNome && matchTipo && matchCategoria;
+            });
+
+            document.getElementById('totalItens').textContent = `${itensFiltrados.length} itens`;
+
+            if (itensFiltrados.length === 0) {
+                lista.innerHTML = `
+                    <div class="col-12 text-center text-muted py-5">
+                        <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                        <p class="mt-3">Nenhum item encontrado</p>
+                    </div>
+                `;
+                return;
+            }
+
+            lista.innerHTML = itensFiltrados.map(item => {
+                const categoria = categorias.find(c => c.id === item.categoria_id);
+                const tipoBadge = item.tipo === 'servico' ? 'badge-servico' : 'badge-produto';
+                const tipoIcon = item.tipo === 'servico' ? 'tools' : 'box-seam';
+                const ivaText = categoria ? `${categoria.taxa_iva_padrao}% IVA` : '14% IVA';
+                
+                return `
+                    <div class="col-md-6 col-lg-4">
+                        <div class="product-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-${tipoIcon}"></i> ${item.nome}
+                                </h5>
+                                <span class="product-type-badge ${tipoBadge}">
+                                    ${item.tipo === 'servico' ? 'Serviço' : 'Produto'}
+                                </span>
+                            </div>
+                            
+                            <p class="text-muted small mb-2">
+                                <i class="bi bi-tag"></i> ${categoria?.nome || 'Sem categoria'}
+                            </p>
+                            
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <small class="text-muted">Custo</small>
+                                    <div><strong>${formatMoney(item.custo_unitario)} KZ</strong></div>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Preço</small>
+                                    <div><strong class="text-success">${formatMoney(item.preco_venda)} KZ</strong></div>
+                                </div>
+                            </div>
+                            
+                            ${item.tipo === 'produto' ? `
+                                <div class="mb-3">
+                                    <small class="text-muted">Estoque</small>
+                                    <div>
+                                        <span class="badge ${item.estoque <= item.estoque_minimo ? 'bg-danger' : 'bg-success'}">
+                                            ${item.estoque} ${item.unidade_medida || 'un'}
+                                        </span>
+                                        ${item.estoque <= item.estoque_minimo ? ' ⚠️ Baixo' : ''}
+                                    </div>
+                                </div>
+                            ` : `
+                                <div class="mb-3">
+                                    <span class="badge bg-info">Sem controle de estoque</span>
+                                </div>
+                            `}
+                            
+                            <div class="mb-3">
+                                <small class="text-muted">${ivaText}</small>
+                            </div>
+                            
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-primary flex-fill" onclick="editarItem(${item.id})">
+                                    <i class="bi bi-pencil"></i> Editar
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="excluirItem(${item.id}, '${item.nome}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function aplicarFiltros() {
+            renderizarItens();
+        }
+
+        function abrirModalAdicionar() {
+            editandoId = null;
+            document.getElementById('modalTitle').innerHTML = '<i class="bi bi-plus-circle"></i> Novo Item';
+            document.getElementById('formItem').reset();
+            document.getElementById('itemId').value = '';
+            document.getElementById('itemTipo').value = 'produto';
+            selecionarTipo('produto');
+            popularSelectCategorias('produto');
+            new bootstrap.Modal(document.getElementById('modalItem')).show();
+        }
+
+        function selecionarTipo(tipo) {
+            tipoAtual = tipo;
+            document.getElementById('itemTipo').value = tipo;
+            
+            // Atualizar UI
+            document.getElementById('tipoProduto').classList.toggle('active', tipo === 'produto');
+            document.getElementById('tipoServico').classList.toggle('active', tipo === 'servico');
+            
+            // Mostrar/ocultar campos
+            document.querySelectorAll('.produto-fields').forEach(el => {
+                el.style.display = tipo === 'produto' ? 'block' : 'none';
+            });
+            document.querySelectorAll('.servico-fields').forEach(el => {
+                el.classList.toggle('active', tipo === 'servico');
+            });
+            
+            // Popular categorias filtradas
+            popularSelectCategorias(tipo);
+        }
+
+        function popularSelectCategorias(tipo) {
+            const select = document.getElementById('itemCategoria');
+            const categoriasFiltradas = categorias.filter(c => c.tipo === tipo);
+            
+            select.innerHTML = '<option value="">Selecione...</option>';
+            categoriasFiltradas.forEach(cat => {
+                const ivaText = cat.sujeito_iva ? `${cat.taxa_iva_padrao}% IVA` : 'Isento';
+                select.innerHTML += `<option value="${cat.id}" data-taxa="${cat.taxa_iva_padrao}" data-sujeito="${cat.sujeito_iva}">${cat.nome} (${ivaText})</option>`;
+            });
+            
+            // Atualizar preview quando categoria muda
+            select.addEventListener('change', atualizarPreviewIva);
+        }
+
+        function atualizarPreviewIva() {
+            const select = document.getElementById('itemCategoria');
+            const selectedOption = select.options[select.selectedIndex];
+            const preview = document.getElementById('previewIva');
+            
+            if (!selectedOption || !selectedOption.value) {
+                preview.innerHTML = '<small class="text-muted">Selecione uma categoria para ver o IVA aplicado</small>';
+                return;
+            }
+            
+            const taxa = selectedOption.dataset.taxa;
+            const sujeito = selectedOption.dataset.sujeito === '1';
+            const categoria = categorias.find(c => c.id == selectedOption.value);
+            
+            preview.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-info-circle text-primary me-2"></i>
+                    <div>
+                        <strong>IVA Automático:</strong> ${sujeito ? taxa + '%' : '0% (Isento)'}<br>
+                        <small class="text-muted">Categoria: ${categoria?.nome || ''}</small>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function salvarItem() {
+            const nome = document.getElementById('itemNome').value.trim();
+            const categoriaId = document.getElementById('itemCategoria').value;
+            const tipo = document.getElementById('itemTipo').value;
+            const preco = parseFloat(document.getElementById('itemPreco').value);
+            
+            if (!nome || !categoriaId || !preco) {
+                alert('Preencha todos os campos obrigatórios!');
+                return;
+            }
+            
+            const categoria = categorias.find(c => c.id == categoriaId);
+            
+            const dados = {
+                nome,
+                categoria: categoria?.nome || '',
+                categoria_id: parseInt(categoriaId),
+                tipo,
+                custo_unitario: parseFloat(document.getElementById('itemCusto').value) || 0,
+                preco_venda: preco,
+                unidade_medida: tipo === 'produto' ? document.getElementById('itemUnidade').value : null,
+                estoque: tipo === 'produto' ? parseFloat(document.getElementById('itemEstoque').value) || 0 : 0,
+                estoque_minimo: tipo === 'produto' ? parseFloat(document.getElementById('itemEstoqueMin').value) || 0 : 0
+            };
+            
+            try {
+                const url = editandoId ? `${API_URL}/produtos/${editandoId}` : `${API_URL}/produtos`;
+                const method = editandoId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dados)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(editandoId ? 'Item atualizado com sucesso!' : 'Item adicionado com sucesso!');
+                    bootstrap.Modal.getInstance(document.getElementById('modalItem')).hide();
+                    await carregarItens();
+                } else {
+                    alert('Erro: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Erro ao salvar:', error);
+                alert('Erro ao salvar item');
+            }
+        }
+
+        async function editarItem(id) {
+            const item = itens.find(i => i.id === id);
+            if (!item) return;
+            
+            editandoId = id;
+            document.getElementById('modalTitle').innerHTML = '<i class="bi bi-pencil"></i> Editar Item';
+            document.getElementById('itemId').value = item.id;
+            document.getElementById('itemNome').value = item.nome;
+            document.getElementById('itemCategoria').value = item.categoria_id;
+            document.getElementById('itemCusto').value = item.custo_unitario;
+            document.getElementById('itemPreco').value = item.preco_venda;
+            
+            selecionarTipo(item.tipo || 'produto');
+            
+            if (item.tipo === 'produto') {
+                document.getElementById('itemUnidade').value = item.unidade_medida || 'un';
+                document.getElementById('itemEstoque').value = item.estoque;
+                document.getElementById('itemEstoqueMin').value = item.estoque_minimo;
+            }
+            
+            atualizarPreviewIva();
+            new bootstrap.Modal(document.getElementById('modalItem')).show();
+        }
+
+        async function excluirItem(id, nome) {
+            if (!confirm(`Tem certeza que deseja excluir "${nome}"?`)) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/produtos/${id}`, { method: 'DELETE' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Item excluído com sucesso!');
+                    await carregarItens();
+                } else {
+                    alert('Erro: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Erro ao excluir:', error);
+                alert('Erro ao excluir item');
+            }
+        }
+
+        function formatMoney(value) {
+            return new Intl.NumberFormat('pt-AO', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(value || 0);
+        }
+
+        // Filtros em tempo real
+        document.getElementById('filtroNome').addEventListener('input', renderizarItens);
+        document.getElementById('filtroTipo').addEventListener('change', renderizarItens);
+        document.getElementById('filtroCategoria').addEventListener('change', renderizarItens);
+    </script>
+</body>
+</html>

@@ -82,7 +82,7 @@ typings/
 
 # gatsby files
 .cache/
-public/
+# public/ removed from ignored
 
 # vuepress build output
 .vuepress/dist

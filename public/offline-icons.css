@@ -1,0 +1,30 @@
+/* Minimal icon fallbacks when bootstrap-icons CDN is unavailable */
+.bi { font-style: normal; font-weight: 600; }
+.bi::before { display: inline-block; margin-right: 0.35rem; }
+
+.bi-building::before { content: "SG"; }
+.bi-calendar-check::before { content: "CL"; }
+.bi-cash-coin::before { content: "$$"; }
+.bi-arrow-right-circle::before { content: "->"; }
+.bi-cart3::before { content: "SN"; }
+.bi-check-circle-fill::before { content: "*"; }
+.bi-people::before { content: "PF"; }
+.bi-wallet2::before { content: "SB"; }
+.bi-cash-stack::before { content: "IR"; }
+.bi-info-circle::before { content: "i"; }
+.bi-speedometer2::before { content: "SP"; }
+.bi-diagram-3::before { content: "CG"; }
+.bi-calculator::before { content: "CA"; }
+.bi-table::before { content: "TB"; }
+.bi-bar-chart-steps::before { content: "RT"; }
+.bi-clock-history::before { content: "HC"; }
+.bi-file-earmark-excel::before { content: "EX"; }
+.bi-bell::before { content: "NO"; }
+.bi-hdd::before { content: "BK"; }
+.bi-plus-circle::before { content: "+"; }
+.bi-pencil::before { content: "ED"; }
+.bi-trash::before { content: "RM"; }
+.bi-camera::before { content: "SN"; }
+.bi-arrow-left::before { content: "<-"; }
+.bi-arrow-counterclockwise::before { content: "R"; }
+.bi-cash::before { content: "CS"; }

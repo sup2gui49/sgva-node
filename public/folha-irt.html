@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escalões IRT - SGVA</title>
+    <!-- Fallback para offline: CSS inline se CDN falhar -->
+    <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.css">
+    <link rel="stylesheet" href="folha-shared.css">
+    <link rel="stylesheet" href="offline.css">
+    <script>
+        (function () {
+            if (!navigator.onLine) {
+                document.documentElement.classList.add('offline-mode');
+            }
+        })();
+    </script>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' ry='3' fill='%23667eea'/%3E%3Ctext x='8' y='11' text-anchor='middle' font-size='8' fill='white' font-family='Arial'%3ES%3C/text%3E%3C/svg%3E">
+    <style id="fallback-css" disabled>
+        /* Reset básico */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 16px; line-height: 1.5; }
+        
+        /* Layout */
+        .container-fluid { width: 100%; padding: 0; }
+        .row { display: flex; flex-wrap: wrap; }
+        .col-md-2 { flex: 0 0 16.666%; max-width: 16.666%; }
+        .col-md-3 { flex: 0 0 25%; max-width: 25%; }
+        .col-md-4 { flex: 0 0 33.333%; max-width: 33.333%; }
+        .col-md-10 { flex: 0 0 83.333%; max-width: 83.333%; margin-left: 16.666%; }
+        .flex-column { flex-direction: column; }
+        
+        /* Utilitários */
+        .d-flex { display: flex; }
+        .justify-content-between { justify-content: space-between; }
+        .align-items-center { align-items: center; }
+        .mb-0 { margin-bottom: 0; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-4 { margin-bottom: 1.5rem; }
+        .ms-2 { margin-left: 0.5rem; }
+        .me-1 { margin-right: 0.25rem; }
+        .p-0 { padding: 0; }
+        .p-3 { padding: 1rem; }
+        .text-end { text-align: right; }
+        .text-white { color: white; }
+        .text-muted { color: #6c757d; }
+        .text-danger { color: #dc3545; }
+        .bg-light { background: #f8f9fa; }
+        .bg-white { background: white; }
+        .bg-primary { background: #0d6efd; }
+        .bg-success { background: #198754; }
+        .bg-warning { background: #ffc107; }
+        .bg-info { background: #0dcaf0; }
+        .float-end { float: right; }
+        .w-100 { width: 100%; }
+        
+        /* Card */
+        .card { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 1rem; }
+        .card-header { padding: 1rem; border-bottom: 1px solid #dee2e6; }
+        .card-body { padding: 1rem; }
+        
+        /* Table */
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #dee2e6; }
+        .table-light { background: #f8f9fa; }
+        .table-hover tbody tr:hover { background: #f8f9fa; }
+        .table-responsive { overflow-x: auto; }
+        
+        /* Buttons */
+        .btn { display: inline-block; padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; }
+        .btn-primary { background: #0d6efd; color: white; }
+        .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.875rem; }
+        .btn-outline-primary { background: white; color: #0d6efd; border: 1px solid #0d6efd; }
+        .btn-outline-danger { background: white; color: #dc3545; border: 1px solid #dc3545; }
+        .btn-warning { background: #ffc107; color: #212529; }
+        .btn-info { background: #0dcaf0; color: #212529; }
+        
+        /* Badge */
+        .badge { display: inline-block; padding: 0.35em 0.65em; font-size: 0.75em; border-radius: 4px; }
+        .badge.bg-success { background: #198754; color: #fff; }
+        .badge.bg-primary { background: #0d6efd; color: #fff; }
+        .badge.bg-warning { background: #ffc107; color: #212529; }
+        
+        /* Form */
+        .form-label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+        .form-control, .form-select { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #ced4da; border-radius: 4px; font-size: 1rem; }
+        .form-text { font-size: 0.875rem; color: #6c757d; }
+
+        /* Alerts */
+        .alert { padding: 1rem; border-radius: 4px; border: 1px solid transparent; margin-bottom: 1rem; }
+        .alert-success { color: #0f5132; background: #d1e7dd; border-color: #badbcc; }
+        .alert-warning { color: #664d03; background: #fff3cd; border-color: #ffecb5; }
+
+        /* Modal */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); z-index: 1055; }
+        .modal.show { display: flex; }
+        .modal-dialog { width: 90%; max-width: 600px; margin: auto; }
+        .modal-content { background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .modal-header, .modal-body, .modal-footer { padding: 1rem; }
+        .btn-close { border: none; background: transparent; cursor: pointer; opacity: 0.6; }
+        .btn-close::before { content: '×'; font-size: 1.25rem; }
+        .btn-close:hover { opacity: 1; }
+        .modal-open { overflow: hidden; }
+
+        /* Navigation */
+        .nav { list-style: none; padding-left: 0; margin-bottom: 0; }
+        .nav-item { margin-bottom: 0.5rem; }
+        .nav-link { display: block; padding: 0.5rem 1rem; color: rgba(255,255,255,0.8); text-decoration: none; border-radius: 8px; transition: background 0.3s, color 0.3s; }
+        .nav-link:hover, .nav-link.active { color: #fff; background: rgba(255,255,255,0.1); }
+
+        /* Icons fallback - mantém apenas os ícones que não existem no Bootstrap Icons */
+        .offline-mode .bi::before { font-family: Arial, sans-serif; }
+    </style>
+    <style>
+        .escalao-row {
+            transition: all 0.2s;
+        }
+        .escalao-row:hover {
+            background: #f8f9fa;
+        }
+        .badge-escalao {
+            font-size: 1em;
+            padding: 0.5em 1em;
+        }
+        .editable-cell {
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+        .editable-cell:hover {
+            background: #fff3cd !important;
+            outline: 2px solid #ffc107;
+        }
+        .editable-cell:focus {
+            background: #ffffff !important;
+            outline: 2px solid #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
+        }
+        .editable-cell::before {
+            content: '✎';
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            font-size: 0.7em;
+            color: #6c757d;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .editable-cell:hover::before {
+            opacity: 1;
+        }
+        .saving {
+            background: #d1ecf1 !important;
+            animation: pulse 0.5s;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+    <script>
+        (function() {
+            function enableFallback() {
+                const sheet = document.getElementById('fallback-css');
+                if (sheet) {
+                    sheet.disabled = false;
+                }
+                document.documentElement.classList.add('offline-mode');
+            }
+
+            if (!navigator.onLine) {
+                enableFallback();
+            }
+
+            const bootstrapLink = document.getElementById('bootstrap-css');
+            if (bootstrapLink) {
+                bootstrapLink.addEventListener('error', enableFallback, { once: true });
+            }
+        })();
+    </script>
+</head>
+<body class="bg-light">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-md-block sidebar p-3">
+                <div class="text-white mb-4">
+                    <h4><i class="bi bi-cash-stack"></i> SGVA Folha</h4>
+                    <small>Sistema Profissional</small>
+                </div>
+                
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-dashboard.html">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-funcionarios.html">
+                            <i class="bi bi-people"></i> Funcionários
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-subsidios.html">
+                            <i class="bi bi-wallet2"></i> Subsídios
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-categorias.html">
+                            <i class="bi bi-diagram-3"></i> Categorias
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-calculo.html">
+                            <i class="bi bi-calculator"></i> Calcular Folha
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-salarios.html">
+                            <i class="bi bi-table"></i> Folha de Salários
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link active" href="folha-irt.html">
+                            <i class="bi bi-bar-chart-steps"></i> Escalões IRT
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-historico.html">
+                            <i class="bi bi-clock-history"></i> Histórico
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-excel.html">
+                            <i class="bi bi-file-earmark-excel"></i> Exportar Excel
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-notificacoes.html">
+                            <i class="bi bi-bell"></i> Notificações
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-backup.html">
+                            <i class="bi bi-hdd"></i> Backup
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-configuracoes.html">
+                            <i class="bi bi-gear"></i> Configurações
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-10 ms-sm-auto px-4 py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2><i class="bi bi-bar-chart-steps"></i> Escalões IRT Angola</h2>
+                        <p class="text-muted">Imposto sobre Rendimentos do Trabalho - Sistema Progressivo</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-primary me-2" onclick="carregarSnapshots()">
+                            <i class="bi bi-clock-history"></i> Ver Histórico
+                        </button>
+                        <button class="btn btn-warning" onclick="criarSnapshot()">
+                            <i class="bi bi-camera"></i> Criar Snapshot
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Info Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <h6>Total Escalões</h6>
+                                <h3 id="totalEscaloes">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <h6>Faixa Isenta</h6>
+                                <h3 id="faixaIsenta">0 KZ</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <h6>Taxa Máxima</h6>
+                                <h3 id="taxaMaxima">0%</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabela de Escalões -->
+                <div class="card">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">
+                                <i class="bi bi-table"></i> Tabela de Escalões IRT
+                                <span class="badge bg-success ms-2">Ativo</span>
+                            </h5>
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle"></i> Clique nas células para editar diretamente. As alterações são salvas automaticamente.
+                            </small>
+                        </div>
+                        <button class="btn btn-primary" onclick="adicionarEscalao()">
+                            <i class="bi bi-plus-circle"></i> Adicionar Escalão
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="80">Escalão</th>
+                                        <th>De (KZ)</th>
+                                        <th>Até (KZ)</th>
+                                        <th>Parcela Fixa (KZ)</th>
+                                        <th>Taxa (%)</th>
+                                        <th>Sobre Excesso (KZ)</th>
+                                        <th width="100">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabelaEscaloes">
+                                    <!-- Carregado via JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulador -->
+                <div class="card mt-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-calculator"></i> Simulador de IRT
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row align-items-end">
+                            <div class="col-md-4">
+                                <label class="form-label">Rendimento Colectável (KZ)</label>
+                                <input type="number" class="form-control form-control-lg" id="simuladorValor" 
+                                       placeholder="Ex: 150000" step="1000">
+                            </div>
+                            <div class="col-md-2">
+                                <button class="btn btn-primary btn-lg w-100" onclick="simularIRT()">
+                                    <i class="bi bi-play-circle"></i> Calcular
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <div id="resultadoSimulacao" class="alert alert-light mb-0">
+                                    <small class="text-muted">Digite um valor e clique em Calcular</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal Editar Escalão -->
+    <div class="modal fade" id="modalEditarEscalao" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-pencil"></i> Editar Escalão
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formEscalao">
+                        <input type="hidden" id="escalaoId">
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Escalão</label>
+                            <input type="number" class="form-control" id="escalaoOrdem" readonly>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">De (KZ)</label>
+                                <input type="number" class="form-control" id="escalaoGrupo_de" step="0.01">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Até (KZ)</label>
+                                <input type="number" class="form-control" id="escalaoGrupo_ate" step="0.01">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Parcela Fixa (KZ)</label>
+                            <input type="number" class="form-control" id="escalaoParcelaFixa" step="0.01">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Taxa (%)</label>
+                                <input type="number" class="form-control" id="escalaoTaxa" step="0.01">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Sobre Excesso (KZ)</label>
+                                <input type="number" class="form-control" id="escalaoExcesso" step="0.01">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="salvarEscalao()">
+                        <i class="bi bi-check-circle"></i> Salvar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Snapshots -->
+    <div class="modal fade" id="modalSnapshots" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-clock-history"></i> Histórico de Escalões IRT
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="listaSnapshots">
+                        <!-- Carregado via JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+    <script>
+        if (typeof bootstrap === 'undefined') {
+            class ModalFallback {
+                constructor(element) {
+                    this.element = element;
+                    element._modalInstance = this;
+                }
+
+                show() {
+                    this.element.classList.add('show');
+                    this.element.style.display = 'flex';
+                    document.body.classList.add('modal-open');
+                }
+
+                hide() {
+                    this.element.classList.remove('show');
+                    this.element.style.display = 'none';
+                    document.body.classList.remove('modal-open');
+                }
+
+                static getInstance(element) {
+                    return element._modalInstance || new ModalFallback(element);
+                }
+            }
+
+            window.bootstrap = { Modal: ModalFallback };
+        }
+    </script>
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let escaloes = [];
+
+        // Carregar escalões
+        async function carregarEscaloes() {
+            try {
+                const response = await fetch(`${API_URL}/folha-profissional/irt`);
+                const data = await response.json();
+                escaloes = data.data || [];
+                renderizarEscaloes();
+                atualizarStats();
+            } catch (error) {
+                console.error('Erro ao carregar escalões:', error);
+            }
+        }
+
+        // Renderizar tabela
+        function renderizarEscaloes() {
+            const tbody = document.getElementById('tabelaEscaloes');
+            tbody.innerHTML = escaloes.map(e => `
+                <tr class="escalao-row" data-id="${e.id}">
+                    <td>
+                        <span class="badge badge-escalao bg-${getEscalaoCor(e.ordem)}">${e.ordem}º</span>
+                    </td>
+                    <td contenteditable="true" data-field="de" class="editable-cell" onblur="salvarCelulaInline(this, ${e.id}, 'de')">${formatMoney(e.de)}</td>
+                    <td contenteditable="true" data-field="ate" class="editable-cell" onblur="salvarCelulaInline(this, ${e.id}, 'ate')">${e.ate ? formatMoney(e.ate) : '<span class="text-muted" contenteditable="false">∞</span>'}</td>
+                    <td contenteditable="true" data-field="parcela_fixa" class="editable-cell" onblur="salvarCelulaInline(this, ${e.id}, 'parcela_fixa')">${formatMoney(e.parcela_fixa)}</td>
+                    <td contenteditable="true" data-field="taxa" class="editable-cell" onblur="salvarCelulaInline(this, ${e.id}, 'taxa')"><strong>${formatPercent(e.taxa)}%</strong></td>
+                    <td contenteditable="true" data-field="excesso" class="editable-cell" onblur="salvarCelulaInline(this, ${e.id}, 'excesso')">${formatMoney(e.excesso)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="editarEscalao(${e.id})" title="Editar em modal">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="eliminarEscalao(${e.id}, ${e.ordem})" title="Eliminar escalão">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Atualizar estatísticas
+        function atualizarStats() {
+            document.getElementById('totalEscaloes').textContent = escaloes.length;
+            
+            const primeiroEscalao = escaloes.find(e => e.ordem === 1);
+            if (primeiroEscalao) {
+                const faixaIsentaValor = primeiroEscalao.ate != null ? formatMoney(primeiroEscalao.ate) + ' KZ' : '∞';
+                document.getElementById('faixaIsenta').textContent = faixaIsentaValor;
+            }
+            
+            const taxaMax = escaloes.length ? Math.max(...escaloes.map(e => e.taxa)) : 0;
+            document.getElementById('taxaMaxima').textContent = formatPercent(taxaMax) + '%';
+        }
+
+        // Editar escalão
+        function editarEscalao(id) {
+            const escalao = escaloes.find(e => e.id === id);
+            if (!escalao) return;
+
+            document.getElementById('escalaoId').value = escalao.id;
+            document.getElementById('escalaoOrdem').value = escalao.ordem;
+            document.getElementById('escalaoGrupo_de').value = escalao.de;
+            document.getElementById('escalaoGrupo_ate').value = escalao.ate || '';
+            document.getElementById('escalaoParcelaFixa').value = escalao.parcela_fixa;
+            document.getElementById('escalaoTaxa').value = escalao.taxa;
+            document.getElementById('escalaoExcesso').value = escalao.excesso;
+
+            new bootstrap.Modal(document.getElementById('modalEditarEscalao')).show();
+        }
+
+        // Salvar escalão
+        async function salvarEscalao() {
+            const id = document.getElementById('escalaoId').value;
+            const dados = {
+                de: parseFloat(document.getElementById('escalaoGrupo_de').value),
+                ate: parseFloat(document.getElementById('escalaoGrupo_ate').value) || null,
+                parcela_fixa: parseFloat(document.getElementById('escalaoParcelaFixa').value),
+                taxa: parseFloat(document.getElementById('escalaoTaxa').value),
+                excesso: parseFloat(document.getElementById('escalaoExcesso').value)
+            };
+
+            if (dados.ate !== null && dados.ate <= dados.de) {
+                alert('O valor "Até" deve ser maior que "De" ou deixado vazio para ∞.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/folha-profissional/irt/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dados)
+                });
+
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalEditarEscalao')).hide();
+                    await carregarEscaloes();
+                } else {
+                    alert('Erro ao salvar escalão');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao salvar escalão');
+            }
+        }
+
+        // Salvar célula editada inline
+        async function salvarCelulaInline(celula, id, campo) {
+            const valorTexto = celula.textContent.trim().replace(/[^\d.,]/g, '');
+            let valor = parseFloat(valorTexto.replace(',', '.'));
+            
+            // Validação
+            if (isNaN(valor) && campo !== 'ate') {
+                alert('Valor inválido! Use apenas números.');
+                await carregarEscaloes();
+                return;
+            }
+
+            // Para taxa, converter de % para decimal se necessário
+            if (campo === 'taxa' && valor > 1) {
+                valor = valor / 100;
+            }
+
+            // Preparar dados
+            const escalao = escaloes.find(e => e.id === id);
+            if (!escalao) {
+                alert('Escalão não encontrado!');
+                return;
+            }
+
+            const dados = {
+                de: escalao.de,
+                ate: escalao.ate,
+                parcela_fixa: escalao.parcela_fixa,
+                taxa: escalao.taxa,
+                excesso: escalao.excesso
+            };
+            
+            // Atualizar o campo específico
+            if (campo === 'ate' && (valorTexto === '' || valorTexto === '∞')) {
+                dados[campo] = null;
+            } else {
+                dados[campo] = valor;
+            }
+
+            if (dados.ate !== null && dados.ate <= dados.de) {
+                alert('O valor "Até" deve ser maior que "De" ou deixado vazio para ∞.');
+                await carregarEscaloes();
+                return;
+            }
+
+            // Mostrar feedback visual
+            celula.classList.add('saving');
+
+            try {
+                const response = await fetch(`${API_URL}/folha-profissional/irt/${id}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(dados)
+                });
+
+                if (response.ok) {
+                    celula.classList.remove('saving');
+                    await carregarEscaloes();
+                    
+                    // Feedback sucesso
+                    const row = celula.closest('tr');
+                    row.style.background = '#d1e7dd';
+                    setTimeout(() => {
+                        row.style.background = '';
+                    }, 1000);
+                } else {
+                    celula.classList.remove('saving');
+                    alert('Erro ao salvar alteração');
+                    await carregarEscaloes();
+                }
+            } catch (error) {
+                celula.classList.remove('saving');
+                console.error('Erro ao salvar:', error);
+                alert('Erro ao salvar alteração');
+                await carregarEscaloes();
+            }
+        }
+
+        // Adicionar novo escalão
+        async function adicionarEscalao() {
+            const proximaOrdem = escaloes.length ? Math.max(...escaloes.map(e => e.ordem)) + 1 : 1;
+            
+            const de = prompt('De (valor inicial em KZ):', '0');
+            if (de === null) return;
+            
+            const ateInput = prompt('Até (valor final em KZ)\nDeixe vazio ou digite "infinito" para ∞:', '');
+            const parcela = prompt('Parcela Fixa (em KZ):', '0');
+            const taxa = prompt('Taxa (em %):', '0');
+            const excesso = prompt('Sobre Excesso de (em KZ):', '0');
+            
+            if (!de || !parcela || !taxa || !excesso) {
+                alert('Preencha todos os campos obrigatórios!');
+                return;
+            }
+
+            // Processar campo "até" - aceita vazio, "infinito", "∞"
+            let ateValor = null;
+            if (ateInput && ateInput.toLowerCase() !== 'infinito' && ateInput !== '∞') {
+                ateValor = parseFloat(ateInput);
+            }
+
+            let taxaValor = parseFloat(taxa);
+            if (isNaN(taxaValor)) {
+                alert('Taxa inválida. Use apenas números.');
+                return;
+            }
+            if (taxaValor > 1) {
+                taxaValor = taxaValor / 100;
+            }
+
+            const deValor = parseFloat(de);
+            const parcelaValor = parseFloat(parcela);
+            const excessoValor = parseFloat(excesso);
+
+            if ([deValor, parcelaValor, excessoValor].some(Number.isNaN)) {
+                alert('Valores numéricos inválidos. Verifique os campos digitados.');
+                return;
+            }
+
+            const dados = {
+                ordem: proximaOrdem,
+                de: deValor,
+                ate: ateValor,
+                parcela_fixa: parcelaValor,
+                taxa: taxaValor,
+                excesso: excessoValor
+            };
+
+            if (dados.ate !== null && dados.ate <= dados.de) {
+                alert('O valor "Até" deve ser maior que "De".');
+                return;
+            }
+
+            console.log('➕ Adicionando escalão:', dados);
+
+            try {
+                const response = await fetch(`${API_URL}/folha-profissional/irt`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(dados)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Escalão adicionado com sucesso!');
+                    await carregarEscaloes();
+                } else {
+                    alert('Erro: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao adicionar escalão');
+            }
+        }
+
+        // Eliminar escalão
+        async function eliminarEscalao(id, ordem) {
+            if (!confirm(`Tem certeza que deseja eliminar o ${ordem}º Escalão?\n\nEsta ação desativará o escalão.`)) {
+                return;
+            }
+
+            console.log('🗑️ Eliminando escalão:', { id, ordem });
+
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    alert('Sessão expirada. Faça login novamente.');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const response = await fetch(`${API_URL}/folha-profissional/irt/${id}`, {
+                    method: 'DELETE',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                console.log('📡 Resposta:', response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ Erro HTTP:', errorText);
+                    alert(`Erro ao eliminar: ${response.status} - ${errorText}`);
+                    return;
+                }
+
+                const result = await response.json();
+                console.log('✅ Resultado:', result);
+
+                if (result.success) {
+                    alert('Escalão eliminado com sucesso!');
+                    await carregarEscaloes();
+                } else {
+                    alert('Erro: ' + result.message);
+                }
+            } catch (error) {
+                console.error('❌ Erro catch:', error);
+                alert('Erro ao eliminar escalão: ' + error.message);
+            }
+        }
+
+        // Simular IRT
+        async function simularIRT() {
+            const valor = parseFloat(document.getElementById('simuladorValor').value);
+            if (!valor || valor < 0) {
+                alert('Digite um valor válido');
+                return;
+            }
+
+            // Dedução fixa
+            const rc = Math.max(0, valor - 60000); //vamos remover o 60000 esta a calcular de forma errada.
+            
+            // Calcular IRT
+            let irt = 0;
+            let escalaoAplicado = null;
+
+            for (const e of escaloes) {
+                if (rc >= e.de && (e.ate === null || rc <= e.ate)) {
+                    irt = e.parcela_fixa + ((rc - e.excesso) * e.taxa / 100);
+                    escalaoAplicado = e;
+                    break;
+                }
+            }
+
+            const resultado = document.getElementById('resultadoSimulacao');
+            resultado.className = 'alert alert-success mb-0';
+            resultado.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Escalão:</strong> ${escalaoAplicado ? escalaoAplicado.ordem + 'º' : 'N/A'}<br>
+                        <strong>Taxa:</strong> ${escalaoAplicado ? escalaoAplicado.taxa + '%' : 'N/A'}
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <strong>IRT a Pagar:</strong><br>
+                        <h4 class="text-danger mb-0">${formatMoney(irt)} KZ</h4>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Criar snapshot
+        async function criarSnapshot() {
+            const label = prompt('Nome do snapshot (ex: IRT 2025)');
+            if (!label) return;
+
+            try {
+                const response = await fetch(`${API_URL}/folha-profissional/irt/snapshot`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ label })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert('✅ Snapshot criado com sucesso!');
+                } else {
+                    alert('Erro ao criar snapshot');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao criar snapshot');
+            }
+        }
+
+        // Carregar snapshots
+        async function carregarSnapshots() {
+            try {
+                const response = await fetch(`${API_URL}/folha-profissional/irt/snapshots`);
+                const data = await response.json();
+                
+                const lista = document.getElementById('listaSnapshots');
+                if (data.data && data.data.length > 0) {
+                    lista.innerHTML = data.data.map(s => `
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h6>${s.label}</h6>
+                                <small class="text-muted">${new Date(s.created_at).toLocaleString('pt-AO')}</small>
+                                <button class="btn btn-sm btn-primary float-end" onclick="restaurarSnapshot(${s.id})">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Restaurar
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    lista.innerHTML = '<p class="text-muted">Nenhum snapshot disponível</p>';
+                }
+
+                new bootstrap.Modal(document.getElementById('modalSnapshots')).show();
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao carregar snapshots');
+            }
+        }
+
+        // Restaurar snapshot
+        async function restaurarSnapshot(snapshotId) {
+            if (!snapshotId) {
+                alert('Snapshot inválido');
+                return;
+            }
+
+            if (!confirm('Tem certeza que deseja restaurar este snapshot? Os escalões atuais serão substituídos.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/folha-profissional/irt/snapshot/${snapshotId}/restore`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Falha ao restaurar snapshot');
+                }
+
+                alert('Snapshot restaurado com sucesso!');
+                await carregarEscaloes();
+                const modalEl = document.getElementById('modalSnapshots');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                const active = document.activeElement;
+                if (active && modalEl && modalEl.contains(active)) {
+                    active.blur();
+                }
+                if (modal) {
+                    modal.hide();
+                }
+            } catch (error) {
+                console.error('Erro ao restaurar snapshot:', error);
+                alert('Erro ao restaurar snapshot: ' + error.message);
+            }
+        }
+
+        // Helpers
+        function getEscalaoCor(ordem) {
+            const cores = ['success', 'primary', 'info', 'warning', 'danger'];
+            return cores[(ordem - 1) % cores.length];
+        }
+
+        function formatPercent(value) {
+            return (Number(value || 0) * 100).toFixed(2);
+        }
+
+        function formatMoney(value) {
+            return new Intl.NumberFormat('pt-AO', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(value || 0);
+        }
+
+        // Inicializar
+        carregarEscaloes();
+    </script>
+</body>
+</html>

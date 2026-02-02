@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exportar Excel - Folha Profissional</title>
+    <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.css">
+    <link rel="stylesheet" href="folha-shared.css">
+    <link rel="stylesheet" href="offline.css">
+    <script>
+        (function () {
+            if (!navigator.onLine) {
+                document.documentElement.classList.add('offline-mode');
+            }
+        })();
+    </script>
+    <script src="js/offline-assets.js"></script>
+    <script>
+        AssetLoader.loadScript(
+            'https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js',
+            'vendor/sheetjs/xlsx.full.min.js',
+            { target: 'head' }
+        );
+    </script>
+    <style>
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-md-block sidebar p-3">
+                <div class="text-white mb-4">
+                    <h4><i class="bi bi-cash-stack"></i> SGVA Folha</h4>
+                    <small>Sistema Profissional</small>
+                </div>
+                
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-dashboard.html">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-funcionarios.html">
+                            <i class="bi bi-people"></i> Funcionários
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-subsidios.html">
+                            <i class="bi bi-wallet2"></i> Subsídios
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-categorias.html">
+                            <i class="bi bi-diagram-3"></i> Categorias
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-calculo.html">
+                            <i class="bi bi-calculator"></i> Calcular Folha
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-salarios.html">
+                            <i class="bi bi-table"></i> Folha de Salários
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-irt.html">
+                            <i class="bi bi-bar-chart-steps"></i> Escalões IRT
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-historico.html">
+                            <i class="bi bi-clock-history"></i> Histórico
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link active" href="folha-excel.html">
+                            <i class="bi bi-file-earmark-excel"></i> Exportar Excel
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-notificacoes.html">
+                            <i class="bi bi-bell"></i> Notificações
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-backup.html">
+                            <i class="bi bi-hdd"></i> Backup
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-configuracoes.html">
+                            <i class="bi bi-gear"></i> Configurações
+                        </a>
+                    </li>
+                </ul>
+                
+                <!-- Botão Voltar ao Painel -->
+                <div class="mt-4 pt-3 border-top border-light">
+                    <a href="index.html" class="btn btn-outline-light btn-sm w-100">
+                        <i class="bi bi-arrow-left"></i> Voltar ao Painel
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-10 ms-sm-auto px-4 py-4">
+        <div class="row mb-4">
+            <div class="col">
+                <h2><i class="bi bi-file-earmark-excel text-success"></i> Exportar para Excel</h2>
+                <p class="text-muted">Exporte dados da folha de pagamento, subsídios e relatórios em formato Excel (.xlsx)</p>
+            </div>
+        </div>
+
+        <!-- Relatórios Disponíveis -->
+        <div class="row g-4">
+            
+            <!-- Folha Completa -->
+            <div class="col-md-6">
+                <div class="card h-100 border-primary">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-table text-primary"></i> Folha de Pagamento Completa
+                        </h5>
+                        <p class="card-text">Exporta todas as folhas calculadas com detalhamento completo de salários, subsídios, descontos e líquido.</p>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Mês:</label>
+                            <select class="form-select form-select-sm" id="folha-mes">
+                                <option value="">Todos</option>
+                                <option value="1">Janeiro</option>
+                                <option value="2">Fevereiro</option>
+                                <option value="3">Março</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Maio</option>
+                                <option value="6">Junho</option>
+                                <option value="7">Julho</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Setembro</option>
+                                <option value="10">Outubro</option>
+                                <option value="11">Novembro</option>
+                                <option value="12">Dezembro</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Ano:</label>
+                            <select class="form-select form-select-sm" id="folha-ano">
+                                <option value="">Todos</option>
+                                <option value="2024">2024</option>
+                                <option value="2025" selected>2025</option>
+                            </select>
+                        </div>
+                        
+                        <button class="btn btn-primary w-100" onclick="exportarFolhaCompleta()">
+                            <i class="bi bi-download"></i> Baixar Excel
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subsídios por Funcionário -->
+            <div class="col-md-6">
+                <div class="card h-100 border-success">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-gift text-success"></i> Subsídios por Funcionário
+                        </h5>
+                        <p class="card-text">Lista completa de todos os subsídios atribuídos a cada funcionário com valores calculados.</p>
+                        
+                        <div class="alert alert-info alert-sm">
+                            <i class="bi bi-info-circle"></i> Inclui todos os subsídios ativos
+                        </div>
+                        
+                        <button class="btn btn-success w-100 mt-4" onclick="exportarSubsidiosFuncionarios()">
+                            <i class="bi bi-download"></i> Baixar Excel
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custos por Categoria -->
+            <div class="col-md-6">
+                <div class="card h-100 border-warning">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-pie-chart text-warning"></i> Custos por Categoria
+                        </h5>
+                        <p class="card-text">Relatório agregado de custos agrupados por categoria profissional.</p>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Mês:</label>
+                            <select class="form-select form-select-sm" id="custos-mes">
+                                <option value="">Todos</option>
+                                <option value="1">Janeiro</option>
+                                <option value="2">Fevereiro</option>
+                                <option value="3">Março</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Maio</option>
+                                <option value="6">Junho</option>
+                                <option value="7">Julho</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Setembro</option>
+                                <option value="10">Outubro</option>
+                                <option value="11">Novembro</option>
+                                <option value="12">Dezembro</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Ano:</label>
+                            <select class="form-select form-select-sm" id="custos-ano">
+                                <option value="">Todos</option>
+                                <option value="2024">2024</option>
+                                <option value="2025" selected>2025</option>
+                            </select>
+                        </div>
+                        
+                        <button class="btn btn-warning w-100" onclick="exportarCustosCategoria()">
+                            <i class="bi bi-download"></i> Baixar Excel
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Consolidado -->
+            <div class="col-md-6">
+                <div class="card h-100 border-info">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-graph-up text-info"></i> Dashboard Consolidado
+                        </h5>
+                        <p class="card-text">Estatísticas gerais, distribuição por categoria e top subsídios do mês.</p>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Mês:</label>
+                            <select class="form-select form-select-sm" id="dash-mes">
+                                <option value="1">Janeiro</option>
+                                <option value="2">Fevereiro</option>
+                                <option value="3">Março</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Maio</option>
+                                <option value="6">Junho</option>
+                                <option value="7">Julho</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Setembro</option>
+                                <option value="10">Outubro</option>
+                                <option value="11">Novembro</option>
+                                <option value="12">Dezembro</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Ano:</label>
+                            <select class="form-select form-select-sm" id="dash-ano">
+                                <option value="2024">2024</option>
+                                <option value="2025" selected>2025</option>
+                            </select>
+                        </div>
+                        
+                        <button class="btn btn-info w-100" onclick="exportarDashboard()">
+                            <i class="bi bi-download"></i> Baixar Excel
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Status de Exportação -->
+        <div class="row mt-4">
+            <div class="col">
+                <div id="status-export" class="alert alert-secondary d-none">
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-border spinner-border-sm me-2" role="status">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <span id="status-text">Preparando exportação...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_BASE = 'http://localhost:3000/api/folha-relatorios';
+
+        function mostrarStatus(mensagem) {
+            const status = document.getElementById('status-export');
+            const texto = document.getElementById('status-text');
+            texto.textContent = mensagem;
+            status.classList.remove('d-none', 'alert-success', 'alert-danger');
+            status.classList.add('alert-secondary');
+        }
+
+        function esconderStatus() {
+            setTimeout(() => {
+                document.getElementById('status-export').classList.add('d-none');
+            }, 2000);
+        }
+
+        function mostrarSucesso(mensagem) {
+            const status = document.getElementById('status-export');
+            const texto = document.getElementById('status-text');
+            texto.textContent = mensagem;
+            status.classList.remove('d-none', 'alert-secondary', 'alert-danger');
+            status.classList.add('alert-success');
+            status.querySelector('.spinner-border').classList.add('d-none');
+            esconderStatus();
+        }
+
+        function mostrarErro(mensagem) {
+            const status = document.getElementById('status-export');
+            const texto = document.getElementById('status-text');
+            texto.textContent = mensagem;
+            status.classList.remove('d-none', 'alert-secondary', 'alert-success');
+            status.classList.add('alert-danger');
+            status.querySelector('.spinner-border').classList.add('d-none');
+            esconderStatus();
+        }
+
+        async function exportarFolhaCompleta() {
+            try {
+                mostrarStatus('Carregando dados da folha...');
+                
+                const mes = document.getElementById('folha-mes').value;
+                const ano = document.getElementById('folha-ano').value;
+                
+                const params = new URLSearchParams();
+                if (mes) params.append('mes', mes);
+                if (ano) params.append('ano', ano);
+                
+                const response = await fetch(`${API_BASE}/folha-completa?${params}`);
+                const result = await response.json();
+                
+                if (!result.success) throw new Error(result.message);
+                
+                // Criar workbook
+                const wb = XLSX.utils.book_new();
+                
+                // Preparar dados
+                const dadosFormatados = result.data.map(row => ({
+                    'Funcionário': row.funcionario,
+                    'Categoria': row.categoria || 'N/A',
+                    'Mês': row.mes,
+                    'Ano': row.ano,
+                    'Salário Base': parseFloat(row.salario_base).toFixed(2),
+                    'Total Subsídios': parseFloat(row.total_subsidios).toFixed(2),
+                    'Subsídios Isentos': parseFloat(row.subsidios_isentos).toFixed(2),
+                    'Subsídios Tributáveis': parseFloat(row.subsidios_tributaveis).toFixed(2),
+                    'Salário Bruto': parseFloat(row.salario_bruto).toFixed(2),
+                    'INSS Empregado': parseFloat(row.inss_empregado).toFixed(2),
+                    'INSS Patronal': parseFloat(row.inss_patronal).toFixed(2),
+                    'Dedução Fixa': parseFloat(row.deducao_fixa).toFixed(2),
+                    'Rend. Colectável': parseFloat(row.rendimento_colectavel).toFixed(2),
+                    'IRT': parseFloat(row.irt).toFixed(2),
+                    'Total Descontos': parseFloat(row.total_descontos).toFixed(2),
+                    'Salário Líquido': parseFloat(row.salario_liquido).toFixed(2),
+                    'Custo Total Empresa': parseFloat(row.custo_total_empresa).toFixed(2),
+                    'Calculado em': new Date(row.calculado_em).toLocaleString('pt-AO')
+                }));
+                
+                // Criar worksheet
+                const ws = XLSX.utils.json_to_sheet(dadosFormatados);
+                
+                // Ajustar largura das colunas
+                ws['!cols'] = [
+                    { wch: 25 }, // Funcionário
+                    { wch: 20 }, // Categoria
+                    { wch: 5 },  // Mês
+                    { wch: 5 },  // Ano
+                    { wch: 12 }, // Salário Base
+                    { wch: 14 }, // Total Subsídios
+                    { wch: 16 }, // Subsídios Isentos
+                    { wch: 18 }, // Subsídios Tributáveis
+                    { wch: 14 }, // Salário Bruto
+                    { wch: 14 }, // INSS Empregado
+                    { wch: 14 }, // INSS Patronal
+                    { wch: 12 }, // Dedução Fixa
+                    { wch: 16 }, // Rend. Colectável
+                    { wch: 10 }, // IRT
+                    { wch: 14 }, // Total Descontos
+                    { wch: 14 }, // Salário Líquido
+                    { wch: 18 }, // Custo Total Empresa
+                    { wch: 20 }  // Calculado em
+                ];
+                
+                XLSX.utils.book_append_sheet(wb, ws, 'Folha Pagamento');
+                
+                // Nome do arquivo
+                const nomeArquivo = `Folha_Completa_${mes || 'Todos'}_${ano || 'Todos'}_${Date.now()}.xlsx`;
+                
+                // Download
+                XLSX.writeFile(wb, nomeArquivo);
+                
+                mostrarSucesso(`✓ Excel exportado com sucesso! (${result.total} registros)`);
+            } catch (error) {
+                console.error('Erro ao exportar:', error);
+                mostrarErro('✗ Erro ao exportar: ' + error.message);
+            }
+        }
+
+        async function exportarSubsidiosFuncionarios() {
+            try {
+                mostrarStatus('Carregando subsídios...');
+                
+                const response = await fetch(`${API_BASE}/subsidios-funcionarios`);
+                const result = await response.json();
+                
+                if (!result.success) throw new Error(result.message);
+                
+                const wb = XLSX.utils.book_new();
+                
+                const dadosFormatados = result.data.map(row => ({
+                    'Funcionário': row.funcionario,
+                    'Salário Base': parseFloat(row.salario_base).toFixed(2),
+                    'Categoria': row.categoria || 'N/A',
+                    'Subsídio': row.subsidio,
+                    'Tipo': row.tipo_subsidio,
+                    'Forma Cálculo': row.tipo_calculo,
+                    'Valor Padrão': parseFloat(row.valor_padrao_empresa).toFixed(2),
+                    'Valor Específico': row.valor_especifico ? parseFloat(row.valor_especifico).toFixed(2) : 'N/A',
+                    'Valor Calculado': parseFloat(row.valor_calculado).toFixed(2),
+                    'Atribuído em': new Date(row.atribuido_em).toLocaleString('pt-AO')
+                }));
+                
+                const ws = XLSX.utils.json_to_sheet(dadosFormatados);
+                
+                ws['!cols'] = [
+                    { wch: 25 }, // Funcionário
+                    { wch: 12 }, // Salário Base
+                    { wch: 20 }, // Categoria
+                    { wch: 25 }, // Subsídio
+                    { wch: 12 }, // Tipo
+                    { wch: 14 }, // Forma Cálculo
+                    { wch: 12 }, // Valor Padrão
+                    { wch: 14 }, // Valor Específico
+                    { wch: 14 }, // Valor Calculado
+                    { wch: 20 }  // Atribuído em
+                ];
+                
+                XLSX.utils.book_append_sheet(wb, ws, 'Subsídios Funcionários');
+                
+                const nomeArquivo = `Subsidios_Funcionarios_${Date.now()}.xlsx`;
+                XLSX.writeFile(wb, nomeArquivo);
+                
+                mostrarSucesso(`✓ Excel exportado com sucesso! (${result.total} registros)`);
+            } catch (error) {
+                console.error('Erro ao exportar:', error);
+                mostrarErro('✗ Erro ao exportar: ' + error.message);
+            }
+        }
+
+        async function exportarCustosCategoria() {
+            try {
+                mostrarStatus('Carregando custos por categoria...');
+                
+                const mes = document.getElementById('custos-mes').value;
+                const ano = document.getElementById('custos-ano').value;
+                
+                const params = new URLSearchParams();
+                if (mes) params.append('mes', mes);
+                if (ano) params.append('ano', ano);
+                
+                const response = await fetch(`${API_BASE}/custos-categoria?${params}`);
+                const result = await response.json();
+                
+                if (!result.success) throw new Error(result.message);
+                
+                const wb = XLSX.utils.book_new();
+                
+                const dadosFormatados = result.data.map(row => ({
+                    'Categoria': row.categoria,
+                    'Total Funcionários': row.total_funcionarios,
+                    'Total Salários Base': parseFloat(row.total_salarios_base).toFixed(2),
+                    'Total Subsídios': parseFloat(row.total_subsidios).toFixed(2),
+                    'Total Bruto': parseFloat(row.total_bruto).toFixed(2),
+                    'Total INSS Empregado': parseFloat(row.total_inss_empregado).toFixed(2),
+                    'Total INSS Patronal': parseFloat(row.total_inss_patronal).toFixed(2),
+                    'Total IRT': parseFloat(row.total_irt).toFixed(2),
+                    'Total Líquido': parseFloat(row.total_liquido).toFixed(2),
+                    'Custo Total Empresa': parseFloat(row.custo_total_empresa).toFixed(2)
+                }));
+                
+                const ws = XLSX.utils.json_to_sheet(dadosFormatados);
+                
+                ws['!cols'] = [
+                    { wch: 25 }, // Categoria
+                    { wch: 16 }, // Total Funcionários
+                    { wch: 18 }, // Total Salários Base
+                    { wch: 16 }, // Total Subsídios
+                    { wch: 14 }, // Total Bruto
+                    { wch: 20 }, // Total INSS Empregado
+                    { wch: 20 }, // Total INSS Patronal
+                    { wch: 12 }, // Total IRT
+                    { wch: 14 }, // Total Líquido
+                    { wch: 20 }  // Custo Total Empresa
+                ];
+                
+                XLSX.utils.book_append_sheet(wb, ws, 'Custos Categoria');
+                
+                const nomeArquivo = `Custos_Categoria_${mes || 'Todos'}_${ano || 'Todos'}_${Date.now()}.xlsx`;
+                XLSX.writeFile(wb, nomeArquivo);
+                
+                mostrarSucesso(`✓ Excel exportado com sucesso! (${result.total} categorias)`);
+            } catch (error) {
+                console.error('Erro ao exportar:', error);
+                mostrarErro('✗ Erro ao exportar: ' + error.message);
+            }
+        }
+
+        async function exportarDashboard() {
+            try {
+                mostrarStatus('Gerando dashboard consolidado...');
+                
+                const mes = document.getElementById('dash-mes').value;
+                const ano = document.getElementById('dash-ano').value;
+                
+                const params = new URLSearchParams();
+                params.append('mes', mes);
+                params.append('ano', ano);
+                
+                const response = await fetch(`${API_BASE}/dashboard-stats?${params}`);
+                const result = await response.json();
+                
+                if (!result.success) throw new Error(result.message);
+                
+                const wb = XLSX.utils.book_new();
+                
+                // Sheet 1: Resumo Geral
+                const resumo = [
+                    { 'Indicador': 'Total Funcionários', 'Valor': result.data.funcionarios.total },
+                    { 'Indicador': 'Folhas Processadas', 'Valor': result.data.folhaMes.total_processadas },
+                    { 'Indicador': 'Total Bruto', 'Valor': parseFloat(result.data.folhaMes.total_bruto).toFixed(2) },
+                    { 'Indicador': 'Total Líquido', 'Valor': parseFloat(result.data.folhaMes.total_liquido).toFixed(2) },
+                    { 'Indicador': 'Total INSS Empregado', 'Valor': parseFloat(result.data.folhaMes.total_inss_empregado).toFixed(2) },
+                    { 'Indicador': 'Total INSS Patronal', 'Valor': parseFloat(result.data.folhaMes.total_inss_patronal).toFixed(2) },
+                    { 'Indicador': 'Total IRT', 'Valor': parseFloat(result.data.folhaMes.total_irt).toFixed(2) },
+                    { 'Indicador': 'Custo Total Empresa', 'Valor': parseFloat(result.data.folhaMes.custo_total_empresa).toFixed(2) }
+                ];
+                const wsResumo = XLSX.utils.json_to_sheet(resumo);
+                wsResumo['!cols'] = [{ wch: 25 }, { wch: 20 }];
+                XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo Geral');
+                
+                // Sheet 2: Distribuição por Categoria
+                const distribuicao = result.data.distribuicao.map(row => ({
+                    'Categoria': row.categoria,
+                    'Quantidade': row.quantidade,
+                    'Total Líquido': parseFloat(row.total_liquido).toFixed(2)
+                }));
+                const wsDistribuicao = XLSX.utils.json_to_sheet(distribuicao);
+                wsDistribuicao['!cols'] = [{ wch: 25 }, { wch: 12 }, { wch: 16 }];
+                XLSX.utils.book_append_sheet(wb, wsDistribuicao, 'Por Categoria');
+                
+                // Sheet 3: Top Subsídios
+                const topSubs = result.data.topSubsidios.map(row => ({
+                    'Subsídio': row.nome,
+                    'Quantidade Atribuída': row.quantidade,
+                    'Valor Total': parseFloat(row.valor_total).toFixed(2)
+                }));
+                const wsTop = XLSX.utils.json_to_sheet(topSubs);
+                wsTop['!cols'] = [{ wch: 30 }, { wch: 18 }, { wch: 16 }];
+                XLSX.utils.book_append_sheet(wb, wsTop, 'Top Subsídios');
+                
+                const nomeArquivo = `Dashboard_${mes}_${ano}_${Date.now()}.xlsx`;
+                XLSX.writeFile(wb, nomeArquivo);
+                
+                mostrarSucesso('✓ Dashboard exportado com sucesso!');
+            } catch (error) {
+                console.error('Erro ao exportar:', error);
+                mostrarErro('✗ Erro ao exportar: ' + error.message);
+            }
+        }
+
+        // Definir mês atual como padrão
+        window.addEventListener('DOMContentLoaded', () => {
+            const mesAtual = new Date().getMonth() + 1;
+            document.getElementById('folha-mes').value = mesAtual;
+            document.getElementById('custos-mes').value = mesAtual;
+            document.getElementById('dash-mes').value = mesAtual;
+        });
+    </script>
+</body>
+</html>

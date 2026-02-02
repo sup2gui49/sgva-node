@@ -1,0 +1,49 @@
+/* Offline fallback trimmed now that Bootstrap and icon assets ship locally. */
+
+.offline-mode body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+.offline-mode body::after {
+    content: "Modo offline ativo";
+    position: fixed;
+    top: 0;
+    left: var(--folha-sidebar-width, 260px);
+    right: 0;
+    padding: 0.4rem 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+    z-index: 1200;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 991px) {
+    .offline-mode body::after {
+        left: 0;
+    }
+}
+
+.offline-mode main {
+    padding-top: 3.5rem !important;
+    padding-bottom: 140px !important;
+}
+
+@media (max-width: 991px) {
+    .offline-mode main {
+        padding-top: 3.5rem !important;
+        padding-bottom: 160px !important;
+    }
+}
+
+.offline-mode .row:last-child,
+.offline-mode .container-fluid > .row:last-child {
+    margin-bottom: 3rem;
+}
+
+.offline-mode body.offline-banner-hidden::after {
+    display: none;
+}

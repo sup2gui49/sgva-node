@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="pt-AO">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações de Cálculo - SGVA Folha</title>
+    <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="folha-shared.css">
+</head>
+<body class="bg-light">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-md-block sidebar p-3">
+                <div class="text-white mb-4">
+                    <h4><i class="bi bi-cash-stack"></i> SGVA Folha</h4>
+                    <small>Sistema Profissional</small>
+                </div>
+
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-dashboard.html">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-funcionarios.html">
+                            <i class="bi bi-people"></i> Funcionários
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-subsidios.html">
+                            <i class="bi bi-wallet2"></i> Subsídios
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-categorias.html">
+                            <i class="bi bi-diagram-3"></i> Categorias
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-calculo.html">
+                            <i class="bi bi-calculator"></i> Calcular Folha
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-salarios.html">
+                            <i class="bi bi-table"></i> Folha de Salários
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-irt.html">
+                            <i class="bi bi-bar-chart-steps"></i> Escalões IRT
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-historico.html">
+                            <i class="bi bi-clock-history"></i> Histórico
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-excel.html">
+                            <i class="bi bi-file-earmark-excel"></i> Exportar Excel
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-notificacoes.html">
+                            <i class="bi bi-bell"></i> Notificações
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-backup.html">
+                            <i class="bi bi-hdd"></i> Backup
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-presencas.html">
+                            <i class="bi bi-calendar-check"></i> Presenças
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link active" href="folha-configuracoes.html">
+                            <i class="bi bi-gear"></i> Configurações
+                        </a>
+                    </li>
+                </ul>
+                
+                <div class="mt-4 pt-3 border-top border-light">
+                    <a href="index.html" class="btn btn-outline-light btn-sm w-100">
+                        <i class="bi bi-arrow-left"></i> Voltar ao Painel
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-10 ms-sm-auto px-4 py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2><i class="bi bi-gear"></i> Configurações de Cálculo</h2>
+                        <p class="text-muted">Configure os parâmetros de cálculo da folha de pagamento</p>
+                    </div>
+                </div>
+
+                <!-- Configurações INSS -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-shield-check"></i> Segurança Social (INSS)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Taxa INSS Empregado (%)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="inssEmpregado" step="0.01" min="0" max="100">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <small class="text-muted">Percentual descontado do salário do funcionário</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Taxa INSS Patronal (%)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="inssPatronal" step="0.01" min="0" max="100">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <small class="text-muted">Percentual pago pela empresa</small>
+                            </div>
+                        </div>
+                        <div class="alert alert-info mt-3">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Como funciona:</strong> Base INSS = Salário Base + Subsídios que incidem INSS (marcados com "Incide INSS" no cadastro do subsídio)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gestão de Turnos -->
+                <div class="card mb-4">
+                    <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-clock-history"></i> Gestão de Turnos</h5>
+                        <button class="btn btn-dark btn-sm" onclick="adicionarTurno()">
+                            <i class="bi bi-plus-circle"></i> Novo Turno
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Entrada</th>
+                                        <th>Saída</th>
+                                        <th>Intervalo</th>
+                                        <th>Tolerância (Min)</th>
+                                        <th>Dias</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lista-turnos">
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">Carregando turnos...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fórmulas de Cálculo (Editável) -->
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-calculator"></i> Fórmulas de Cálculo</h5>
+                        <button class="btn btn-light btn-sm" onclick="salvarFormulas()">
+                            <i class="bi bi-save"></i> Salvar Alterações
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> <strong>Instruções:</strong> Clique nas fórmulas para editá-las. As alterações afetarão todos os cálculos do sistema.
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 30%">Componente</th>
+                                        <th style="width: 50%">Fórmula</th>
+                                        <th style="width: 20%">Ação</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="formulas-table">
+                                    <tr data-formula="salario_bruto">
+                                        <td><strong>Salário Bruto</strong></td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm" 
+                                                   value="salario_base + total_subsidios" readonly>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">Fixa</span>
+                                        </td>
+                                    </tr>
+                                    <tr data-formula="base_inss">
+                                        <td><strong>Base INSS</strong></td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm" 
+                                                   value="salario_bruto - subsidios_isentos_inss" readonly>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">Fixa</span>
+                                        </td>
+                                    </tr>
+                                    <tr data-formula="inss_empregado">
+                                        <td><strong>INSS Empregado</strong></td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm" 
+                                                   value="base_inss * taxa_inss_empregado" readonly>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">Fixa</span>
+                                        </td>
+                                    </tr>
+                                    <tr data-formula="inss_patronal">
+                                        <td><strong>INSS Patronal</strong></td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm" 
+                                                   value="base_inss * taxa_inss_patronal" readonly>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">Fixa</span>
+                                        </td>
+                                    </tr>
+                                    <tr data-formula="rendimento_colectavel">
+                                        <td><strong>Rendimento Coletável (RC)</strong></td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm" 
+                                                   value="salario_base + subsidios_tributaveis_irt - inss_empregado" readonly>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">Fixa</span>
+                                        </td>
+                                    </tr>
+                                    <tr data-formula="irt">
+                                        <td><strong>IRT</strong></td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm" 
+                                                   value="calculado_pelos_escaloes(rendimento_colectavel)" readonly>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">Fixa</span>
+                                        </td>
+                                    </tr>
+                                    <tr data-formula="salario_liquido">
+                                        <td><strong>Salário Líquido</strong></td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm" 
+                                                   value="salario_bruto - (inss_empregado + irt)" readonly>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">Fixa</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <small class="text-muted">
+                            <i class="bi bi-shield-lock"></i> As fórmulas estão protegidas para garantir conformidade com a legislação angolana.
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Configurações de Relatórios -->
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="bi bi-file-earmark-text"></i> Configurações de Relatórios</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="formConfigRelatorios">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Título do Relatório</label>
+                                    <input type="text" class="form-control" id="config-titulo" placeholder="Relatório de Funcionários">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Subtítulo</label>
+                                    <input type="text" class="form-control" id="config-subtitulo" placeholder="Listagem Completa">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Rodapé</label>
+                                <input type="text" class="form-control" id="config-rodape" placeholder="Documento Confidencial">
+                            </div>
+
+                            <hr>
+                            <h6 class="text-primary mb-3"><i class="bi bi-pen"></i> Assinaturas</h6>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Nome do Gerente</label>
+                                    <input type="text" class="form-control" id="config-assinatura-gerente" placeholder="Nome completo">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Cargo do Gerente</label>
+                                    <input type="text" class="form-control" id="config-cargo-gerente" value="Gerente Geral">
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Nome do Diretor de RH</label>
+                                    <input type="text" class="form-control" id="config-assinatura-rh" placeholder="Nome completo">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Cargo do RH</label>
+                                    <input type="text" class="form-control" id="config-cargo-rh" value="Diretor de RH">
+                                </div>
+                            </div>
+
+                            <hr>
+                            <h6 class="text-primary mb-3"><i class="bi bi-eye"></i> Campos Visíveis no Relatório</h6>
+
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="config-mostrar-foto" checked>
+                                <label class="form-check-label" for="config-mostrar-foto">
+                                    Mostrar Foto/Avatar dos Funcionários
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="config-mostrar-salario" checked>
+                                <label class="form-check-label" for="config-mostrar-salario">
+                                    Mostrar Salários
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="config-mostrar-contatos" checked>
+                                <label class="form-check-label" for="config-mostrar-contatos">
+                                    Mostrar Contatos (Email/Telefone)
+                                </label>
+                            </div>
+
+                            <hr>
+                            <h6 class="text-primary mb-3"><i class="bi bi-file-pdf"></i> Configurações de PDF</h6>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Orientação do PDF</label>
+                                    <select class="form-select" id="config-pdf-orientacao">
+                                        <option value="portrait">Vertical (Retrato)</option>
+                                        <option value="landscape">Horizontal (Paisagem)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Tipo de Marca d'Água</label>
+                                    <select class="form-select" id="config-marca-dagua-tipo" onchange="toggleMarcaDagua()">
+                                        <option value="texto">Texto</option>
+                                        <option value="imagem">Imagem</option>
+                                        <option value="nenhuma">Nenhuma</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div id="marca-dagua-texto-container" class="mb-3">
+                                <label class="form-label fw-bold">Texto da Marca d'Água</label>
+                                <input type="text" class="form-control" id="config-marca-dagua-texto" placeholder="CONFIDENCIAL" value="CONFIDENCIAL">
+                                <small class="text-muted">O texto aparecerá diagonalmente no centro da página</small>
+                            </div>
+
+                            <div id="marca-dagua-imagem-container" class="mb-3" style="display: none;">
+                                <label class="form-label fw-bold">Imagem da Marca d'Água (Base64 ou URL)</label>
+                                <textarea class="form-control" id="config-marca-dagua-imagem" rows="3" placeholder="data:image/png;base64,... ou URL da imagem"></textarea>
+                                <small class="text-muted">Cole a imagem em formato Base64 ou URL. A imagem aparecerá centralizada com transparência.</small>
+                            </div>
+
+                            <button type="button" class="btn btn-success" onclick="salvarConfigRelatorios()">
+                                <i class="bi bi-check-circle"></i> Salvar Configurações
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Auditoria com Funcionário Real -->
+                <div class="card mb-4">
+                    <div class="card-header bg-warning d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-lightbulb"></i> Auditoria - Exemplo com Funcionário Real</h5>
+                        <select class="form-select form-select-sm" style="max-width: 300px;" id="funcionario-auditoria" onchange="carregarAuditoria()">
+                            <option value="">Selecione um funcionário...</option>
+                        </select>
+                    </div>
+                    <div class="card-body">
+                        <div id="auditoria-loading" class="text-center py-4">
+                            <p class="text-muted">Selecione um funcionário para ver o cálculo detalhado</p>
+                        </div>
+                        
+                        <div id="auditoria-resultado" style="display: none;">
+                            <div class="alert alert-info mb-3">
+                                <strong>Funcionário:</strong> <span id="func-nome"></span><br>
+                                <strong>Categoria:</strong> <span id="func-categoria"></span><br>
+                                <strong>Período:</strong> <span id="func-periodo"></span>
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Item</th>
+                                            <th class="text-end">Valor (KZ)</th>
+                                            <th>Observação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="auditoria-tabela">
+                                        <!-- Preenchido dinamicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botões de Ação -->
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary btn-lg" onclick="salvarConfiguracoes()">
+                        <i class="bi bi-check-circle"></i> Salvar Configurações
+                    </button>
+                    <button class="btn btn-outline-secondary btn-lg" onclick="carregarConfiguracoes()">
+                        <i class="bi bi-arrow-clockwise"></i> Recarregar
+                    </button>
+                </div>
+            <!-- Modal de Turno -->
+            <div class="modal fade" id="modalTurno" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalTurnoTitle">Novo Turno</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="formTurno">
+                                <input type="hidden" id="turnoId">
+                                <div class="mb-3">
+                                    <label class="form-label">Nome do Turno</label>
+                                    <input type="text" class="form-control" id="turnoNome" required>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-6 mb-3">
+                                        <label class="form-label">Entrada</label>
+                                        <input type="time" class="form-control" id="turnoEntrada" required>
+                                    </div>
+                                    <div class="col-6 mb-3">
+                                        <label class="form-label">Saída</label>
+                                        <input type="time" class="form-control" id="turnoSaida" required>
+                                    </div>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-6 mb-3">
+                                        <label class="form-label">Início Intervalo</label>
+                                        <input type="time" class="form-control" id="turnoInicioIntervalo">
+                                    </div>
+                                    <div class="col-6 mb-3">
+                                        <label class="form-label">Fim Intervalo</label>
+                                        <input type="time" class="form-control" id="turnoFimIntervalo">
+                                    </div>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-6 mb-3">
+                                        <label class="form-label">Tolerância Entrada (min)</label>
+                                        <input type="number" class="form-control" id="turnoToleranciaEntrada" value="10">
+                                    </div>
+                                    <div class="col-6 mb-3">
+                                        <label class="form-label">Tolerância Saída (min)</label>
+                                        <input type="number" class="form-control" id="turnoToleranciaSaida" value="10">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Dias de Trabalho</label>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="dia_1" value="1" checked>
+                                            <label class="form-check-label" for="dia_1">Seg</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="dia_2" value="2" checked>
+                                            <label class="form-check-label" for="dia_2">Ter</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="dia_3" value="3" checked>
+                                            <label class="form-check-label" for="dia_3">Qua</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="dia_4" value="4" checked>
+                                            <label class="form-check-label" for="dia_4">Qui</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="dia_5" value="5" checked>
+                                            <label class="form-check-label" for="dia_5">Sex</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="dia_6" value="6">
+                                            <label class="form-check-label" for="dia_6">Sáb</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="dia_0" value="0">
+                                            <label class="form-check-label" for="dia_0">Dom</label>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">Selecione os dias em que este turno se aplica.</small>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-primary" onclick="salvarTurnoModal()">Salvar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+
+        async function fetchAuth(url, options = {}) {
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    ...options.headers
+                }
+            };
+            return fetch(url, { ...options, ...defaultOptions });
+        }
+
+        async function carregarConfiguracoes() {
+            try {
+                const response = await fetchAuth(`${API_URL}/financeiro/config`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const config = data.data || data.config;
+                    document.getElementById('inssEmpregado').value = config.inss_empregado || 3;
+                    document.getElementById('inssPatronal').value = config.inss_patronal || 8;
+                }
+            } catch (error) {
+                console.error('Erro ao carregar configurações:', error);
+                alert('Erro ao carregar configurações');
+            }
+        }
+
+        async function carregarFormulas() {
+            try {
+                const response = await fetchAuth(`${API_URL}/folha-profissional/formulas`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const tbody = document.getElementById('formulas-table');
+                    tbody.innerHTML = data.data.map(f => `
+                        <tr data-formula="${f.codigo}">
+                            <td><strong>${f.nome}</strong></td>
+                            <td>
+                                <input type="text" class="form-control form-control-sm" 
+                                       data-id="${f.id}"
+                                       value="${f.formula}" 
+                                       ${f.editavel === 0 ? 'readonly' : ''}>
+                            </td>
+                            <td>
+                                ${f.editavel === 0 ? 
+                                    '<span class="badge bg-secondary">Fixa</span>' : 
+                                    '<span class="badge bg-warning">Editável</span>'}
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar fórmulas:', error);
+            }
+        }
+
+        async function salvarConfiguracoes() {
+            const inssEmpregado = parseFloat(document.getElementById('inssEmpregado').value);
+            const inssPatronal = parseFloat(document.getElementById('inssPatronal').value);
+
+            if (!inssEmpregado || !inssPatronal) {
+                alert('Por favor, preencha todos os campos');
+                return;
+            }
+
+            try {
+                const response = await fetchAuth(`${API_URL}/financeiro/config`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        inss_empregado: inssEmpregado,
+                        inss_patronal: inssPatronal
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert('✅ Configurações salvas com sucesso!');
+                    carregarConfiguracoes();
+                } else {
+                    alert('❌ Erro ao salvar configurações');
+                }
+            } catch (error) {
+                console.error('Erro ao salvar:', error);
+                alert('❌ Erro ao salvar configurações');
+            }
+        }
+
+        async function carregarFuncionarios() {
+            try {
+                const response = await fetchAuth(`${API_URL}/funcionarios`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const select = document.getElementById('funcionario-auditoria');
+                    const funcionariosAtivos = data.data.filter(f => f.ativo);
+                    
+                    funcionariosAtivos.forEach(func => {
+                        const option = document.createElement('option');
+                        option.value = func.id;
+                        option.textContent = `${func.nome} - ${func.categoria || 'Sem categoria'}`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Erro ao carregar funcionários:', error);
+            }
+        }
+
+        async function carregarAuditoria() {
+            const funcionarioId = document.getElementById('funcionario-auditoria').value;
+            
+            if (!funcionarioId) {
+                document.getElementById('auditoria-loading').style.display = 'block';
+                document.getElementById('auditoria-resultado').style.display = 'none';
+                return;
+            }
+
+            try {
+                document.getElementById('auditoria-loading').innerHTML = '<div class="spinner-border text-primary"></div><p class="mt-2">Calculando...</p>';
+                document.getElementById('auditoria-loading').style.display = 'block';
+                document.getElementById('auditoria-resultado').style.display = 'none';
+
+                const mesAtual = new Date().getMonth() + 1;
+                const anoAtual = new Date().getFullYear();
+
+                const response = await fetchAuth(`${API_URL}/folha-profissional/calcular/${funcionarioId}`, {
+                    method: 'POST',
+                    body: JSON.stringify({ mes: mesAtual, ano: anoAtual })
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.data) {
+                    renderizarAuditoria(data.data);
+                } else {
+                    alert('Erro ao calcular folha do funcionário');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao carregar auditoria');
+            }
+        }
+
+        function renderizarAuditoria(calc) {
+            document.getElementById('func-nome').textContent = calc.funcionario.nome;
+            document.getElementById('func-categoria').textContent = calc.funcionario.categoria || 'Sem categoria';
+            document.getElementById('func-periodo').textContent = `${calc.periodo.mes}/${calc.periodo.ano}`;
+
+            const subsidios = calc.subsidios?.detalhes || [];
+            const salarioBruto = calc.salario_bruto;
+            const baseINSS = calc.salario_base + subsidios.filter(s => s.incide_inss).reduce((sum, s) => sum + s.valor, 0);
+            const inssEmpregado = calc.inss.empregado;
+            const inssPatronal = calc.inss.patronal;
+            const baseIRT = calc.rendimento_colectavel;
+            const irt = calc.irt.valor;
+            const salarioLiquido = calc.salario_liquido;
+
+            let html = `
+                <tr>
+                    <td><strong>Salário Base</strong></td>
+                    <td class="text-end">${formatMoney(calc.salario_base)}</td>
+                    <td>-</td>
+                </tr>
+            `;
+
+            subsidios.forEach(sub => {
+                html += `
+                    <tr>
+                        <td>+ ${sub.nome} (INSS: ${sub.incide_inss ? 'SIM' : 'NÃO'}, IRT: ${sub.incide_irt ? 'SIM' : 'NÃO'})</td>
+                        <td class="text-end">${formatMoney(sub.valor)}</td>
+                        <td>
+                            ${sub.incide_irt ? '<span class="badge bg-warning">Tributável IRT</span>' : '<span class="badge bg-success">Isento IRT</span>'}
+                            ${sub.incide_inss ? '<span class="badge bg-primary">INSS</span>' : ''}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                <tr class="table-primary">
+                    <td><strong>= Salário Bruto</strong></td>
+                    <td class="text-end"><strong>${formatMoney(salarioBruto)}</strong></td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="bg-light"><strong>Cálculo INSS:</strong></td>
+                </tr>
+                <tr>
+                    <td>Base INSS</td>
+                    <td class="text-end">${formatMoney(baseINSS)}</td>
+                    <td>${subsidios.filter(s => !s.incide_inss).map(s => s.nome).join(', ') || 'Todos'} ${subsidios.filter(s => !s.incide_inss).length > 0 ? 'NÃO incide INSS' : ''}</td>
+                </tr>
+                <tr>
+                    <td>- INSS Empregado (${(calc.inss.taxa_empregado * 100).toFixed(1)}%)</td>
+                    <td class="text-end text-danger">${formatMoney(inssEmpregado)}</td>
+                    <td>${formatMoney(baseINSS)} × ${(calc.inss.taxa_empregado * 100).toFixed(1)}%</td>
+                </tr>
+                <tr>
+                    <td>- INSS Patronal (${(calc.inss.taxa_patronal * 100).toFixed(1)}%)</td>
+                    <td class="text-end text-danger">${formatMoney(inssPatronal)}</td>
+                    <td>${formatMoney(baseINSS)} × ${(calc.inss.taxa_patronal * 100).toFixed(1)}%</td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="bg-light"><strong>Cálculo IRT:</strong></td>
+                </tr>
+                <tr>
+                    <td>Base IRT (Rendimento Coletável)</td>
+                    <td class="text-end">${formatMoney(baseIRT)}</td>
+                    <td>${subsidios.filter(s => !s.incide_irt).map(s => s.nome).join(', ') || 'Nenhum'} ${subsidios.filter(s => !s.incide_irt).length > 0 ? 'NÃO incide IRT' : ''}</td>
+                </tr>
+                <tr>
+                    <td>- IRT (${calc.irt.escalao})</td>
+                    <td class="text-end text-danger">${formatMoney(irt)}</td>
+                    <td>${calc.irt.detalhes}</td>
+                </tr>
+                <tr class="table-success">
+                    <td><strong>= Salário Líquido</strong></td>
+                    <td class="text-end"><strong>${formatMoney(salarioLiquido)}</strong></td>
+                    <td>${formatMoney(salarioBruto)} - ${formatMoney(inssEmpregado)} - ${formatMoney(irt)}</td>
+                </tr>
+                <tr class="table-warning">
+                    <td><strong>Custo Total Empresa</strong></td>
+                    <td class="text-end"><strong>${formatMoney(salarioBruto + inssPatronal)}</strong></td>
+                    <td>${formatMoney(salarioBruto)} + ${formatMoney(inssPatronal)} (INSS Patronal)</td>
+                </tr>
+            `;
+
+            document.getElementById('auditoria-tabela').innerHTML = html;
+            document.getElementById('auditoria-loading').style.display = 'none';
+            document.getElementById('auditoria-resultado').style.display = 'block';
+        }
+
+        function formatMoney(value) {
+            return parseFloat(value || 0).toLocaleString('pt-AO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        async function salvarFormulas() {
+            const inputs = document.querySelectorAll('#formulas-table input:not([readonly])');
+            const updates = [];
+
+            for (const input of inputs) {
+                const id = input.dataset.id;
+                const formula = input.value.trim();
+                if (id && formula) {
+                    updates.push({ id, formula });
+                }
+            }
+
+            if (updates.length === 0) {
+                alert('ℹ️ As fórmulas são fixas e baseadas na legislação angolana.\n\nApenas fórmulas customizadas podem ser editadas.');
+                return;
+            }
+
+            try {
+                for (const update of updates) {
+                    await fetchAuth(`${API_URL}/folha-profissional/formulas/${update.id}`, {
+                        method: 'PUT',
+                        body: JSON.stringify({ formula: update.formula })
+                    });
+                }
+
+                alert('✅ Fórmulas atualizadas com sucesso!\n\nATENÇÃO: Recalcule as folhas de pagamento para aplicar as mudanças.');
+                carregarFormulas();
+            } catch (error) {
+                console.error('Erro ao salvar fórmulas:', error);
+                alert('❌ Erro ao salvar fórmulas');
+            }
+        }
+
+        // --- GESTÃO DE TURNOS ---
+        async function carregarTurnos() {
+            try {
+                const response = await fetchAuth(`${API_URL}/turnos`);
+                const data = await response.json();
+                
+                const tbody = document.getElementById('lista-turnos');
+                tbody.innerHTML = '';
+
+                if (data.success && data.data && data.data.length > 0) {
+                    data.data.forEach(t => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${t.nome}</td>
+                                <td>${t.entrada}</td>
+                                <td>${t.saida}</td>
+                                <td>${t.inicio_intervalo || '-'} às ${t.fim_intervalo || '-'}</td>
+                                <td>${t.tolerancia_entrada} min</td>
+                                <td>${formatarDiasSemana(t.dias_semana)}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick='editarTurno(${JSON.stringify(t)})'>
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="excluirTurno(${t.id})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Nenhum turno cadastrado.</td></tr>';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar turnos:', error);
+                document.getElementById('lista-turnos').innerHTML = '<tr><td colspan="7" class="text-center text-danger">Erro ao carregar turnos.</td></tr>';
+            }
+        }
+
+        function formatarDiasSemana(diasStr) {
+            try {
+                const dias = typeof diasStr === 'string' ? JSON.parse(diasStr) : (diasStr || []);
+                const labels = {0: 'Dom', 1: 'Seg', 2: 'Ter', 3: 'Qua', 4: 'Qui', 5: 'Sex', 6: 'Sáb'};
+                if (dias.length === 5 && !dias.includes(0) && !dias.includes(6)) return 'Seg-Sex';
+                if (dias.length === 7) return 'Todos os dias';
+                return dias.map(d => labels[d]).join(', ');
+            } catch (e) { return '-'; }
+        }
+
+function adicionarTurno() {
+            document.getElementById('formTurno').reset();
+            document.getElementById('turnoId').value = '';
+            document.getElementById('turnoToleranciaEntrada').value = 10;
+            document.getElementById('turnoToleranciaSaida').value = 10;
+            
+            // Reset checkboxes
+            [0,1,2,3,4,5,6].forEach(d => {
+                document.getElementById(`dia_${d}`).checked = d >= 1 && d <= 5; // Mon-Fri default
+            });
+
+            document.getElementById('modalTurnoTitle').innerText = 'Novo Turno';
+            const modal = new bootstrap.Modal(document.getElementById('modalTurno'));
+            modal.show();
+        }
+
+        async function salvarTurnoModal() {
+            const id = document.getElementById('turnoId').value;
+            const nome = document.getElementById('turnoNome').value;
+            const entrada = document.getElementById('turnoEntrada').value;
+            const saida = document.getElementById('turnoSaida').value;
+            const inicioIntervalo = document.getElementById('turnoInicioIntervalo').value;
+            const fimIntervalo = document.getElementById('turnoFimIntervalo').value;
+            const tolEntrada = document.getElementById('turnoToleranciaEntrada').value;
+            const tolSaida = document.getElementById('turnoToleranciaSaida').value;
+
+            // Get selected days
+            const diasSemana = [];
+            [0,1,2,3,4,5,6].forEach(d => {
+                if (document.getElementById(`dia_${d}`).checked) {
+                    diasSemana.push(d);
+                }
+            });
+
+            if (!nome || !entrada || !saida) {
+                alert('Preencha os campos obrigatórios (Nome, Entrada, Saída).');
+                return;
+            }
+
+            const payload = {
+                nome,
+                entrada,
+                saida,
+                inicio_intervalo: inicioIntervalo,
+                fim_intervalo: fimIntervalo,
+                tolerancia_entrada: parseInt(tolEntrada) || 0,
+                tolerancia_saida: parseInt(tolSaida) || 0,
+                dias_semana: diasSemana
+            };
+
+            try {
+                let response;
+                if (id) {
+                    // Update
+                    response = await fetchAuth(`${API_URL}/turnos/${id}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(payload)
+                    });
+                } else {
+                    // Create
+                    response = await fetchAuth(`${API_URL}/turnos`, {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                }
+
+                const res = await response.json();
+                if (res.success || response.ok) {
+                    alert('Turno salvo com sucesso!');
+                    // Fechar modal
+                    const modalEl = document.getElementById('modalTurno');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    modal.hide();
+                    
+                    carregarTurnos();
+                } else {
+                    alert('Erro ao salvar: ' + (res.message || 'Erro desconhecido'));
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Erro na requisição: ' + e.message);
+            }
+        }
+
+        async function excluirTurno(id) {
+            if (!confirm('Deseja realmente excluir este turno?')) return;
+            
+            try {
+                const response = await fetchAuth(`${API_URL}/turnos/${id}`, { method: 'DELETE' });
+                const res = await response.json();
+                
+                if (res.success) {
+                    alert('Turno removido!');
+                    carregarTurnos();
+                } else {
+                    alert('Erro: ' + res.message);
+                }
+            } catch (e) {
+                alert('Erro: ' + e.message);
+            }
+        }
+
+        function editarTurno(turno) {
+            document.getElementById('turnoId').value = turno.id;
+            document.getElementById('turnoNome').value = turno.nome;
+            document.getElementById('turnoEntrada').value = turno.entrada;
+            document.getElementById('turnoSaida').value = turno.saida;
+            document.getElementById('turnoInicioIntervalo').value = turno.inicio_intervalo || '';
+            document.getElementById('turnoFimIntervalo').value = turno.fim_intervalo || '';
+            document.getElementById('turnoToleranciaEntrada').value = turno.tolerancia_entrada || 10;
+            document.getElementById('turnoToleranciaSaida').value = turno.tolerancia_saida || 10;
+            
+            // Set Checkboxes
+            let dias = [];
+            try {
+                dias = typeof turno.dias_semana === 'string' ? JSON.parse(turno.dias_semana) : (turno.dias_semana || [1,2,3,4,5]);
+            } catch (e) { dias = [1,2,3,4,5]; }
+
+            [0,1,2,3,4,5,6].forEach(d => {
+                document.getElementById(`dia_${d}`).checked = dias.includes(d);
+            });
+
+            document.getElementById('modalTurnoTitle').innerText = 'Editar Turno';
+            const modal = new bootstrap.Modal(document.getElementById('modalTurno'));
+            modal.show();
+        }
+
+        // Carregar ao abrir a página
+        carregarConfiguracoes();
+        carregarFuncionarios();
+        carregarFormulas();
+        carregarTurnos();
+        carregarConfigRelatorios();
+
+        async function carregarConfigRelatorios() {
+            try {
+                const response = await fetchAuth(`${API_URL}/configuracoes`);
+                const data = await response.json();
+                
+                if (data.success && data.data) {
+                    const config = data.data;
+                    document.getElementById('config-titulo').value = config.titulo || '';
+                    document.getElementById('config-subtitulo').value = config.subtitulo || '';
+                    document.getElementById('config-rodape').value = config.rodape || '';
+                    document.getElementById('config-assinatura-gerente').value = config.assinatura_gerente || '';
+                    document.getElementById('config-cargo-gerente').value = config.cargo_gerente || '';
+                    document.getElementById('config-assinatura-rh').value = config.assinatura_rh || '';
+                    document.getElementById('config-cargo-rh').value = config.cargo_rh || '';
+                    document.getElementById('config-mostrar-foto').checked = config.mostrar_foto === 1;
+                    document.getElementById('config-mostrar-salario').checked = config.mostrar_salario === 1;
+                    document.getElementById('config-mostrar-contatos').checked = config.mostrar_contatos === 1;
+                    
+                    // Configurações de PDF
+                    document.getElementById('config-pdf-orientacao').value = config.pdf_orientacao || 'portrait';
+                    document.getElementById('config-marca-dagua-tipo').value = config.marca_dagua_tipo || 'texto';
+                    document.getElementById('config-marca-dagua-texto').value = config.marca_dagua_texto || 'CONFIDENCIAL';
+                    document.getElementById('config-marca-dagua-imagem').value = config.marca_dagua_imagem || '';
+                    
+                    toggleMarcaDagua();
+                }
+            } catch (error) {
+                console.error('Erro ao carregar configurações:', error);
+            }
+        }
+
+        function toggleMarcaDagua() {
+            const tipo = document.getElementById('config-marca-dagua-tipo').value;
+            const textoContainer = document.getElementById('marca-dagua-texto-container');
+            const imagemContainer = document.getElementById('marca-dagua-imagem-container');
+            
+            if (tipo === 'texto') {
+                textoContainer.style.display = 'block';
+                imagemContainer.style.display = 'none';
+            } else if (tipo === 'imagem') {
+                textoContainer.style.display = 'none';
+                imagemContainer.style.display = 'block';
+            } else {
+                textoContainer.style.display = 'none';
+                imagemContainer.style.display = 'none';
+            }
+        }
+
+        async function salvarConfigRelatorios() {
+            const payload = {
+                titulo: document.getElementById('config-titulo').value,
+                subtitulo: document.getElementById('config-subtitulo').value,
+                rodape: document.getElementById('config-rodape').value,
+                assinatura_gerente: document.getElementById('config-assinatura-gerente').value,
+                cargo_gerente: document.getElementById('config-cargo-gerente').value,
+                assinatura_rh: document.getElementById('config-assinatura-rh').value,
+                cargo_rh: document.getElementById('config-cargo-rh').value,
+                mostrar_foto: document.getElementById('config-mostrar-foto').checked,
+                mostrar_salario: document.getElementById('config-mostrar-salario').checked,
+                mostrar_contatos: document.getElementById('config-mostrar-contatos').checked,
+                
+                // Configurações de PDF
+                pdf_orientacao: document.getElementById('config-pdf-orientacao').value,
+                marca_dagua_tipo: document.getElementById('config-marca-dagua-tipo').value,
+                marca_dagua_texto: document.getElementById('config-marca-dagua-texto').value,
+                marca_dagua_imagem: document.getElementById('config-marca-dagua-imagem').value
+            };
+
+            try {
+                const response = await fetchAuth(`${API_URL}/configuracoes`, {
+                    method: 'PUT',
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('✓ Configurações de relatório salvas com sucesso!');
+                } else {
+                    alert('✗ Erro: ' + result.message);
+                }
+            } catch (error) {
+                console.error(error);
+                alert('✗ Erro ao salvar configurações');
+            }
+        }
+    </script>
+    <script src="js/folha-footer.js"></script>
+</body>
+</html>

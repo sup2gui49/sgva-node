@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backup & Restore - Folha Profissional</title>
+    <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="folha-shared.css">
+    <style>
+        .backup-item {
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .backup-item:hover {
+            background-color: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .stats-card {
+            border-left: 4px solid;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-md-block sidebar p-3">
+                <div class="text-white mb-4">
+                    <h4><i class="bi bi-cash-stack"></i> SGVA Folha</h4>
+                    <small>Sistema Profissional</small>
+                </div>
+                
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-dashboard.html">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-funcionarios.html">
+                            <i class="bi bi-people"></i> Funcionários
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-subsidios.html">
+                            <i class="bi bi-wallet2"></i> Subsídios
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-categorias.html">
+                            <i class="bi bi-diagram-3"></i> Categorias
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-calculo.html">
+                            <i class="bi bi-calculator"></i> Calcular Folha
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-salarios.html">
+                            <i class="bi bi-table"></i> Folha de Salários
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-irt.html">
+                            <i class="bi bi-bar-chart-steps"></i> Escalões IRT
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-historico.html">
+                            <i class="bi bi-clock-history"></i> Histórico
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-excel.html">
+                            <i class="bi bi-file-earmark-excel"></i> Exportar Excel
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-notificacoes.html">
+                            <i class="bi bi-bell"></i> Notificações
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link active" href="folha-backup.html">
+                            <i class="bi bi-hdd"></i> Backup
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-configuracoes.html">
+                            <i class="bi bi-gear"></i> Configurações
+                        </a>
+                    </li>
+                </ul>
+                
+                <!-- Botão Voltar ao Painel -->
+                <div class="mt-4 pt-3 border-top border-light">
+                    <a href="index.html" class="btn btn-outline-light btn-sm w-100">
+                        <i class="bi bi-arrow-left"></i> Voltar ao Painel
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-10 ms-sm-auto px-4 py-4">
+        <div class="row mb-4">
+            <div class="col">
+                <h2><i class="bi bi-hdd text-primary"></i> Backup & Restore</h2>
+                <p class="text-muted">Gerir cópias de segurança do banco de dados</p>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-success btn-lg" onclick="criarBackup()">
+                    <i class="bi bi-plus-circle"></i> Criar Backup Agora
+                </button>
+            </div>
+        </div>
+
+        <!-- Reset para Demonstração -->
+        <div class="card border-danger mb-4">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-trash3"></i> Reset de Dados para Demonstração</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger mb-3">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <strong>ATENÇÃO:</strong> Esta função irá limpar dados selecionados do sistema. Use apenas para demonstrações!
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <h6 class="mb-3">Selecione os dados que deseja limpar:</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="reset-folhas" checked>
+                            <label class="form-check-label" for="reset-folhas">
+                                <strong>Folhas de Pagamento</strong> - Remove todos os cálculos de folha salvos
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="reset-pagamentos">
+                            <label class="form-check-label" for="reset-pagamentos">
+                                <strong>Status de Pagamentos</strong> - Remove histórico de pagamentos realizados
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="reset-atribuicoes">
+                            <label class="form-check-label" for="reset-atribuicoes">
+                                <strong>Atribuições de Subsídios</strong> - Remove subsídios atribuídos a funcionários
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="reset-funcionarios">
+                            <label class="form-check-label" for="reset-funcionarios">
+                                <strong>Funcionários</strong> - Remove todos os funcionários (mantém categorias)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="bi bi-shield-check"></i> Os escalões IRT, subsídios base e categorias serão preservados
+                    </small>
+                    <button class="btn btn-danger" onclick="resetarDados()">
+                        <i class="bi bi-trash3-fill"></i> Resetar Dados Selecionados
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estatísticas do Banco -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card stats-card border-primary">
+                    <div class="card-body">
+                        <small class="text-muted">Tamanho do Banco</small>
+                        <h4 class="mb-0" id="db-size">--</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card border-success">
+                    <div class="card-body">
+                        <small class="text-muted">Total de Backups</small>
+                        <h4 class="mb-0" id="total-backups">0</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card border-warning">
+                    <div class="card-body">
+                        <small class="text-muted">Funcionários</small>
+                        <h4 class="mb-0" id="total-func">0</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card border-info">
+                    <div class="card-body">
+                        <small class="text-muted">Folhas Processadas</small>
+                        <h4 class="mb-0" id="total-folhas">0</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alertas -->
+        <div class="alert alert-warning" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <strong>Atenção:</strong> Restaurar um backup irá substituir TODOS os dados atuais. Um backup automático do estado atual será criado antes da restauração.
+        </div>
+
+        <!-- Lista de Backups -->
+        <div class="card">
+            <div class="card-header bg-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock-history"></i> Backups Disponíveis
+                    </h5>
+                    <button class="btn btn-sm btn-outline-primary" onclick="carregarBackups()">
+                        <i class="bi bi-arrow-clockwise"></i> Atualizar
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="lista-backups">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <p class="mt-3">Carregando backups...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instruções -->
+        <div class="card mt-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Como Funciona</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="text-center mb-3">
+                            <i class="bi bi-cloud-arrow-up text-success" style="font-size: 3em;"></i>
+                            <h5 class="mt-2">Criar Backup</h5>
+                            <p class="text-muted small">Cria uma cópia de segurança completa do banco de dados atual.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center mb-3">
+                            <i class="bi bi-cloud-arrow-down text-primary" style="font-size: 3em;"></i>
+                            <h5 class="mt-2">Restaurar</h5>
+                            <p class="text-muted small">Restaura o sistema para o estado de um backup anterior.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center mb-3">
+                            <i class="bi bi-download text-info" style="font-size: 3em;"></i>
+                            <h5 class="mt-2">Download</h5>
+                            <p class="text-muted small">Baixa o arquivo de backup para o seu computador.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_BASE = 'http://localhost:3000/api/backup';
+
+        async function carregarDados() {
+            await Promise.all([
+                carregarEstatisticas(),
+                carregarBackups()
+            ]);
+        }
+
+        async function carregarEstatisticas() {
+            try {
+                const response = await fetch(`${API_BASE}/stats`);
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('db-size').textContent = formatBytes(data.data.database.size);
+                    document.getElementById('total-func').textContent = data.data.tables.funcionarios || 0;
+                    document.getElementById('total-folhas').textContent = data.data.tables.folhas_pagamento || 0;
+                }
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+            }
+        }
+
+        async function carregarBackups() {
+            try {
+                const response = await fetch(`${API_BASE}/list`);
+                const data = await response.json();
+
+                if (!data.success) throw new Error(data.message);
+
+                const container = document.getElementById('lista-backups');
+                document.getElementById('total-backups').textContent = data.total;
+
+                if (data.total === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox" style="font-size: 4em; color: #ccc;"></i>
+                            <p class="mt-3 text-muted">Nenhum backup encontrado</p>
+                            <button class="btn btn-primary" onclick="criarBackup()">
+                                <i class="bi bi-plus-circle"></i> Criar Primeiro Backup
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = data.data.map(backup => `
+                    <div class="card backup-item mb-3">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <h5 class="mb-1">
+                                        <i class="bi bi-file-earmark-zip text-primary"></i>
+                                        ${backup.filename}
+                                    </h5>
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar"></i> ${new Date(backup.modified).toLocaleString('pt-AO')}
+                                    </small>
+                                </div>
+                                <div class="col-md-3 text-center">
+                                    <span class="badge bg-info fs-6">${formatBytes(backup.size)}</span>
+                                </div>
+                                <div class="col-md-3 text-end">
+                                    <button class="btn btn-sm btn-outline-success me-1" 
+                                            onclick="restaurarBackup('${backup.filename}')" 
+                                            title="Restaurar">
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary me-1" 
+                                            onclick="downloadBackup('${backup.filename}')" 
+                                            title="Download">
+                                        <i class="bi bi-download"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" 
+                                            onclick="deletarBackup('${backup.filename}')" 
+                                            title="Deletar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Erro ao carregar backups:', error);
+                document.getElementById('lista-backups').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i> Erro ao carregar backups: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function criarBackup() {
+            if (!confirm('Deseja criar um novo backup do banco de dados?')) return;
+
+            try {
+                const btn = event.target.closest('button');
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Criando...';
+
+                const response = await fetch(`${API_BASE}/create`, { method: 'POST' });
+                const data = await response.json();
+
+                if (!data.success) throw new Error(data.message);
+
+                alert(`✓ Backup criado com sucesso!\n\nArquivo: ${data.data.filename}\nTamanho: ${formatBytes(data.data.size)}`);
+                
+                await carregarDados();
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            } catch (error) {
+                console.error('Erro ao criar backup:', error);
+                alert('✗ Erro ao criar backup: ' + error.message);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        async function restaurarBackup(filename) {
+            if (!confirm(`⚠️ ATENÇÃO!\n\nVocê está prestes a RESTAURAR o backup:\n${filename}\n\nIsso irá SUBSTITUIR todos os dados atuais!\nUm backup do estado atual será criado automaticamente.\n\nDeseja continuar?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/restore/${filename}`, { method: 'POST' });
+                const data = await response.json();
+
+                if (!data.success) throw new Error(data.message);
+
+                alert(`✓ Backup restaurado com sucesso!\n\nBackup do estado anterior: ${data.data.preRestoreBackup}\n\nA página será recarregada.`);
+                
+                // Recarregar página após 2 segundos
+                setTimeout(() => window.location.reload(), 2000);
+            } catch (error) {
+                console.error('Erro ao restaurar backup:', error);
+                alert('✗ Erro ao restaurar backup: ' + error.message);
+            }
+        }
+
+        function downloadBackup(filename) {
+            window.location.href = `${API_BASE}/download/${filename}`;
+        }
+
+        async function deletarBackup(filename) {
+            if (!confirm(`Deseja realmente deletar o backup?\n\n${filename}\n\nEsta ação não pode ser desfeita!`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/delete/${filename}`, { method: 'DELETE' });
+                const data = await response.json();
+
+                if (!data.success) throw new Error(data.message);
+
+                alert('✓ Backup deletado com sucesso!');
+                await carregarBackups();
+            } catch (error) {
+                console.error('Erro ao deletar backup:', error);
+                alert('✗ Erro ao deletar backup: ' + error.message);
+            }
+        }
+
+        async function resetarDados() {
+            const opcoes = {
+                folhas: document.getElementById('reset-folhas').checked,
+                pagamentos: document.getElementById('reset-pagamentos').checked,
+                atribuicoes: document.getElementById('reset-atribuicoes').checked,
+                funcionarios: document.getElementById('reset-funcionarios').checked
+            };
+
+            if (!Object.values(opcoes).some(v => v)) {
+                alert('⚠️ Selecione pelo menos uma opção para resetar!');
+                return;
+            }
+
+            const itensReset = [];
+            if (opcoes.folhas) itensReset.push('• Folhas de pagamento');
+            if (opcoes.pagamentos) itensReset.push('• Status de pagamentos');
+            if (opcoes.atribuicoes) itensReset.push('• Atribuições de subsídios');
+            if (opcoes.funcionarios) itensReset.push('• Funcionários');
+
+            const confirmMsg = `⚠️ ATENÇÃO - RESET DE DADOS!\n\nOs seguintes dados serão PERMANENTEMENTE REMOVIDOS:\n\n${itensReset.join('\n')}\n\n` +
+                `Esta ação NÃO PODE SER DESFEITA!\n\n` +
+                `Deseja criar um backup antes de continuar?`;
+
+            if (!confirm(confirmMsg)) return;
+
+            const criarBackup = confirm('Criar backup de segurança antes de resetar?');
+
+            try {
+                if (criarBackup) {
+                    const backupResp = await fetch(`${API_BASE}/create`, { method: 'POST' });
+                    const backupData = await backupResp.json();
+                    if (backupData.success) {
+                        alert(`✓ Backup criado: ${backupData.data.filename}`);
+                    }
+                }
+
+                const response = await fetch(`${API_BASE}/reset`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(opcoes)
+                });
+
+                const data = await response.json();
+
+                if (!data.success) throw new Error(data.message);
+
+                alert(`✓ Reset concluído com sucesso!\n\n${data.message}\n\nA página será recarregada.`);
+                setTimeout(() => window.location.reload(), 1500);
+            } catch (error) {
+                console.error('Erro ao resetar dados:', error);
+                alert('✗ Erro ao resetar dados: ' + error.message);
+            }
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        // Inicializar
+        carregarDados();
+    </script>
+</body>
+</html>

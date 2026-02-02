@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Geral - SGVA</title>
+    <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css" data-cdn="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" data-offline-group="core">
+    <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.css" data-cdn="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" data-offline-group="icons">
+    <link rel="stylesheet" href="folha-shared.css">
+    <link rel="stylesheet" href="offline.css" data-offline-style="core" disabled>
+    <link rel="stylesheet" href="offline-icons.css" data-offline-style="icons" disabled>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23667eea'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='16' fill='white' font-family='Arial'%3ESG%3C/text%3E%3C/svg%3E">
+    <script src="js/offline-assets.js"></script>
+    <script>
+        AssetLoader.loadScript(
+            'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+            'vendor/chartjs/chart.umd.min.js',
+            {
+                target: 'head',
+                onload: () => {
+                    window.ChartUnavailable = false;
+                    tentarRenderizarPerformancePendente();
+                },
+                onerror: () => {
+                    window.ChartUnavailable = true;
+                    agendarNovaTentativaPerformance();
+                }
+            }
+        );
+    </script>
+    <script src="js/offline-charts.js"></script>
+    <style>
+        body {
+            background: #f3f5ff;
+        }
+        .dashboard-header {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.08);
+            margin-bottom: 2rem;
+        }
+        .filter-pill {
+            border-radius: 999px;
+            border: 1px solid #e2e6f4;
+            padding: 0.35rem 0.9rem;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .kpi-card {
+            border-radius: 20px;
+            color: #ffffff;
+            position: relative;
+            overflow: hidden;
+        }
+        .kpi-card::after {
+            content: '';
+            position: absolute;
+            inset: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 18px;
+            pointer-events: none;
+        }
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .kpi-trend {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .kpi-trend.positive { color: #43e97b; }
+        .kpi-trend.negative { color: #ff6b6b; }
+        .timeline-step {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px dashed #e9edf7;
+        }
+        .timeline-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: grid;
+            place-items: center;
+            font-size: 1.4rem;
+        }
+        .alert-item {
+            border-radius: 16px;
+            padding: 1rem;
+            border: 1px solid #f0f1f7;
+            background: #fff;
+            margin-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .dashboard-columns {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 12px var(--sidebar-width, 360px);
+            gap: 1.5rem;
+            align-items: start;
+        }
+        .sidebar-resize-handle {
+            width: 100%;
+            cursor: ew-resize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sidebar-resize-handle::after {
+            content: '';
+            width: 2px;
+            height: 60%;
+            background: rgba(102, 126, 234, 0.45);
+            border-radius: 2px;
+        }
+        .draggable-card {
+            cursor: grab;
+            position: relative;
+        }
+        .draggable-card.dragging {
+            opacity: 0.7;
+            cursor: grabbing;
+        }
+        .draggable-card.drop-target {
+            outline: 2px dashed #667eea;
+            border-radius: 20px;
+        }
+        .draggable-card .card {
+            min-height: 220px;
+            transition: height 0.15s ease;
+            overflow: auto;
+        }
+        .card-resize-handle {
+            border-top: 1px dashed #e0e3f5;
+            text-align: center;
+            padding: 4px 0;
+            color: #8a8fa3;
+            cursor: ns-resize;
+            font-size: 0.8rem;
+            user-select: none;
+        }
+        body.resizing-card-active { cursor: ns-resize; user-select: none; }
+        body.resizing-col-active { cursor: ew-resize; user-select: none; }
+        .insight-pill {
+            border-radius: 999px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 0;
+            border-bottom: 1px dashed #eef1fb;
+        }
+        .checklist-item:last-child { border-bottom: none; }
+        .link-pill {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            border: 1px solid #e6e9f8;
+            margin-bottom: 0.5rem;
+        }
+        .link-pill:last-child { margin-bottom: 0; }
+        .offline-banner {
+            border-radius: 12px;
+            padding: 0.85rem 1.25rem;
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        @media (max-width: 1199px) {
+            .dashboard-columns {
+                grid-template-columns: 1fr;
+            }
+            .sidebar-resize-handle {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid px-4 py-4">
+        <div id="bannerOffline" class="offline-banner d-none">
+            <i class="bi bi-wifi-off"></i>
+            <span>Mostrando dados em modo offline. Última sincronização: <strong id="offlineTimestamp">-</strong></span>
+        </div>
+
+        <section class="dashboard-header d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
+            <div class="mb-3 mb-lg-0">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="filter-pill text-uppercase text-primary fw-bold">SGVA</span>
+                    <span class="text-muted">Hub Operacional</span>
+                </div>
+                <h1 class="mt-3 mb-1">Dashboard Geral</h1>
+                <p class="text-muted mb-0">Visão consolidada de folha, vendas e integrações</p>
+            </div>
+            <div class="d-flex flex-column flex-sm-row gap-3">
+                <div>
+                    <label class="form-label mb-1 text-muted">Período</label>
+                    <input type="month" class="form-control" id="campoPeriodo">
+                </div>
+                <div>
+                    <label class="form-label mb-1 text-muted">Unidade</label>
+                    <select id="selectUnidade" class="form-select">
+                        <option value="geral">Geral</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <section id="kpiContainer" class="row g-4 mb-4"></section>
+
+        <div class="dashboard-columns" id="dashboardColumns" style="--sidebar-width:360px;">
+            <div class="dashboard-main">
+                <div class="card mb-4">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Performance do Mês</h5>
+                        <span class="badge bg-light text-dark" id="badgePeriodo"></span>
+                    </div>
+                    <div class="card-body">
+                        <div class="position-relative" style="min-height:320px;">
+                            <canvas id="chartPerformance" height="300" data-chart-name="performance"></canvas>
+                        </div>
+                        <div class="row text-center mt-4" id="performanceHighlights"></div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Top Alertas</h5>
+                                <span class="badge bg-warning text-dark" id="totalAlertas">0</span>
+                            </div>
+                            <div class="card-body" id="listaAlertas"></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0"><i class="bi bi-diagram-3 text-primary me-2"></i>Pipeline Integrado</h5>
+                            </div>
+                            <div class="card-body" id="pipelineProcessos"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-resize-handle" id="sidebarResizeHandle"></div>
+
+            <aside>
+                <div id="painelInsights" class="d-flex flex-column gap-4">
+                    <div class="draggable-card" data-card-id="atividades" draggable="true">
+                        <div class="card">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="bi bi-lightning-charge text-primary me-2"></i>Atividades Recentes</h5>
+                                <span class="badge bg-light text-dark" id="badgeAtividades">0</span>
+                            </div>
+                            <div class="card-body" id="listaAtividades"></div>
+                        </div>
+                        <div class="card-resize-handle" data-resize-handle><i class="bi bi-arrows-expand"></i></div>
+                    </div>
+
+                    <div class="draggable-card" data-card-id="integracao" draggable="true">
+                        <div class="card">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="bi bi-diagram-2 text-success me-2"></i>Integração em Tempo Real</h5>
+                                <span class="insight-pill bg-success-subtle text-success" id="tagIntegracao">Sincronizado</span>
+                            </div>
+                            <div class="card-body" id="painelIntegracao"></div>
+                        </div>
+                        <div class="card-resize-handle" data-resize-handle><i class="bi bi-arrows-expand"></i></div>
+                    </div>
+
+                    <div class="draggable-card" data-card-id="checklist" draggable="true">
+                        <div class="card">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="bi bi-journal-check text-info me-2"></i>Checklist Operacional</h5>
+                                <span class="badge bg-info-subtle text-info" id="badgeChecklist">0%</span>
+                            </div>
+                            <div class="card-body" id="listaChecklist"></div>
+                        </div>
+                        <div class="card-resize-handle" data-resize-handle><i class="bi bi-arrows-expand"></i></div>
+                    </div>
+
+                    <div class="draggable-card" data-card-id="links" draggable="true">
+                        <div class="card">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0"><i class="bi bi-link-45deg text-primary me-2"></i>Links Rápidos</h5>
+                            </div>
+                            <div class="card-body" id="listaLinks"></div>
+                        </div>
+                        <div class="card-resize-handle" data-resize-handle><i class="bi bi-arrows-expand"></i></div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script>
+        const DASHBOARD_API = 'http://localhost:3000/api/dashboard-geral';
+        const SNAPSHOT_KEY = 'dashboardGeralSnapshotV1';
+        const SIDEBAR_ORDER_KEY = 'dashboardGeralSidebarOrder';
+        const SIDEBAR_HEIGHT_KEY = 'dashboardGeralSidebarHeights';
+        const SIDEBAR_WIDTH_KEY = 'dashboardGeralSidebarWidth';
+        const MIN_CARD_HEIGHT = 220;
+        const MIN_SIDEBAR_WIDTH = 280;
+        const MAX_SIDEBAR_WIDTH = 520;
+
+        window.ChartUnavailable = window.ChartUnavailable ?? false;
+
+        const dashboardState = {
+            periodo: obterPeriodoISOAtual(),
+            unidadeSelecionada: 'geral',
+            offline: false,
+            dados: null
+        };
+
+        const performanceStore = { dados: null };
+        let performanceChart = null;
+        let performanceRetryInterval = null;
+        let draggingCard = null;
+        let resizeState = null;
+        let sidebarResizeState = null;
+
+        function obterPeriodoISOAtual() {
+            const hoje = new Date();
+            return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+        }
+
+        async function inicializarDashboardGeral() {
+            inicializarFiltros();
+            inicializarDragCards();
+            inicializarResizeCards();
+            inicializarSidebarResize();
+            await carregarDashboardGeral();
+        }
+
+        function inicializarFiltros() {
+            const campoPeriodo = document.getElementById('campoPeriodo');
+            const selectUnidade = document.getElementById('selectUnidade');
+            if (campoPeriodo) {
+                campoPeriodo.value = dashboardState.periodo;
+                campoPeriodo.addEventListener('change', () => {
+                    dashboardState.periodo = campoPeriodo.value || dashboardState.periodo;
+                    carregarDashboardGeral();
+                });
+            }
+            if (selectUnidade) {
+                selectUnidade.addEventListener('change', () => {
+                    dashboardState.unidadeSelecionada = selectUnidade.value;
+                    carregarDashboardGeral();
+                });
+            }
+        }
+
+        async function carregarDashboardGeral() {
+            toggleSkeleton(true);
+            const dados = await obterDadosDashboard();
+            dashboardState.dados = dados;
+            dashboardState.offline = Boolean(dados.offline);
+            atualizarBannerOffline(dados.offline, dados.snapshotAt);
+            renderizarUnidades(dados.unidades || []);
+            atualizarKpis(dados.kpis || []);
+            atualizarBadgePeriodo(dados.periodoReferente || dashboardState.periodo);
+            renderPerformance(dados.performanceMensal || null);
+            renderPerformanceHighlights(dados.performanceHighlights || []);
+            renderAlertas(dados.alertas || []);
+            renderPipeline(dados.pipeline || []);
+            renderAtividades(dados.atividadesRecentes || []);
+            renderIntegracao(dados.integracaoTempoReal || {});
+            renderChecklist(dados.checklist || []);
+            renderLinks(dados.linksRapidos || []);
+            salvarSnapshot(dados);
+            toggleSkeleton(false);
+        }
+
+        function toggleSkeleton(isLoading) {
+            const container = document.getElementById('kpiContainer');
+            if (!container) return;
+            if (isLoading) {
+                container.innerHTML = Array.from({ length: 4 }).map(() => `
+                    <div class="col-md-6 col-xl-3">
+                        <div class="card placeholder-glow" style="border-radius:20px; min-height:160px;">
+                            <div class="card-body">
+                                <span class="placeholder col-6"></span>
+                                <span class="placeholder col-8 mt-2"></span>
+                                <span class="placeholder col-4 mt-3"></span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        async function obterDadosDashboard() {
+            const params = new URLSearchParams();
+            const [ano, mes] = (dashboardState.periodo || '').split('-');
+            const mesNum = Number(mes);
+            const anoNum = Number(ano);
+            if (!Number.isNaN(mesNum) && !Number.isNaN(anoNum)) {
+                params.append('mes', mesNum);
+                params.append('ano', anoNum);
+            }
+            if (dashboardState.unidadeSelecionada) {
+                params.append('unidade', dashboardState.unidadeSelecionada);
+            }
+
+            try {
+                const response = await fetch(`${DASHBOARD_API}?${params.toString()}`);
+                if (!response.ok) throw new Error('Falha API dashboard geral');
+                const payload = await response.json();
+                if (!payload.success || !payload.data) throw new Error('Payload inválido');
+                return { ...payload.data, offline: false, snapshotAt: Date.now() };
+            } catch (error) {
+                console.warn('Dashboard geral usando fallback:', error);
+                const snapshot = obterSnapshot();
+                if (snapshot) {
+                    return { ...snapshot, offline: true };
+                }
+                const mock = gerarMockDashboard();
+                return { ...mock, offline: true };
+            }
+        }
+
+        function gerarMockDashboard() {
+            const [anoRaw, mesRaw] = (dashboardState.periodo || obterPeriodoISOAtual()).split('-').map(Number);
+            const hoje = new Date();
+            const ano = Number.isNaN(anoRaw) ? hoje.getFullYear() : anoRaw;
+            const mes = Number.isNaN(mesRaw) ? hoje.getMonth() + 1 : mesRaw;
+            const labels = Array.from({ length: 6 }, (_, idx) => {
+                const dataRef = new Date(ano, (mes - 1) - (5 - idx));
+                const nomeMes = dataRef.toLocaleString('pt-AO', { month: 'short' });
+                return `${nomeMes}/${String(dataRef.getFullYear()).slice(-2)}`;
+            });
+            const vendas = labels.map(() => Math.round(120000 + Math.random() * 60000));
+            const folha = labels.map(() => Math.round(80000 + Math.random() * 20000));
+            const compras = labels.map(() => Math.round(60000 + Math.random() * 15000));
+
+            return {
+                periodoReferente: `${String(mes).padStart(2, '0')}/${ano}`,
+                snapshotAt: Date.now(),
+                unidades: [
+                    { id: 'geral', nome: 'Geral' },
+                    { id: 'matriz', nome: 'Matriz Luanda' },
+                    { id: 'filial', nome: 'Filial Benguela' }
+                ],
+                kpis: [
+                    { id: 'vendas', titulo: 'Total de Vendas', valor: 182500000, variacao: 12, descricao: 'vs mês anterior', icone: 'bi-cart3', gradient: ['#667eea', '#764ba2'] },
+                    { id: 'folha', titulo: 'Custo Folha', valor: 96400000, variacao: -3, descricao: 'impacto total', icone: 'bi-wallet2', gradient: ['#f093fb', '#f5576c'] },
+                    { id: 'compras', titulo: 'Compras Aprovadas', valor: 74500000, variacao: 5, descricao: 'supply chain', icone: 'bi-truck', gradient: ['#4facfe', '#00f2fe'] },
+                    { id: 'tesouraria', titulo: 'Disponível em Caixa', valor: 35800000, variacao: 8, descricao: 'contas principais', icone: 'bi-piggy-bank', gradient: ['#43e97b', '#38f9d7'] }
+                ],
+                performanceMensal: {
+                    labels,
+                    datasets: [
+                        { label: 'Vendas', data: vendas, borderColor: '#667eea', backgroundColor: 'rgba(102,126,234,0.2)' },
+                        { label: 'Folha', data: folha, borderColor: '#f093fb', backgroundColor: 'rgba(240,147,251,0.2)' },
+                        { label: 'Compras', data: compras, borderColor: '#43e97b', backgroundColor: 'rgba(67,233,123,0.2)' }
+                    ]
+                },
+                performanceHighlights: [
+                    { label: 'Ticket Médio', valor: '1,2M KZ', trend: '+6,2%' },
+                    { label: 'Folha vs Receita', valor: '52%', trend: '-2,1 pp' },
+                    { label: 'Pedidos Integrados', valor: '94%', trend: '+4%' }
+                ],
+                alertas: [
+                    { titulo: 'Diferença de estoque em loja central', prioridade: 'alta', detalhe: '2 produtos aguardando reconciliação' },
+                    { titulo: '3 folhas com pendência de aprovação', prioridade: 'media', detalhe: 'Financeiro deve validar até sexta' },
+                    { titulo: 'Integração vendas → folha', prioridade: 'baixa', detalhe: 'Último sync há 45 minutos' }
+                ],
+                pipeline: [
+                    { etapa: 'ERP / Vendas', status: 'Completo', tempo: '08:10', cor: '#667eea', icone: 'bi-bag-check' },
+                    { etapa: 'Integração Fiscal', status: 'Processando', tempo: '08:12', cor: '#f093fb', icone: 'bi-cpu' },
+                    { etapa: 'Folha Profissional', status: 'Aguardando', tempo: '08:15', cor: '#43e97b', icone: 'bi-people' },
+                    { etapa: 'Tesouraria', status: 'Agendado', tempo: '09:00', cor: '#ffc75f', icone: 'bi-bank' }
+                ],
+                atividadesRecentes: [
+                    { hora: '08:45', descricao: 'Sincronização vendas concluída', usuario: 'Automático', tipo: 'sucesso' },
+                    { hora: '08:30', descricao: 'Folha Novembro recalculada', usuario: 'Bruno Costa', tipo: 'info' },
+                    { hora: '08:12', descricao: 'Integração fiscal em andamento', usuario: 'Serviço Fiscal', tipo: 'warning' },
+                    { hora: '07:55', descricao: 'Backup full concluído', usuario: 'Agente SGVA', tipo: 'sucesso' }
+                ],
+                integracaoTempoReal: {
+                    status: 'Sincronizado',
+                    modulos: [
+                        { nome: 'ERP Vendas', ultimoSync: 'há 15 min', status: 'ok' },
+                        { nome: 'Folha Profissional', ultimoSync: 'online', status: 'ok' },
+                        { nome: 'Compras', ultimoSync: 'há 1h', status: 'atencao' },
+                        { nome: 'Tesouraria', ultimoSync: 'programado 11h', status: 'pendente' }
+                    ]
+                },
+                checklist: [
+                    { tarefa: 'Revisar folhas pendentes', concluido: true },
+                    { tarefa: 'Exportar subsídios consolidados', concluido: false },
+                    { tarefa: 'Conciliar vendas vs estoque', concluido: false },
+                    { tarefa: 'Confirmar remessa bancária', concluido: true }
+                ],
+                linksRapidos: [
+                    { label: 'Folha Profissional', url: 'folha-dashboard.html', descricao: 'Fluxo completo da folha' },
+                    { label: 'Integração Vendas', url: 'INTEGRACAO_VENDAS_FOLHA.md', descricao: 'Guia técnico' },
+                    { label: 'Configurar Subsídios', url: 'folha-subsidios.html', descricao: 'Atualizar regras' }
+                ]
+            };
+        }
+
+        function atualizarKpis(lista) {
+            const container = document.getElementById('kpiContainer');
+            if (!container) return;
+            const dados = Array.isArray(lista) ? lista : [];
+            if (!dados.length) {
+                container.innerHTML = '<div class="col-12 text-center text-muted">Sem indicadores disponíveis.</div>';
+                return;
+            }
+            container.innerHTML = dados.map(kpi => {
+                const trendClass = Number(kpi.variacao) >= 0 ? 'positive' : 'negative';
+                const gradient = kpi.gradient || ['#667eea', '#764ba2'];
+                return `
+                    <div class="col-md-6 col-xl-3">
+                        <div class="card kpi-card" style="background:linear-gradient(135deg, ${gradient[0]} 0%, ${gradient[1]} 100%);">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <small class="text-white-50 text-uppercase">${kpi.titulo || ''}</small>
+                                        <div class="kpi-value mt-2">${formatCurrency(kpi.valor)}</div>
+                                    </div>
+                                    <div class="display-6 opacity-25"><i class="bi ${kpi.icone || 'bi-lightning'}"></i></div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <span class="kpi-trend ${trendClass}">
+                                        <i class="bi ${Number(kpi.variacao) >= 0 ? 'bi-arrow-up-right' : 'bi-arrow-down-right'}"></i>
+                                        ${Number(kpi.variacao).toFixed(1)}%
+                                    </span>
+                                    <small class="text-white-50">${kpi.descricao || ''}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        function atualizarBadgePeriodo(texto) {
+            const badge = document.getElementById('badgePeriodo');
+            if (!badge) return;
+            if (!texto) {
+                const [ano, mes] = dashboardState.periodo.split('-');
+                badge.textContent = `${mes}/${ano}`;
+                return;
+            }
+            badge.textContent = texto;
+        }
+
+        function renderPerformance(performance) {
+            performanceStore.dados = performance;
+            const datasets = Array.isArray(performance?.datasets) ? performance.datasets : [];
+            if (!performance || !Array.isArray(performance.labels) || !performance.labels.length || !datasets.length) {
+                mostrarAvisoGrafico('chartPerformance', 'Sem dados de desempenho para o período.');
+                return;
+            }
+            if (window.ChartUnavailable || typeof Chart === 'undefined') {
+                renderOfflinePerformance({ ...performance, datasets });
+                agendarNovaTentativaPerformance();
+                return;
+            }
+            removerOfflineFallback('chartPerformance');
+            const ctx = document.getElementById('chartPerformance');
+            if (!ctx) return;
+            if (performanceChart) {
+                performanceChart.destroy();
+            }
+            performanceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: performance.labels,
+                    datasets: datasets.map(dataset => ({
+                        ...dataset,
+                        fill: true,
+                        tension: 0.35,
+                        borderWidth: 3,
+                        pointRadius: 3,
+                        pointBackgroundColor: dataset.borderColor
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: value => formatCurrency(value).replace(' Kz', '').replace(' KZ', '')
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderPerformanceHighlights(lista) {
+            const container = document.getElementById('performanceHighlights');
+            if (!container) return;
+            const dados = Array.isArray(lista) ? lista : [];
+            if (!dados.length) {
+                container.innerHTML = '';
+                return;
+            }
+            container.innerHTML = dados.map(item => `
+                <div class="col-md-4 mb-3 mb-md-0">
+                    <div class="bg-light rounded-4 p-3">
+                        <div class="text-muted small">${item.label}</div>
+                        <div class="display-6 fw-bold">${item.valor}</div>
+                        <div class="text-primary fw-semibold">${item.trend}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderAlertas(alertas) {
+            const container = document.getElementById('listaAlertas');
+            const badge = document.getElementById('totalAlertas');
+            if (!container) return;
+            const dados = Array.isArray(alertas) ? alertas : [];
+            if (badge) badge.textContent = dados.length;
+            if (!dados.length) {
+                container.innerHTML = '<div class="text-center text-muted py-4"><i class="bi bi-check-circle"></i> Nenhum alerta crítico.</div>';
+                return;
+            }
+            const cores = {
+                alta: 'text-danger bg-danger-subtle',
+                media: 'text-warning bg-warning-subtle',
+                baixa: 'text-info bg-info-subtle'
+            };
+            container.innerHTML = dados.map(alerta => `
+                <div class="alert-item">
+                    <div>
+                        <strong>${alerta.titulo}</strong>
+                        <div class="text-muted small">${alerta.detalhe || ''}</div>
+                    </div>
+                    <span class="insight-pill ${cores[alerta.prioridade] || 'bg-light text-muted'}">${alerta.prioridade || 'info'}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderPipeline(pipeline) {
+            const container = document.getElementById('pipelineProcessos');
+            if (!container) return;
+            const dados = Array.isArray(pipeline) ? pipeline : [];
+            if (!dados.length) {
+                container.innerHTML = '<div class="text-center text-muted py-4">Sem pipeline configurado.</div>';
+                return;
+            }
+            container.innerHTML = dados.map(item => `
+                <div class="timeline-step">
+                    <div class="timeline-icon" style="background:${item.cor || '#eef1fb'}; color:#fff;">
+                        <i class="bi ${item.icone || 'bi-lightning'}"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between">
+                            <strong>${item.etapa}</strong>
+                            <span class="text-muted small">${item.tempo || ''}</span>
+                        </div>
+                        <span class="badge bg-light text-dark mt-1">${item.status || ''}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderAtividades(lista) {
+            const container = document.getElementById('listaAtividades');
+            const badge = document.getElementById('badgeAtividades');
+            if (!container) return;
+            const dados = Array.isArray(lista) ? lista : [];
+            if (badge) badge.textContent = dados.length;
+            if (!dados.length) {
+                container.innerHTML = '<div class="text-muted text-center py-4">Nenhuma atividade recente.</div>';
+                return;
+            }
+            const colorMap = { sucesso: 'text-success', warning: 'text-warning', info: 'text-info' };
+            const iconMap = { sucesso: 'bi-check-circle', warning: 'bi-exclamation-circle', info: 'bi-info-circle' };
+            container.innerHTML = dados.map(item => `
+                <div class="d-flex justify-content-between border-bottom py-2">
+                    <div>
+                        <div class="fw-semibold">${item.descricao}</div>
+                        <small class="text-muted">${item.usuario}</small>
+                    </div>
+                    <div class="text-end">
+                        <div class="${colorMap[item.tipo] || 'text-primary'}"><i class="bi ${iconMap[item.tipo] || 'bi-dot'}"></i></div>
+                        <small class="text-muted">${item.hora}</small>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderIntegracao(data) {
+            const container = document.getElementById('painelIntegracao');
+            const tag = document.getElementById('tagIntegracao');
+            if (tag && data.status) {
+                tag.textContent = data.status;
+                tag.classList.toggle('bg-success-subtle', data.status.toLowerCase().includes('sincron'));
+            }
+            if (!container) return;
+            const modulos = Array.isArray(data.modulos) ? data.modulos : [];
+            if (!modulos.length) {
+                container.innerHTML = '<div class="text-muted text-center py-4">Sem dados de integração.</div>';
+                return;
+            }
+            const statusMap = {
+                ok: 'bg-success-subtle text-success',
+                atencao: 'bg-warning-subtle text-warning',
+                pendente: 'bg-danger-subtle text-danger'
+            };
+            container.innerHTML = modulos.map(mod => `
+                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                    <div>
+                        <strong>${mod.nome}</strong>
+                        <div class="text-muted small">${mod.ultimoSync || ''}</div>
+                    </div>
+                    <span class="insight-pill ${statusMap[mod.status] || 'bg-light text-muted'}">${mod.status || 'N/D'}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderChecklist(lista) {
+            const container = document.getElementById('listaChecklist');
+            const badge = document.getElementById('badgeChecklist');
+            if (!container) return;
+            const dados = Array.isArray(lista) ? lista : [];
+            if (!dados.length) {
+                container.innerHTML = '<div class="text-muted text-center py-4">Checklist vazio.</div>';
+                if (badge) badge.textContent = '0%';
+                return;
+            }
+            const concluidos = dados.filter(item => item.concluido).length;
+            const progresso = Math.round((concluidos / dados.length) * 100);
+            if (badge) badge.textContent = `${progresso}%`;
+            container.innerHTML = dados.map(item => `
+                <label class="checklist-item">
+                    <input type="checkbox" class="form-check-input" ${item.concluido ? 'checked' : ''} disabled>
+                    <span class="fw-semibold ${item.concluido ? 'text-decoration-line-through text-muted' : ''}">${item.tarefa}</span>
+                </label>
+            `).join('');
+        }
+
+        function renderLinks(lista) {
+            const container = document.getElementById('listaLinks');
+            if (!container) return;
+            const dados = Array.isArray(lista) ? lista : [];
+            if (!dados.length) {
+                container.innerHTML = '<div class="text-muted text-center py-4">Sem links configurados.</div>';
+                return;
+            }
+            container.innerHTML = dados.map(link => `
+                <a class="link-pill text-decoration-none" href="${link.url}" target="_blank" rel="noopener">
+                    <div>
+                        <strong>${link.label}</strong>
+                        <div class="text-muted small">${link.descricao || ''}</div>
+                    </div>
+                    <i class="bi bi-box-arrow-up-right text-primary"></i>
+                </a>
+            `).join('');
+        }
+
+        function renderizarUnidades(unidades) {
+            const select = document.getElementById('selectUnidade');
+            if (!select || !Array.isArray(unidades) || !unidades.length) {
+                return;
+            }
+            select.innerHTML = unidades.map(unidade => `
+                <option value="${unidade.id}">${unidade.nome}</option>
+            `).join('');
+            if (!unidades.find(u => u.id === dashboardState.unidadeSelecionada)) {
+                dashboardState.unidadeSelecionada = unidades[0].id;
+            }
+            select.value = dashboardState.unidadeSelecionada;
+        }
+
+        function atualizarBannerOffline(isOffline, timestamp) {
+            const banner = document.getElementById('bannerOffline');
+            const span = document.getElementById('offlineTimestamp');
+            if (!banner) return;
+            banner.classList.toggle('d-none', !isOffline);
+            if (isOffline && span) {
+                span.textContent = timestamp ? formatarDataHora(timestamp) : 'Desconhecido';
+            }
+        }
+
+        function mostrarAvisoGrafico(canvasId, mensagem) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const wrapper = canvas.parentElement;
+            if (!wrapper) return;
+            removerOfflineFallback(canvasId);
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-warning mt-3 chart-alert';
+            alert.innerHTML = `<i class="bi bi-info-circle"></i> ${mensagem || 'Gráfico indisponível.'}`;
+            wrapper.appendChild(alert);
+        }
+
+        function renderOfflinePerformance(performance) {
+            const fallback = obterOuCriarFallback('chartPerformance');
+            if (!fallback || !performance || !performance.labels) return;
+            const datasets = Array.isArray(performance.datasets) ? performance.datasets : [];
+            if (!window.OfflineCharts || !datasets.length) {
+                fallback.container.innerHTML = '<div class="alert alert-warning">Modo offline indisponível.</div>';
+                return;
+            }
+            const items = performance.labels.map((label, index) => ({
+                label,
+                value: datasets.reduce((acc, dataset) => acc + (dataset.data?.[index] || 0), 0),
+                display: formatCurrency(datasets[0]?.data?.[index] || 0)
+            }));
+            OfflineCharts.renderBars(fallback.container, items, { compact: true });
+            anexarNotaOffline(fallback.wrapper, Date.now());
+        }
+
+        function obterOuCriarFallback(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return null;
+            const wrapper = canvas.parentElement;
+            if (!wrapper) return null;
+            canvas.style.display = 'none';
+            let container = wrapper.querySelector(`[data-offline-chart="${canvasId}"]`);
+            if (!container) {
+                container = document.createElement('div');
+                container.dataset.offlineChart = canvasId;
+                wrapper.appendChild(container);
+            }
+            container.innerHTML = '';
+            const alert = wrapper.querySelector('.chart-alert');
+            if (alert) alert.remove();
+            return { container, wrapper };
+        }
+
+        function removerOfflineFallback(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const wrapper = canvas.parentElement;
+            if (!wrapper) return;
+            canvas.style.display = '';
+            const container = wrapper.querySelector(`[data-offline-chart="${canvasId}"]`);
+            if (container) container.remove();
+            removerNotaOffline(wrapper);
+            const alert = wrapper.querySelector('.chart-alert');
+            if (alert) alert.remove();
+        }
+
+        function anexarNotaOffline(wrapper, timestamp) {
+            if (!wrapper) return;
+            let note = wrapper.querySelector('.chart-offline-note');
+            if (!note) {
+                note = document.createElement('div');
+                note.className = 'chart-offline-note';
+                wrapper.appendChild(note);
+            }
+            note.innerHTML = `<i class="bi bi-wifi-off"></i> Dados offline de ${formatarDataHora(timestamp)}`;
+        }
+
+        function removerNotaOffline(wrapper) {
+            if (!wrapper) return;
+            const note = wrapper.querySelector('.chart-offline-note');
+            if (note) note.remove();
+        }
+
+        function salvarSnapshot(dados) {
+            try {
+                localStorage.setItem(SNAPSHOT_KEY, JSON.stringify({ ...dados, snapshotAt: Date.now() }));
+            } catch (error) {
+                console.warn('Não foi possível salvar snapshot:', error);
+            }
+        }
+
+        function obterSnapshot() {
+            try {
+                const raw = localStorage.getItem(SNAPSHOT_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch (error) {
+                console.warn('Snapshot indisponível:', error);
+                return null;
+            }
+        }
+
+        function formatCurrency(valor) {
+            return new Intl.NumberFormat('pt-AO', {
+                style: 'currency',
+                currency: 'AOA',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(Number(valor) || 0);
+        }
+
+        function formatarDataHora(timestamp) {
+            if (!timestamp) return '-';
+            try {
+                return new Intl.DateTimeFormat('pt-AO', { dateStyle: 'short', timeStyle: 'short' }).format(timestamp);
+            } catch (error) {
+                return '-';
+            }
+        }
+
+        function tentarRenderizarPerformancePendente() {
+            if (typeof Chart === 'undefined' || window.ChartUnavailable) {
+                return false;
+            }
+            if (!performanceStore.dados) {
+                return false;
+            }
+            renderPerformance(performanceStore.dados);
+            return true;
+        }
+
+        function agendarNovaTentativaPerformance() {
+            if (performanceRetryInterval) {
+                return;
+            }
+            performanceRetryInterval = setInterval(() => {
+                if (tentarRenderizarPerformancePendente()) {
+                    clearInterval(performanceRetryInterval);
+                    performanceRetryInterval = null;
+                    window.ChartUnavailable = false;
+                }
+            }, 4000);
+        }
+
+        function inicializarDragCards() {
+            const container = document.getElementById('painelInsights');
+            if (!container) return;
+            container.querySelectorAll('.draggable-card').forEach(card => {
+                card.addEventListener('dragstart', onCardDragStart);
+                card.addEventListener('dragover', onCardDragOver);
+                card.addEventListener('drop', onCardDrop);
+                card.addEventListener('dragenter', onCardDragEnter);
+                card.addEventListener('dragleave', onCardDragLeave);
+                card.addEventListener('dragend', onCardDragEnd);
+            });
+            aplicarOrdemSalva(container);
+        }
+
+        function onCardDragStart(event) {
+            draggingCard = event.currentTarget;
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', draggingCard.dataset.cardId);
+            draggingCard.classList.add('dragging');
+        }
+
+        function onCardDragOver(event) {
+            if (!draggingCard) return;
+            event.preventDefault();
+            const alvo = event.currentTarget;
+            if (alvo === draggingCard) return;
+            const container = alvo.parentElement;
+            const rect = alvo.getBoundingClientRect();
+            const inserirDepois = (event.clientY - rect.top) > rect.height / 2;
+            if (inserirDepois) {
+                container.insertBefore(draggingCard, alvo.nextElementSibling);
+            } else {
+                container.insertBefore(draggingCard, alvo);
+            }
+        }
+
+        function onCardDrop(event) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('drop-target');
+            persistirOrdemCards(event.currentTarget.parentElement);
+        }
+
+        function onCardDragEnter(event) {
+            if (!draggingCard || event.currentTarget === draggingCard) return;
+            event.currentTarget.classList.add('drop-target');
+        }
+
+        function onCardDragLeave(event) {
+            event.currentTarget.classList.remove('drop-target');
+        }
+
+        function onCardDragEnd(event) {
+            event.currentTarget.classList.remove('dragging');
+            event.currentTarget.classList.remove('drop-target');
+            persistirOrdemCards(document.getElementById('painelInsights'));
+            draggingCard = null;
+        }
+
+        function persistirOrdemCards(container) {
+            if (!container) return;
+            try {
+                const ordem = Array.from(container.querySelectorAll('.draggable-card')).map(card => card.dataset.cardId);
+                localStorage.setItem(SIDEBAR_ORDER_KEY, JSON.stringify(ordem));
+            } catch (error) {
+                console.warn('Falha ao salvar ordem dos insights:', error);
+            }
+        }
+
+        function aplicarOrdemSalva(container) {
+            try {
+                const ordem = JSON.parse(localStorage.getItem(SIDEBAR_ORDER_KEY) || '[]');
+                if (!Array.isArray(ordem) || !ordem.length) return;
+                const cards = Array.from(container.querySelectorAll('.draggable-card'));
+                ordem.forEach(id => {
+                    const card = cards.find(item => item.dataset.cardId === id);
+                    if (card) container.appendChild(card);
+                });
+                cards.filter(card => !ordem.includes(card.dataset.cardId)).forEach(card => container.appendChild(card));
+            } catch (error) {
+                console.warn('Não foi possível aplicar ordem salva:', error);
+            }
+        }
+
+        function inicializarResizeCards() {
+            const container = document.getElementById('painelInsights');
+            if (!container) return;
+            aplicarAlturasSalvas(container);
+            container.querySelectorAll('[data-resize-handle]').forEach(handle => {
+                handle.addEventListener('mousedown', iniciarResizeCard);
+                handle.addEventListener('touchstart', iniciarResizeCardTouch, { passive: false });
+            });
+        }
+
+        function iniciarResizeCard(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            iniciarProcessoResize(event.currentTarget, event.clientY, false);
+        }
+
+        function iniciarResizeCardTouch(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            const touch = event.touches[0];
+            iniciarProcessoResize(event.currentTarget, touch.clientY, true);
+        }
+
+        function iniciarProcessoResize(handle, clientY, isTouch) {
+            const cardWrapper = handle.closest('.draggable-card');
+            const cardContent = cardWrapper?.querySelector('.card');
+            if (!cardWrapper || !cardContent) return;
+            resizeState = {
+                cardWrapper,
+                cardContent,
+                startY: clientY,
+                startHeight: cardContent.offsetHeight,
+                cardId: cardWrapper.dataset.cardId,
+                moveEvent: isTouch ? 'touchmove' : 'mousemove',
+                endEvent: isTouch ? 'touchend' : 'mouseup',
+                isTouch
+            };
+            cardWrapper.classList.add('resizing');
+            document.body.classList.add('resizing-card-active');
+            document.addEventListener(resizeState.moveEvent, processarResizeCard, { passive: false });
+            document.addEventListener(resizeState.endEvent, finalizarResizeCard);
+        }
+
+        function processarResizeCard(event) {
+            if (!resizeState) return;
+            event.preventDefault();
+            const clientY = resizeState.isTouch ? (event.touches?.[0]?.clientY || resizeState.startY) : event.clientY;
+            const delta = clientY - resizeState.startY;
+            const novoTamanho = Math.max(MIN_CARD_HEIGHT, resizeState.startHeight + delta);
+            resizeState.cardContent.style.height = `${novoTamanho}px`;
+        }
+
+        function finalizarResizeCard() {
+            if (!resizeState) return;
+            const alturaAtual = parseInt(resizeState.cardContent.style.height, 10) || resizeState.cardContent.offsetHeight;
+            persistirAlturaCard(resizeState.cardId, alturaAtual);
+            resizeState.cardWrapper.classList.remove('resizing');
+            document.body.classList.remove('resizing-card-active');
+            document.removeEventListener(resizeState.moveEvent, processarResizeCard);
+            document.removeEventListener(resizeState.endEvent, finalizarResizeCard);
+            resizeState = null;
+        }
+
+        function persistirAlturaCard(cardId, height) {
+            try {
+                const stored = JSON.parse(localStorage.getItem(SIDEBAR_HEIGHT_KEY) || '{}');
+                stored[cardId] = height;
+                localStorage.setItem(SIDEBAR_HEIGHT_KEY, JSON.stringify(stored));
+            } catch (error) {
+                console.warn('Não foi possível salvar altura do card:', error);
+            }
+        }
+
+        function aplicarAlturasSalvas(container) {
+            try {
+                const stored = JSON.parse(localStorage.getItem(SIDEBAR_HEIGHT_KEY) || '{}');
+                Object.entries(stored).forEach(([cardId, height]) => {
+                    const card = container.querySelector(`.draggable-card[data-card-id="${cardId}"] .card`);
+                    if (card && Number(height) > 0) {
+                        card.style.height = `${height}px`;
+                    }
+                });
+            } catch (error) {
+                console.warn('Não foi possível aplicar alturas salvas:', error);
+            }
+        }
+
+        function inicializarSidebarResize() {
+            const columns = document.getElementById('dashboardColumns');
+            const handle = document.getElementById('sidebarResizeHandle');
+            if (!columns || !handle) return;
+            aplicarLarguraSalva(columns);
+            handle.addEventListener('mousedown', iniciarResizeSidebar);
+            handle.addEventListener('touchstart', iniciarResizeSidebarTouch, { passive: false });
+        }
+
+        function iniciarResizeSidebar(event) {
+            event.preventDefault();
+            iniciarProcessoSidebar(event.clientX, false);
+        }
+
+        function iniciarResizeSidebarTouch(event) {
+            event.preventDefault();
+            const touch = event.touches[0];
+            iniciarProcessoSidebar(touch.clientX, true);
+        }
+
+        function iniciarProcessoSidebar(clientX, isTouch) {
+            const columns = document.getElementById('dashboardColumns');
+            if (!columns) return;
+            const currentWidth = parseInt(getComputedStyle(columns).getPropertyValue('--sidebar-width')) || 360;
+            sidebarResizeState = {
+                columns,
+                startX: clientX,
+                startWidth: currentWidth,
+                moveEvent: isTouch ? 'touchmove' : 'mousemove',
+                endEvent: isTouch ? 'touchend' : 'mouseup',
+                isTouch
+            };
+            document.body.classList.add('resizing-col-active');
+            document.addEventListener(sidebarResizeState.moveEvent, processarResizeSidebar, { passive: false });
+            document.addEventListener(sidebarResizeState.endEvent, finalizarResizeSidebar);
+        }
+
+        function processarResizeSidebar(event) {
+            if (!sidebarResizeState) return;
+            event.preventDefault();
+            const clientX = sidebarResizeState.isTouch ? (event.touches?.[0]?.clientX || sidebarResizeState.startX) : event.clientX;
+            const delta = sidebarResizeState.startX - clientX;
+            const novoValor = Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, sidebarResizeState.startWidth + delta));
+            sidebarResizeState.columns.style.setProperty('--sidebar-width', `${novoValor}px`);
+        }
+
+        function finalizarResizeSidebar() {
+            if (!sidebarResizeState) return;
+            const columns = sidebarResizeState.columns;
+            const larguraFinal = parseInt(getComputedStyle(columns).getPropertyValue('--sidebar-width')) || sidebarResizeState.startWidth;
+            persistirLarguraSidebar(larguraFinal);
+            document.body.classList.remove('resizing-col-active');
+            document.removeEventListener(sidebarResizeState.moveEvent, processarResizeSidebar);
+            document.removeEventListener(sidebarResizeState.endEvent, finalizarResizeSidebar);
+            sidebarResizeState = null;
+        }
+
+        function persistirLarguraSidebar(width) {
+            try {
+                localStorage.setItem(SIDEBAR_WIDTH_KEY, String(width));
+            } catch (error) {
+                console.warn('Não foi possível armazenar largura da coluna:', error);
+            }
+        }
+
+        function aplicarLarguraSalva(columns) {
+            try {
+                const width = parseInt(localStorage.getItem(SIDEBAR_WIDTH_KEY), 10);
+                if (width) {
+                    columns.style.setProperty('--sidebar-width', `${width}px`);
+                }
+            } catch (error) {
+                console.warn('Não foi possível aplicar largura salva:', error);
+            }
+        }
+
+        inicializarDashboardGeral();
+    </script>
+    <script>
+        AssetLoader.loadScript(
+            'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js',
+            'vendor/bootstrap/bootstrap.bundle.min.js'
+        );
+    </script>
+</body>
+</html>

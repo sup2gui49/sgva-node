@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Integração Folha-Vendas - SGVA</title>
+    <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.css">
+    <style>
+        body {
+            background: #f4f6f9;
+            padding: 2rem;
+        }
+        .test-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-success {
+            border-left: 4px solid #27ae60;
+        }
+        .test-error {
+            border-left: 4px solid #e74c3c;
+        }
+        .test-warning {
+            border-left: 4px solid #f39c12;
+        }
+        .test-info {
+            border-left: 4px solid #3498db;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 0.875rem;
+        }
+        .badge-lg {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-10 offset-md-1">
+                <div class="text-center mb-4">
+                    <h1><i class="bi bi-clipboard-check"></i> Teste de Integração Folha-Vendas</h1>
+                    <p class="text-muted">Validação completa da integração entre sistemas</p>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5>Testes</h5>
+                                <h2 id="totalTestes" class="text-primary">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5>Sucesso</h5>
+                                <h2 id="totalSucesso" class="text-success">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5>Avisos</h5>
+                                <h2 id="totalAvisos" class="text-warning">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5>Erros</h5>
+                                <h2 id="totalErros" class="text-danger">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mb-4">
+                    <button class="btn btn-primary btn-lg" onclick="executarTestes()">
+                        <i class="bi bi-play-circle"></i> Executar Todos os Testes
+                    </button>
+                </div>
+
+                <div id="resultados"></div>
+
+                <div class="text-center mt-4">
+                    <a href="index.html" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Voltar ao Dashboard
+                    </a>
+                    <a href="folha-calculo.html" class="btn btn-primary">
+                        <i class="bi bi-calculator"></i> Ir para Folha de Pagamento
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let totalTestes = 0;
+        let totalSucesso = 0;
+        let totalAvisos = 0;
+        let totalErros = 0;
+
+        async function executarTestes() {
+            limparResultados();
+            
+            await teste1_VerificarEndpoints();
+            await teste2_VerificarFuncionarios();
+            await teste3_VerificarFolhasCalculadas();
+            await teste4_VerificarDespesas();
+            await teste5_VerificarDRE();
+            await teste6_ValidarIntegracao();
+            
+            atualizarContadores();
+        }
+
+        async function teste1_VerificarEndpoints() {
+            const resultado = { titulo: 'Teste 1: Verificar Endpoints da API' };
+            
+            try {
+                // Testar endpoint de folha
+                const resFolha = await fetch(`${API_URL}/folha-profissional/calcular-completa`, {
+                    method: 'OPTIONS'
+                });
+                resultado.folhaEndpoint = resFolha.status !== 404;
+
+                // Testar endpoint de confirmação
+                const resConfirmar = await fetch(`${API_URL}/folha/confirmar-pagamento`, {
+                    method: 'OPTIONS'
+                });
+                resultado.confirmarEndpoint = resConfirmar.status !== 404;
+
+                // Testar endpoint de DRE
+                const resDRE = await fetch(`${API_URL}/financeiro/dre`);
+                resultado.dreEndpoint = resDRE.status === 200;
+                
+                const dreData = await resDRE.json();
+                resultado.dreTemDespesasPessoal = dreData.dre?.despesas_pessoal !== undefined;
+
+                if (resultado.folhaEndpoint && resultado.confirmarEndpoint && resultado.dreEndpoint && resultado.dreTemDespesasPessoal) {
+                    adicionarResultado('success', resultado.titulo, `
+                        ✅ Endpoint /calcular-completa: OK<br>
+                        ✅ Endpoint /confirmar-pagamento: OK<br>
+                        ✅ Endpoint /dre: OK<br>
+                        ✅ DRE retorna despesas_pessoal: OK
+                    `);
+                } else {
+                    adicionarResultado('error', resultado.titulo, `
+                        ${resultado.folhaEndpoint ? '✅' : '❌'} Endpoint /calcular-completa<br>
+                        ${resultado.confirmarEndpoint ? '✅' : '❌'} Endpoint /confirmar-pagamento<br>
+                        ${resultado.dreEndpoint ? '✅' : '❌'} Endpoint /dre<br>
+                        ${resultado.dreTemDespesasPessoal ? '✅' : '❌'} DRE retorna despesas_pessoal
+                    `);
+                }
+            } catch (error) {
+                adicionarResultado('error', resultado.titulo, `❌ Erro: ${error.message}`);
+            }
+        }
+
+        async function teste2_VerificarFuncionarios() {
+            const resultado = { titulo: 'Teste 2: Verificar Funcionários Ativos' };
+            
+            try {
+                const response = await fetch(`${API_URL}/funcionarios`);
+                const data = await response.json();
+                
+                const funcionariosAtivos = data.data.filter(f => f.ativo);
+                resultado.total = funcionariosAtivos.length;
+                resultado.comSalario = funcionariosAtivos.filter(f => f.salario_base > 0).length;
+
+                if (resultado.total > 0 && resultado.comSalario === resultado.total) {
+                    adicionarResultado('success', resultado.titulo, `
+                        ✅ ${resultado.total} funcionário(s) ativo(s)<br>
+                        ✅ Todos têm salário base definido
+                    `);
+                } else if (resultado.total === 0) {
+                    adicionarResultado('error', resultado.titulo, `
+                        ❌ Nenhum funcionário ativo encontrado<br>
+                        💡 Cadastre funcionários em: <a href="folha-funcionarios.html">Gestão de Funcionários</a>
+                    `);
+                } else {
+                    adicionarResultado('warning', resultado.titulo, `
+                        ⚠️ ${resultado.total} funcionário(s) ativo(s)<br>
+                        ⚠️ ${resultado.total - resultado.comSalario} sem salário base definido
+                    `);
+                }
+            } catch (error) {
+                adicionarResultado('error', resultado.titulo, `❌ Erro: ${error.message}`);
+            }
+        }
+
+        async function teste3_VerificarFolhasCalculadas() {
+            const resultado = { titulo: 'Teste 3: Verificar Folhas Calculadas' };
+            
+            try {
+                // Simular busca de folhas (não temos endpoint direto, mas podemos inferir do DRE)
+                const response = await fetch(`${API_URL}/financeiro/dre`);
+                const data = await response.json();
+                
+                const despesasPessoal = data.dre.despesas_pessoal;
+                const temFolhaRegistrada = despesasPessoal?.detalhamento?.folha_registrada;
+                const totalFuncionarios = despesasPessoal?.detalhamento?.total_funcionarios || 0;
+
+                if (temFolhaRegistrada) {
+                    adicionarResultado('success', resultado.titulo, `
+                        ✅ Folha registrada para o mês atual<br>
+                        ✅ ${totalFuncionarios} funcionário(s) na folha<br>
+                        ✅ Salário Base: ${despesasPessoal.detalhamento.salario_base_total} KZ<br>
+                        ✅ Salário Líquido: ${despesasPessoal.salarios_liquidos} KZ<br>
+                        ✅ INSS Patronal: ${despesasPessoal.inss_patronal} KZ
+                    `);
+                } else {
+                    adicionarResultado('warning', resultado.titulo, `
+                        ⚠️ Nenhuma folha confirmada para o mês atual<br>
+                        💡 Para registrar: <a href="folha-calculo.html">Calcular Folha</a> → Calcular Todos → Confirmar Pagamento
+                    `);
+                }
+            } catch (error) {
+                adicionarResultado('error', resultado.titulo, `❌ Erro: ${error.message}`);
+            }
+        }
+
+        async function teste4_VerificarDespesas() {
+            const resultado = { titulo: 'Teste 4: Verificar Despesas Registradas' };
+            
+            try {
+                const response = await fetch(`${API_URL}/financeiro/dre`);
+                const data = await response.json();
+                
+                const despesasPessoal = data.dre.despesas_pessoal;
+                const salarios = parseFloat(despesasPessoal?.salarios_liquidos || 0);
+                const inss = parseFloat(despesasPessoal?.inss_patronal || 0);
+                const total = parseFloat(despesasPessoal?.total_custo_pessoal || 0);
+
+                if (salarios > 0) {
+                    adicionarResultado('success', resultado.titulo, `
+                        ✅ Despesas de salários: ${formatMoney(salarios)} KZ<br>
+                        ✅ Despesas de INSS Patronal: ${formatMoney(inss)} KZ<br>
+                        ✅ Total custo com pessoal: ${formatMoney(total)} KZ
+                    `);
+                } else {
+                    adicionarResultado('warning', resultado.titulo, `
+                        ⚠️ Nenhuma despesa de salários registrada<br>
+                        💡 Calcule e confirme uma folha para registrar despesas
+                    `);
+                }
+            } catch (error) {
+                adicionarResultado('error', resultado.titulo, `❌ Erro: ${error.message}`);
+            }
+        }
+
+        async function teste5_VerificarDRE() {
+            const resultado = { titulo: 'Teste 5: Verificar DRE' };
+            
+            try {
+                const response = await fetch(`${API_URL}/financeiro/dre`);
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error('DRE retornou erro');
+                }
+
+                const dre = data.dre;
+                const temReceitas = parseFloat(dre.receita_bruta_com_iva) > 0;
+                const temDespesasPessoal = dre.despesas_pessoal !== undefined;
+                const temLucro = dre.lucro_liquido !== undefined;
+
+                if (temDespesasPessoal && temLucro) {
+                    adicionarResultado('success', resultado.titulo, `
+                        ✅ DRE calculado corretamente<br>
+                        ✅ Receita Bruta: ${dre.receita_bruta_com_iva} KZ<br>
+                        ✅ Despesas Pessoal: ${dre.despesas_pessoal.total_custo_pessoal} KZ<br>
+                        ✅ Lucro Líquido: ${dre.lucro_liquido} KZ<br>
+                        ${temReceitas ? '✅ Sistema tem receitas registradas' : '⚠️ Nenhuma receita registrada'}
+                    `);
+                } else {
+                    adicionarResultado('error', resultado.titulo, `
+                        ❌ DRE não está completo<br>
+                        ${temDespesasPessoal ? '✅' : '❌'} Despesas com pessoal<br>
+                        ${temLucro ? '✅' : '❌'} Lucro líquido
+                    `);
+                }
+            } catch (error) {
+                adicionarResultado('error', resultado.titulo, `❌ Erro: ${error.message}`);
+            }
+        }
+
+        async function teste6_ValidarIntegracao() {
+            const resultado = { titulo: 'Teste 6: Validar Integração Completa' };
+            
+            try {
+                const response = await fetch(`${API_URL}/financeiro/dre`);
+                const data = await response.json();
+                
+                const despesasPessoal = data.dre.despesas_pessoal;
+                const temFolhaRegistrada = despesasPessoal?.detalhamento?.folha_registrada;
+                const salarios = parseFloat(despesasPessoal?.salarios_liquidos || 0);
+                const inss = parseFloat(despesasPessoal?.inss_patronal || 0);
+                const totalFuncionarios = despesasPessoal?.detalhamento?.total_funcionarios || 0;
+
+                if (temFolhaRegistrada && salarios > 0 && inss > 0 && totalFuncionarios > 0) {
+                    adicionarResultado('success', resultado.titulo, `
+                        ✅ INTEGRAÇÃO FUNCIONANDO PERFEITAMENTE!<br><br>
+                        <strong>Resumo:</strong><br>
+                        • ${totalFuncionarios} funcionário(s) com folha calculada<br>
+                        • Salários registrados como despesas: ${formatMoney(salarios)} KZ<br>
+                        • INSS Patronal registrado: ${formatMoney(inss)} KZ<br>
+                        • DRE mostra valores REAIS (não estimados)<br>
+                        • Sistema está pronto para uso em produção
+                    `);
+                } else if (temFolhaRegistrada && salarios > 0) {
+                    adicionarResultado('warning', resultado.titulo, `
+                        ⚠️ INTEGRAÇÃO PARCIAL<br><br>
+                        <strong>Status:</strong><br>
+                        ${salarios > 0 ? '✅' : '❌'} Salários registrados<br>
+                        ${inss > 0 ? '✅' : '⚠️'} INSS Patronal ${inss > 0 ? 'registrado' : 'não registrado'}<br>
+                        ${totalFuncionarios > 0 ? '✅' : '❌'} Funcionários na folha<br><br>
+                        💡 Recomendação: Recalcule e confirme a folha novamente
+                    `);
+                } else {
+                    adicionarResultado('info', resultado.titulo, `
+                        ℹ️ INTEGRAÇÃO PRONTA MAS NÃO UTILIZADA<br><br>
+                        <strong>Para ativar a integração:</strong><br>
+                        1. Acesse <a href="folha-calculo.html">Folha de Pagamento</a><br>
+                        2. Selecione o mês e ano<br>
+                        3. Clique em "Calcular Todos"<br>
+                        4. Clique em "Confirmar Pagamento e Registrar nas Despesas"<br>
+                        5. Verifique o DRE com valores reais<br><br>
+                        <strong>Sistema pronto para uso!</strong>
+                    `);
+                }
+            } catch (error) {
+                adicionarResultado('error', resultado.titulo, `❌ Erro: ${error.message}`);
+            }
+        }
+
+        function adicionarResultado(tipo, titulo, conteudo) {
+            totalTestes++;
+            if (tipo === 'success') totalSucesso++;
+            else if (tipo === 'warning') totalAvisos++;
+            else if (tipo === 'error') totalErros++;
+
+            const tipoClass = {
+                'success': 'test-success',
+                'error': 'test-error',
+                'warning': 'test-warning',
+                'info': 'test-info'
+            }[tipo];
+
+            const icone = {
+                'success': 'bi-check-circle-fill text-success',
+                'error': 'bi-x-circle-fill text-danger',
+                'warning': 'bi-exclamation-triangle-fill text-warning',
+                'info': 'bi-info-circle-fill text-primary'
+            }[tipo];
+
+            const html = `
+                <div class="test-card ${tipoClass}">
+                    <h5><i class="bi ${icone}"></i> ${titulo}</h5>
+                    <div class="mt-2">${conteudo}</div>
+                </div>
+            `;
+
+            document.getElementById('resultados').innerHTML += html;
+        }
+
+        function atualizarContadores() {
+            document.getElementById('totalTestes').textContent = totalTestes;
+            document.getElementById('totalSucesso').textContent = totalSucesso;
+            document.getElementById('totalAvisos').textContent = totalAvisos;
+            document.getElementById('totalErros').textContent = totalErros;
+        }
+
+        function limparResultados() {
+            document.getElementById('resultados').innerHTML = '';
+            totalTestes = 0;
+            totalSucesso = 0;
+            totalAvisos = 0;
+            totalErros = 0;
+            atualizarContadores();
+        }
+
+        function formatMoney(value) {
+            const numero = Number(value);
+            return new Intl.NumberFormat('pt-AO', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(Number.isFinite(numero) ? numero : 0);
+        }
+
+        // Executar automaticamente ao carregar
+        window.addEventListener('load', () => {
+            executarTestes();
+        });
+    </script>
+</body>
+</html>

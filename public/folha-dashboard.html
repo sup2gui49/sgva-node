@@ -1,0 +1,1619 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Folha - SGVA</title>
+    <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css" data-cdn="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" data-offline-group="core">
+    <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.css" data-cdn="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" data-offline-group="icons">
+    <link rel="stylesheet" href="folha-shared.css">
+    <link rel="stylesheet" href="offline.css" data-offline-style="core" disabled>
+    <link rel="stylesheet" href="offline-icons.css" data-offline-style="icons" disabled>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23667eea'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='16' fill='white' font-family='Arial'%3EFO%3C/text%3E%3C/svg%3E">
+    <script src="js/offline-assets.js"></script>
+    <script>
+            AssetLoader.loadScript(
+                'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+                'vendor/chartjs/chart.umd.min.js',
+                {
+                    target: 'head',
+                    onload: () => {
+                        window.ChartUnavailable = false;
+                        tentarRenderizarGraficosPendentes();
+                    },
+                    onerror: () => {
+                        window.ChartUnavailable = true;
+                        agendarNovaTentativaGrafico();
+                    }
+                }
+            );
+    </script>
+    <script src="js/offline-charts.js"></script>
+    <style>
+        .card {
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-card {
+            background: linear-gradient(135deg, var(--color1) 0%, var(--color2) 100%);
+            color: white;
+        }
+        .stat-icon {
+            font-size: 3em;
+            opacity: 0.3;
+            position: absolute;
+            right: 20px;
+            top: 20px;
+        }
+        .quick-action {
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .quick-action:hover {
+            background: #f8f9fa;
+        }
+        .draggable-card {
+            cursor: grab;
+            position: relative;
+        }
+        .draggable-card.dragging {
+            opacity: 0.6;
+            cursor: grabbing;
+        }
+        .draggable-card.drop-target {
+            outline: 2px dashed #667eea;
+            border-radius: 1rem;
+        }
+        .draggable-card .card {
+            overflow: auto;
+            transition: height 0.1s ease;
+            min-height: 220px;
+        }
+        .draggable-card.resizing {
+            cursor: ns-resize;
+        }
+        .draggable-card.resizing .card {
+            user-select: none;
+        }
+        .card-resize-handle {
+            border-top: 1px dashed #dfe3f0;
+            text-align: center;
+            padding: 4px 0;
+            color: #8a8fa3;
+            cursor: ns-resize;
+            font-size: 0.8rem;
+            user-select: none;
+        }
+        .card-resize-handle i {
+            font-size: 1rem;
+        }
+        body.resizing-card-active {
+            cursor: ns-resize;
+            user-select: none;
+        }
+        body.resizing-col-active {
+            cursor: ew-resize;
+            user-select: none;
+        }
+        .chart-offline-note {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .dashboard-columns {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 12px var(--sidebar-width, 360px);
+            gap: 1.5rem;
+            align-items: start;
+        }
+        .sidebar-resize-handle {
+            width: 100%;
+            cursor: ew-resize;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sidebar-resize-handle::after {
+            content: '';
+            width: 2px;
+            height: 60%;
+            background: rgba(102, 126, 234, 0.45);
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-md-block sidebar p-3">
+                <div class="text-white mb-4">
+                    <h4><i class="bi bi-cash-stack"></i> SGVA Folha</h4>
+                    <small>Sistema Profissional</small>
+                </div>
+
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">
+                        <a class="nav-link active" href="folha-dashboard.html">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-funcionarios.html">
+                            <i class="bi bi-people"></i> Funcionários
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-subsidios.html">
+                            <i class="bi bi-wallet2"></i> Subsídios
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-categorias.html">
+                            <i class="bi bi-diagram-3"></i> Categorias
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-calculo.html">
+                            <i class="bi bi-calculator"></i> Calcular Folha
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-salarios.html">
+                            <i class="bi bi-table"></i> Folha de Salários
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-irt.html">
+                            <i class="bi bi-bar-chart-steps"></i> Escalões IRT
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-historico.html">
+                            <i class="bi bi-clock-history"></i> Histórico
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-excel.html">
+                            <i class="bi bi-file-earmark-excel"></i> Exportar Excel
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-notificacoes.html">
+                            <i class="bi bi-bell"></i> Notificações <span class="badge bg-danger" id="badge-notif">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-backup.html">
+                            <i class="bi bi-hdd"></i> Backup
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-presencas.html">
+                            <i class="bi bi-calendar-check"></i> Presenças
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="folha-configuracoes.html">
+                            <i class="bi bi-gear"></i> Configurações
+                        </a>
+                    </li>
+                </ul>
+                
+                <!-- Botão Voltar ao Painel -->
+                <div class="mt-4 pt-3 border-top border-light">
+                    <a href="index.html" class="btn btn-outline-light btn-sm w-100">
+                        <i class="bi bi-arrow-left"></i> Voltar ao Painel
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-10 ms-sm-auto px-4 py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2><i class="bi bi-speedometer2"></i> Dashboard Folha de Pagamento</h2>
+                        <p class="text-muted">Visão geral do sistema profissional</p>
+                    </div>
+                    <div>
+                        <span class="badge bg-success p-3" id="badgePeriodo">
+                            <i class="bi bi-calendar"></i> Novembro 2025
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Estatísticas Principais -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <div class="card stat-card" style="--color1: #667eea; --color2: #764ba2;">
+                            <div class="card-body position-relative">
+                                <i class="bi bi-people stat-icon"></i>
+                                <h6 class="text-white-50">Funcionários Ativos</h6>
+                                <h2 class="mb-0" id="totalFuncionarios">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card" style="--color1: #f093fb; --color2: #f5576c;">
+                            <div class="card-body position-relative">
+                                <i class="bi bi-wallet2 stat-icon"></i>
+                                <h6 class="text-white-50">Subsídios Configurados</h6>
+                                <h2 class="mb-0" id="totalSubsidios">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card" style="--color1: #4facfe; --color2: #00f2fe;">
+                            <div class="card-body position-relative">
+                                <i class="bi bi-cash-stack stat-icon"></i>
+                                <h6 class="text-white-50">Folhas Processadas</h6>
+                                <h2 class="mb-0" id="totalFolhas">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card" style="--color1: #43e97b; --color2: #38f9d7;">
+                            <div class="card-body position-relative">
+                                <i class="bi bi-bar-chart-steps stat-icon"></i>
+                                <h6 class="text-white-50">Escalões IRT</h6>
+                                <h2 class="mb-0" id="totalEscaloes">13</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ações Rápidas -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="bi bi-lightning"></i> Ações Rápidas</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="row g-0">
+                            <div class="col-md-3 border-end quick-action" onclick="location.href='folha-calculo.html'">
+                                <i class="bi bi-calculator text-primary" style="font-size: 2em;"></i>
+                                <h6 class="mt-2">Calcular Folha</h6>
+                                <small class="text-muted">Processar salários</small>
+                            </div>
+                            <div class="col-md-3 border-end quick-action" onclick="location.href='folha-subsidios.html'">
+                                <i class="bi bi-wallet2 text-success" style="font-size: 2em;"></i>
+                                <h6 class="mt-2">Gerir Subsídios</h6>
+                                <small class="text-muted">Criar/Editar</small>
+                            </div>
+                            <div class="col-md-3 border-end quick-action" onclick="location.href='folha-irt.html'">
+                                <i class="bi bi-bar-chart-steps text-warning" style="font-size: 2em;"></i>
+                                <h6 class="mt-2">Escalões IRT</h6>
+                                <small class="text-muted">Configurar impostos</small>
+                            </div>
+                            <div class="col-md-3 quick-action" onclick="location.href='folha-historico.html'">
+                                <i class="bi bi-clock-history text-info" style="font-size: 2em;"></i>
+                                <h6 class="mt-2">Ver Histórico</h6>
+                                <small class="text-muted">Consultar folhas</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráficos + Sidebar -->
+                <div class="dashboard-columns mb-4" id="dashboardColumns" style="--sidebar-width:360px;">
+                    <div>
+                        <div class="card mb-4">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Custos por Categoria</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="chartCategorias" data-chart-name="categorias" style="max-height: 300px;"></canvas>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Top 5 Subsídios</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="chartSubsidios" data-chart-name="subsidios" style="max-height: 300px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-resize-handle" id="sidebarResizeHandle" role="separator" aria-label="Redimensionar painel lateral"></div>
+
+                    <div>
+                        <div id="painelLateralCards" class="d-flex flex-column gap-4">
+                            <div class="draggable-card" data-card-id="subsidios" draggable="true">
+                                <div class="card">
+                                    <div class="card-header bg-white">
+                                        <h5 class="mb-0">
+                                            <i class="bi bi-award"></i> Subsídios Mais Atribuídos
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="subsidiosMaisUsados">
+                                            <div class="text-center text-muted py-4">
+                                                <i class="bi bi-hourglass-split"></i> Carregando...
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-resize-handle" data-resize-handle draggable="false">
+                                    <i class="bi bi-arrows-expand"></i>
+                                </div>
+                            </div>
+
+                            <div class="draggable-card" data-card-id="categorias" draggable="true">
+                                <div class="card">
+                                    <div class="card-header bg-white">
+                                        <h5 class="mb-0">
+                                            <i class="bi bi-diagram-3"></i> Categorias
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="listaCategorias">
+                                            <div class="text-center text-muted py-4">
+                                                <i class="bi bi-hourglass-split"></i> Carregando...
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-resize-handle" data-resize-handle draggable="false">
+                                    <i class="bi bi-arrows-expand"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <!-- Resumo Financeiro -->
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-graph-up"></i> Resumo Financeiro Mensal
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Descrição</th>
+                                                <th class="text-end">Valor (KZ)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="resumoFinanceiro">
+                                            <tr>
+                                                <td><i class="bi bi-cash text-success"></i> Total Salários Base</td>
+                                                <td class="text-end" id="totalSalarios">0,00</td>
+                                            </tr>
+                                            <tr>
+                                                <td><i class="bi bi-wallet2 text-primary"></i> Total Subsídios</td>
+                                                <td class="text-end" id="totalSubsidiosValor">0,00</td>
+                                            </tr>
+                                            <tr>
+                                                <td><i class="bi bi-arrow-down-circle text-danger"></i> Total INSS Empregado</td>
+                                                <td class="text-end text-danger" id="totalINSSEmpregado">0,00</td>
+                                            </tr>
+                                            <tr>
+                                                <td><i class="bi bi-arrow-down-circle text-danger"></i> Total IRT</td>
+                                                <td class="text-end text-danger" id="totalIRT">0,00</td>
+                                            </tr>
+                                            <tr class="table-primary fw-bold">
+                                                <td>💰 TOTAL LÍQUIDO A PAGAR</td>
+                                                <td class="text-end" id="totalLiquido">0,00</td>
+                                            </tr>
+                                            <tr class="table-light">
+                                                <td><i class="bi bi-building text-warning"></i> INSS Patronal (8%)</td>
+                                                <td class="text-end" id="totalINSSPatronal">0,00</td>
+                                            </tr>
+                                            <tr class="table-warning fw-bold">
+                                                <td>🏢 CUSTO TOTAL EMPRESA</td>
+                                                <td class="text-end" id="custoTotalEmpresa">0,00</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="alert alert-info mt-3">
+                                    <i class="bi bi-info-circle"></i> 
+                                    <small>Valores baseados nas folhas processadas do mês atual</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Últimas Folhas Processadas -->
+                <div class="card mt-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-clock-history"></i> Últimas Folhas Processadas
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Funcionário</th>
+                                        <th>Mês/Ano</th>
+                                        <th>Salário Bruto</th>
+                                        <th>Descontos</th>
+                                        <th>Líquido</th>
+                                        <th>Data</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ultimasFolhas">
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">
+                                            <i class="bi bi-inbox"></i> Nenhuma folha processada ainda
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalSubsidioAssociados" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-people"></i> Funcionários com <span id="modalSubsidioNome"></span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div id="listaFuncionariosSubsidio" class="list-group list-group-flush">
+                        <div class="text-center text-muted py-4">
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                            Preparando detalhes...
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        AssetLoader.loadScript(
+            'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js',
+            'vendor/bootstrap/bootstrap.bundle.min.js'
+        );
+    </script>
+    <script>
+        window.bootstrap = window.bootstrap || {};
+        const API_URL = 'http://localhost:3000/api';
+        let chartCategorias, chartSubsidios;
+        const subsidioAssociadosCache = {};
+        const FOLHA_CHART_CACHE_KEY = 'folhaDashboardChartsCacheV1';
+        const CARD_ORDER_KEY = 'folhaDashboardSidebarOrder';
+        const CARD_SIZE_KEY = 'folhaDashboardSidebarSizes';
+        const SIDEBAR_WIDTH_KEY = 'folhaDashboardSidebarWidth';
+        const MIN_SIDEBAR_WIDTH = 280;
+        const MAX_SIDEBAR_WIDTH = 520;
+        const MIN_CARD_HEIGHT = 220;
+        let draggingCard = null;
+        let resizingState = null;
+        let resizingSidebar = null;
+        window.ChartUnavailable = window.ChartUnavailable ?? false;
+        const chartDataStore = { categorias: null, subsidios: null };
+        let chartRetryInterval = null;
+        const MAX_CHART_RETRY_ATTEMPTS = 20;
+
+        function exibirAvisoGrafico() {
+            document.querySelectorAll('[data-chart-name]').forEach(function(canvas) {
+                if (!canvas) return;
+                var parent = canvas.parentElement;
+                if (!parent || parent.dataset.fallbackApplied) return;
+                parent.dataset.fallbackApplied = 'true';
+                parent.innerHTML = '<div class="alert alert-warning mb-0"><i class="bi bi-info-circle"></i> Gráficos indisponíveis no modo offline.</div>';
+            });
+        }
+
+        // Carregar dados do dashboard
+        async function carregarDashboard() {
+            await Promise.all([
+                carregarEstatisticas(),
+                carregarSubsidios(),
+                carregarCategorias(),
+                carregarUltimasFolhas(),
+                carregarGraficos()
+            ]);
+        }
+
+        // Carregar gráficos
+        async function carregarGraficos() {
+            const mesAtual = new Date().getMonth() + 1;
+            const anoAtual = new Date().getFullYear();
+
+            try {
+                const [custosResp, subsResp] = await Promise.all([
+                    fetch(`${API_URL}/folha-relatorios/custos-categoria?mes=${mesAtual}&ano=${anoAtual}`),
+                    fetch(`${API_URL}/folha-relatorios/dashboard-stats?mes=${mesAtual}&ano=${anoAtual}`)
+                ]);
+
+                const custosData = await custosResp.json();
+                const subsData = await subsResp.json();
+
+                if (custosData.success && Array.isArray(custosData.data) && custosData.data.length) {
+                    atualizarCacheGrafico('categorias', custosData.data);
+                    renderGraficoCategorias(custosData.data);
+                } else {
+                    // Limpar cache se não há dados
+                    limparCacheGrafico('categorias');
+                    if (!aplicarCacheGrafico('categorias')) {
+                        mostrarAvisoGraficoEspecifico('categorias', 'Sem dados disponíveis para categorias neste período.');
+                    }
+                }
+
+                const topSubsidios = subsData.success ? subsData.data.topSubsidios : [];
+                if (Array.isArray(topSubsidios) && topSubsidios.length) {
+                    atualizarCacheGrafico('subsidios', topSubsidios);
+                    renderGraficoSubsidios(topSubsidios);
+                } else {
+                    // Limpar cache se não há dados
+                    limparCacheGrafico('subsidios');
+                    if (!aplicarCacheGrafico('subsidios')) {
+                        mostrarAvisoGraficoEspecifico('subsidios', 'Sem dados de subsídios neste período.');
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao carregar gráficos:', error);
+                const categoriasOk = aplicarCacheGrafico('categorias');
+                const subsOk = aplicarCacheGrafico('subsidios');
+                if (!categoriasOk) {
+                    mostrarAvisoGraficoEspecifico('categorias');
+                }
+                if (!subsOk) {
+                    mostrarAvisoGraficoEspecifico('subsidios');
+                }
+            }
+        }
+
+        function criarGraficoCategorias(dados) {
+            const ctx = document.getElementById('chartCategorias');
+            if (chartCategorias) chartCategorias.destroy();
+            
+            const labels = dados.map(d => d.categoria);
+            const valores = dados.map(d => parseFloat(d.custo_total_empresa));
+            
+            chartCategorias = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: valores,
+                        backgroundColor: [
+                            'rgba(102, 126, 234, 0.8)',
+                            'rgba(118, 75, 162, 0.8)',
+                            'rgba(237, 100, 166, 0.8)',
+                            'rgba(255, 154, 158, 0.8)',
+                            'rgba(250, 208, 196, 0.8)',
+                            'rgba(79, 172, 254, 0.8)',
+                            'rgba(0, 242, 254, 0.8)',
+                            'rgba(67, 233, 123, 0.8)',
+                            'rgba(56, 249, 215, 0.8)',
+                            'rgba(240, 147, 251, 0.8)'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 15,
+                                padding: 10,
+                                font: { size: 11 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${formatMoney(value)} KZ (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function criarGraficoSubsidios(dados) {
+            const ctx = document.getElementById('chartSubsidios');
+            if (chartSubsidios) chartSubsidios.destroy();
+
+            const labels = dados.map(d => d.nome);
+            const valores = dados.map(d => d.quantidade);
+
+            chartSubsidios = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Atribuições',
+                        data: valores,
+                        backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Atribuído a ${context.parsed.y} funcionários`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderGraficoCategorias(dados) {
+            if (!Array.isArray(dados) || !dados.length) {
+                chartDataStore.categorias = null;
+                mostrarAvisoGraficoEspecifico('categorias', 'Sem dados de categorias disponíveis.');
+                return;
+            }
+
+            chartDataStore.categorias = dados;
+
+            if (window.ChartUnavailable || typeof Chart === 'undefined') {
+                renderOfflineGraficoCategorias(dados, { timestamp: Date.now() });
+                agendarNovaTentativaGrafico();
+                return;
+            }
+
+            removerOfflineFallback('chartCategorias');
+            criarGraficoCategorias(dados);
+        }
+
+        function renderGraficoSubsidios(dados) {
+            if (!Array.isArray(dados) || !dados.length) {
+                chartDataStore.subsidios = null;
+                mostrarAvisoGraficoEspecifico('subsidios', 'Sem dados de subsídios disponíveis.');
+                return;
+            }
+
+            chartDataStore.subsidios = dados;
+
+            if (window.ChartUnavailable || typeof Chart === 'undefined') {
+                renderOfflineGraficoSubsidios(dados, { timestamp: Date.now() });
+                agendarNovaTentativaGrafico();
+                return;
+            }
+
+            removerOfflineFallback('chartSubsidios');
+            criarGraficoSubsidios(dados);
+        }
+
+        function renderOfflineGraficoCategorias(dados, meta = {}) {
+            const fallback = obterOuCriarFallback('chartCategorias');
+            if (!fallback) return;
+
+            if (window.OfflineCharts) {
+                OfflineCharts.renderBars(
+                    fallback.container,
+                    dados.map(item => {
+                        const valor = Number(item.custo_total_empresa) || 0;
+                        return {
+                            label: item.categoria || 'Categoria',
+                            value: valor,
+                            display: `${formatMoney(valor)} KZ`
+                        };
+                    }),
+                    { compact: true }
+                );
+            } else {
+                fallback.container.innerHTML = '<div class="alert alert-warning mb-0">Recursos offline indisponíveis.</div>';
+            }
+
+            anexarNotaOffline(fallback.wrapper, meta.timestamp || Date.now());
+        }
+
+        function renderOfflineGraficoSubsidios(dados, meta = {}) {
+            const fallback = obterOuCriarFallback('chartSubsidios');
+            if (!fallback) return;
+
+            if (window.OfflineCharts) {
+                OfflineCharts.renderBars(
+                    fallback.container,
+                    dados.map(item => {
+                        const valor = Number(item.quantidade) || 0;
+                        return {
+                            label: item.nome || 'Subsídio',
+                            value: valor,
+                            display: `${valor} atrib.`
+                        };
+                    }),
+                    { compact: true }
+                );
+            } else {
+                fallback.container.innerHTML = '<div class="alert alert-warning mb-0">Recursos offline indisponíveis.</div>';
+            }
+
+            anexarNotaOffline(fallback.wrapper, meta.timestamp || Date.now());
+        }
+
+        function obterOuCriarFallback(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return null;
+            const wrapper = canvas.parentElement;
+            if (!wrapper) return null;
+
+            canvas.style.display = 'none';
+            let container = wrapper.querySelector(`[data-offline-chart="${canvasId}"]`);
+            if (!container) {
+                container = document.createElement('div');
+                container.dataset.offlineChart = canvasId;
+                wrapper.appendChild(container);
+            }
+            container.style.display = 'block';
+            container.innerHTML = '';
+
+            const alert = wrapper.querySelector('.chart-alert');
+            if (alert) alert.remove();
+
+            return { container, wrapper };
+        }
+
+        function removerOfflineFallback(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const wrapper = canvas.parentElement;
+            if (!wrapper) return;
+
+            canvas.style.display = '';
+            const container = wrapper.querySelector(`[data-offline-chart="${canvasId}"]`);
+            if (container) container.remove();
+            removerNotaOffline(wrapper);
+
+            const alert = wrapper.querySelector('.chart-alert');
+            if (alert) alert.remove();
+        }
+
+        function anexarNotaOffline(wrapper, timestamp) {
+            if (!wrapper || !timestamp) return;
+            let note = wrapper.querySelector('.chart-offline-note');
+            if (!note) {
+                note = document.createElement('div');
+                note.className = 'chart-offline-note';
+                wrapper.appendChild(note);
+            }
+            note.innerHTML = `<i class="bi bi-wifi-off"></i> Dados offline de ${formatarDataHora(timestamp)}`;
+        }
+
+        function removerNotaOffline(wrapper) {
+            if (!wrapper) return;
+            const note = wrapper.querySelector('.chart-offline-note');
+            if (note) note.remove();
+        }
+
+        function formatarDataHora(timestamp) {
+            if (!timestamp) return '';
+            try {
+                return new Intl.DateTimeFormat('pt-AO', {
+                    dateStyle: 'short',
+                    timeStyle: 'short'
+                }).format(timestamp);
+            } catch (error) {
+                return '';
+            }
+        }
+
+        function atualizarCacheGrafico(tipo, dados) {
+            try {
+                const cache = JSON.parse(localStorage.getItem(FOLHA_CHART_CACHE_KEY) || '{}');
+                cache[tipo] = {
+                    dados,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem(FOLHA_CHART_CACHE_KEY, JSON.stringify(cache));
+            } catch (error) {
+                console.warn('Não foi possível salvar cache dos gráficos:', error);
+            }
+        }
+
+        function obterCacheGrafico(tipo) {
+            try {
+                const cache = JSON.parse(localStorage.getItem(FOLHA_CHART_CACHE_KEY) || '{}');
+                return cache[tipo];
+            } catch (error) {
+                console.warn('Não foi possível ler cache dos gráficos:', error);
+                return null;
+            }
+        }
+
+        function limparCacheGrafico(tipo) {
+            try {
+                const cache = JSON.parse(localStorage.getItem(FOLHA_CHART_CACHE_KEY) || '{}');
+                delete cache[tipo];
+                localStorage.setItem(FOLHA_CHART_CACHE_KEY, JSON.stringify(cache));
+            } catch (error) {
+                console.warn('Não foi possível limpar cache do gráfico:', error);
+            }
+        }
+
+        function aplicarCacheGrafico(tipo) {
+            const cache = obterCacheGrafico(tipo);
+            if (!cache || !Array.isArray(cache.dados) || !cache.dados.length) {
+                return false;
+            }
+            if (tipo === 'categorias') {
+                renderOfflineGraficoCategorias(cache.dados, { timestamp: cache.timestamp });
+            } else {
+                renderOfflineGraficoSubsidios(cache.dados, { timestamp: cache.timestamp });
+            }
+            return true;
+        }
+
+        function mostrarAvisoGraficoEspecifico(tipo, mensagem) {
+            const canvasId = tipo === 'categorias' ? 'chartCategorias' : 'chartSubsidios';
+            const canvas = document.getElementById(canvasId);
+            const wrapper = canvas?.parentElement;
+            if (!wrapper) return;
+            removerOfflineFallback(canvasId);
+
+            let alert = wrapper.querySelector('.chart-alert');
+            if (!alert) {
+                alert = document.createElement('div');
+                alert.className = 'alert alert-warning chart-alert mt-3';
+                wrapper.appendChild(alert);
+            }
+            alert.innerHTML = `<i class="bi bi-info-circle"></i> ${mensagem || 'Gráfico indisponível no momento.'}`;
+        }
+
+        function tentarRenderizarGraficosPendentes() {
+            if (typeof Chart === 'undefined' || window.ChartUnavailable) {
+                return false;
+            }
+
+            let renderizou = false;
+            if (chartDataStore.categorias) {
+                removerOfflineFallback('chartCategorias');
+                criarGraficoCategorias(chartDataStore.categorias);
+                renderizou = true;
+            }
+            if (chartDataStore.subsidios) {
+                removerOfflineFallback('chartSubsidios');
+                criarGraficoSubsidios(chartDataStore.subsidios);
+                renderizou = true;
+            }
+
+            return renderizou;
+        }
+
+        function agendarNovaTentativaGrafico() {
+            if (chartRetryInterval || window.ChartRetryAttempts >= MAX_CHART_RETRY_ATTEMPTS) {
+                return;
+            }
+
+            window.ChartRetryAttempts = (window.ChartRetryAttempts || 0) + 1;
+            chartRetryInterval = setInterval(() => {
+                if (tentarRenderizarGraficosPendentes()) {
+                    clearInterval(chartRetryInterval);
+                    chartRetryInterval = null;
+                    window.ChartRetryAttempts = 0;
+                }
+            }, 3000);
+        }
+
+        function atualizarBadgePeriodo(dataReferencia) {
+            try {
+                const badge = document.getElementById('badgePeriodo');
+                if (!badge || !(dataReferencia instanceof Date)) return;
+                const mesNome = new Intl.DateTimeFormat('pt-AO', { month: 'long' }).format(dataReferencia);
+                const ano = dataReferencia.getFullYear();
+                const texto = `${mesNome.charAt(0).toUpperCase()}${mesNome.slice(1)} ${ano}`;
+                badge.innerHTML = `<i class="bi bi-calendar"></i> ${texto}`;
+            } catch (error) {
+                console.warn('Não foi possível atualizar o período exibido:', error);
+            }
+        }
+
+        // Estatísticas principais
+        async function carregarEstatisticas() {
+            try {
+                const hoje = new Date();
+                const mesAtual = hoje.getMonth() + 1;
+                const anoAtual = hoje.getFullYear();
+                const token = localStorage.getItem('token');
+                atualizarBadgePeriodo(hoje);
+
+                const [funcResp, subsResp, folhasResp, irtResp] = await Promise.all([
+                    fetch(`${API_URL}/funcionarios`),
+                    fetch(`${API_URL}/subsidios`),
+                    fetch(`${API_URL}/folha-profissional/folhas?mes=${mesAtual}&ano=${anoAtual}`),
+                    fetch(`${API_URL}/folha-profissional/irt`)
+                ]);
+
+                const funcData = await funcResp.json();
+                const subsData = await subsResp.json();
+                const folhasData = await folhasResp.json();
+                const irtData = await irtResp.json();
+
+                const funcionarios = funcData.data?.filter(f => f.ativo) || [];
+                document.getElementById('totalFuncionarios').textContent = funcionarios.length;
+
+                document.getElementById('totalSubsidios').textContent = subsData.data?.length || 0;
+                const totalEscaloes = Array.isArray(irtData.data) ? irtData.data.length : 13;
+                document.getElementById('totalEscaloes').textContent = totalEscaloes;
+
+                const folhasPeriodo = (folhasData.data || []).filter(f =>
+                    Number(f.mes) === mesAtual && Number(f.ano) === anoAtual
+                );
+
+                let calculosPeriodo = [];
+                if (token && funcionarios.length > 0) {
+                    calculosPeriodo = await calcularFolhasAtuais(funcionarios, mesAtual, anoAtual, token);
+                }
+
+                const dataset = calculosPeriodo.length > 0 ? calculosPeriodo : folhasPeriodo;
+                document.getElementById('totalFolhas').textContent = dataset.length;
+
+                if (dataset.length > 0) {
+                    const totais = calcularTotaisFolha(dataset);
+
+                    document.getElementById('totalSalarios').textContent = formatMoney(totais.salarioBase);
+                    document.getElementById('totalSubsidiosValor').textContent = formatMoney(totais.subsidios);
+                    document.getElementById('totalINSSEmpregado').textContent = formatMoney(totais.inssEmpregado);
+                    document.getElementById('totalIRT').textContent = formatMoney(totais.irt);
+                    document.getElementById('totalLiquido').textContent = formatMoney(totais.liquido);
+                    document.getElementById('totalINSSPatronal').textContent = formatMoney(totais.inssPatronal);
+                    document.getElementById('custoTotalEmpresa').textContent = formatMoney(totais.bruto + totais.inssPatronal);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+            }
+        }
+
+        async function calcularFolhasAtuais(funcionarios, mes, ano, token) {
+            const resultados = await Promise.all(funcionarios.map(async (func) => {
+                try {
+                    const response = await fetch(`${API_URL}/folha-profissional/calcular/${func.id}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ mes, ano })
+                    });
+
+                    if (!response.ok) return null;
+                    const data = await response.json();
+                    return data.success ? data.data : null;
+                } catch (error) {
+                    console.warn(`Falha ao calcular folha de ${func.nome}:`, error);
+                    return null;
+                }
+            }));
+
+            return resultados.filter(Boolean);
+        }
+
+        function calcularTotaisFolha(lista) {
+            const toNumber = (value) => {
+                const num = Number(value);
+                return Number.isFinite(num) ? num : 0;
+            };
+
+            const getSalarioBase = (item) => toNumber(item.salario_base || item.salarioBase || item.funcionario?.salario_base);
+            const getSubsidios = (item) => toNumber(item.total_subsidios || item.subsidios?.total);
+            const getBruto = (item) => toNumber(item.salario_bruto);
+            const getLiquido = (item) => toNumber(item.salario_liquido);
+            const getINSSemp = (item) => toNumber(item.inss_empregado || item.inss?.empregado);
+            const getINSSpat = (item) => toNumber(item.inss_patronal || item.inss?.patronal);
+            const getIRT = (item) => {
+                if (item.irt && typeof item.irt === 'object') {
+                    return toNumber(item.irt.valor);
+                }
+                return toNumber(item.irt);
+            };
+
+            return lista.reduce((acc, item) => {
+                acc.salarioBase += getSalarioBase(item);
+                acc.subsidios += getSubsidios(item);
+                acc.bruto += getBruto(item);
+                acc.liquido += getLiquido(item);
+                acc.inssEmpregado += getINSSemp(item);
+                acc.inssPatronal += getINSSpat(item);
+                acc.irt += getIRT(item);
+                return acc;
+            }, {
+                salarioBase: 0,
+                subsidios: 0,
+                bruto: 0,
+                liquido: 0,
+                inssEmpregado: 0,
+                inssPatronal: 0,
+                irt: 0
+            });
+        }
+
+        // Subsídios mais utilizados
+        async function carregarSubsidios() {
+            try {
+                const response = await fetch(`${API_URL}/subsidios`);
+                const data = await response.json();
+                const subsidios = data.data || [];
+                const destaque = subsidios.slice(0, 5);
+
+                const container = document.getElementById('subsidiosMaisUsados');
+                if (destaque.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-info-circle"></i> Nenhum subsídio configurado ainda
+                            <div class="mt-2">
+                                <a href="folha-subsidios.html" class="btn btn-sm btn-outline-primary">
+                                    Configurar Subsídios
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = destaque.map(s => `
+                    <div class="border rounded-3 p-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">${s.nome}</h6>
+                                <small class="text-muted">${getTipoSubsidioLabel(s.tipo_subsidio)}</small>
+                            </div>
+                            <span class="badge bg-light text-dark">
+                                <i class="bi bi-people text-primary"></i>
+                                <span id="badgeSubsidioCount-${s.id}">...</span>
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="text-muted small">
+                                ${getTipoCalculoLabel(s.tipo_calculo)}
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary" onclick="abrirAssociadosSubsidio(${s.id}, '${encodeURIComponent(s.nome || 'Subsídio')}')">
+                                <i class="bi bi-list-check"></i> Ver associados
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+
+                if (localStorage.getItem('token')) {
+                    destaque.forEach(s => atualizarBadgeAssociados(s.id));
+                } else {
+                    destaque.forEach(s => {
+                        const badge = document.getElementById(`badgeSubsidioCount-${s.id}`);
+                        if (badge) badge.textContent = '—';
+                    });
+                }
+            } catch (error) {
+                console.error('Erro ao carregar subsídios:', error);
+            }
+        }
+
+        async function atualizarBadgeAssociados(subsidioId) {
+            try {
+                const associados = await obterAssociadosSubsidio(subsidioId);
+                const badge = document.getElementById(`badgeSubsidioCount-${subsidioId}`);
+                if (badge) badge.textContent = associados.length;
+            } catch (error) {
+                console.warn('Não foi possível obter associados do subsídio', subsidioId, error);
+            }
+        }
+
+        async function obterAssociadosSubsidio(subsidioId, forceRefresh = false) {
+            if (!forceRefresh && Array.isArray(subsidioAssociadosCache[subsidioId])) {
+                return subsidioAssociadosCache[subsidioId];
+            }
+
+            const token = localStorage.getItem('token');
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+            const response = await fetch(`${API_URL}/subsidios/atribuicoes/${subsidioId}`, { headers });
+            if (!response.ok) throw new Error('Falha ao consultar atribuições');
+
+            const payload = await response.json();
+            const associados = payload.data || [];
+            subsidioAssociadosCache[subsidioId] = associados;
+            return associados;
+        }
+
+        async function abrirAssociadosSubsidio(subsidioId, nomeCodificado) {
+            const titulo = document.getElementById('modalSubsidioNome');
+            const lista = document.getElementById('listaFuncionariosSubsidio');
+            const modalElement = document.getElementById('modalSubsidioAssociados');
+            const nome = decodeURIComponent(nomeCodificado || 'Subsídio');
+
+            titulo.textContent = nome;
+            lista.innerHTML = `
+                <div class="text-center text-muted py-4">
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    Carregando colaboradores...
+                </div>
+            `;
+
+            try {
+                const associados = await obterAssociadosSubsidio(subsidioId, true);
+                if (!associados.length) {
+                    lista.innerHTML = '<div class="text-center text-muted py-4"><i class="bi bi-inbox"></i> Nenhum funcionário com este subsídio</div>';
+                } else {
+                    lista.innerHTML = associados.map(func => `
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${func.nome}</strong>
+                                <div class="small text-muted">Salário base: ${formatMoney(func.salario_base)} KZ</div>
+                            </div>
+                            <span class="badge bg-light text-dark">${func.valor_especifico ? formatMoney(func.valor_especifico) + ' KZ' : 'Valor padrão'}</span>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Erro ao listar associados:', error);
+                lista.innerHTML = '<div class="text-danger text-center py-4">Erro ao carregar dados. Verifique se está autenticado.</div>';
+            }
+
+            if (window.bootstrap?.Modal) {
+                window.bootstrap.Modal.getOrCreateInstance(modalElement).show();
+            } else {
+                alert('Detalhes disponíveis apenas após carregar os componentes do sistema.');
+            }
+        }
+
+        function getTipoSubsidioLabel(tipo) {
+            const map = {
+                regular: 'Subsídio regular',
+                especial: 'Subsídio especial',
+                anual: 'Subsídio anual',
+                ocasional: 'Subsídio ocasional'
+            };
+            return map[tipo] || 'Configuração personalizada';
+        }
+
+        function getTipoCalculoLabel(tipo) {
+            const map = {
+                fixo: 'Valor fixo',
+                percentual: 'Percentual do salário',
+                por_categoria: 'Específico por categoria'
+            };
+            return map[tipo] || 'Regra personalizada';
+        }
+
+        // Categorias
+        async function carregarCategorias() {
+            try {
+                const [categoriasResp, funcionariosResp] = await Promise.all([
+                    fetch(`${API_URL}/folha-profissional`),
+                    fetch(`${API_URL}/funcionarios`)
+                ]);
+
+                const categoriasData = await categoriasResp.json();
+                const funcionariosData = await funcionariosResp.json();
+                const categorias = categoriasData.data || [];
+                const funcionarios = (funcionariosData.data || []).filter(f => f.ativo);
+
+                const contagemPorCategoria = funcionarios.reduce((acc, func) => {
+                    if (func.categoria_id) {
+                        acc[func.categoria_id] = (acc[func.categoria_id] || 0) + 1;
+                    }
+                    return acc;
+                }, {});
+
+                const destaque = categorias
+                    .map(cat => ({
+                        ...cat,
+                        total: contagemPorCategoria[cat.id] || 0
+                    }))
+                    .sort((a, b) => b.total - a.total)
+                    .slice(0, 4);
+
+                const container = document.getElementById('listaCategorias');
+                if (!categorias.length) {
+                    container.innerHTML = `
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-diagram-3"></i> Ainda não existem categorias registadas
+                            <div class="mt-2">
+                                <a href="folha-categorias.html" class="btn btn-sm btn-outline-primary">
+                                    Criar primeira categoria
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const totalFuncionarios = funcionarios.filter(f => f.categoria_id).length;
+                container.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <strong>${categorias.length} categorias</strong>
+                            <div class="text-muted small">${totalFuncionarios} funcionário(s) categorizados</div>
+                        </div>
+                        <a href="folha-categorias.html" class="btn btn-sm btn-outline-secondary">Gerir</a>
+                    </div>
+                    <div class="list-group small">
+                        ${destaque.map(cat => `
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>${cat.nome}</strong>
+                                    <div class="text-muted">${cat.descricao || 'Sem descrição'}</div>
+                                </div>
+                                <span class="badge ${cat.total ? 'bg-primary' : 'bg-light text-muted'}">
+                                    <i class="bi bi-people${cat.total ? '-fill' : ''}"></i> ${cat.total}
+                                </span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    ${categorias.length > destaque.length ? '<a href="folha-categorias.html" class="btn btn-sm btn-outline-secondary w-100 mt-3">Ver todas as categorias</a>' : ''}
+                `;
+            } catch (error) {
+                console.error('Erro ao carregar categorias:', error);
+                document.getElementById('listaCategorias').innerHTML = '<div class="text-danger text-center py-4">Erro ao carregar categorias</div>';
+            }
+        }
+
+        // Últimas folhas processadas
+        async function carregarUltimasFolhas() {
+            try {
+                const response = await fetch(`${API_URL}/folha-profissional/folhas`);
+                const data = await response.json();
+                const folhas = (data.data || []).slice(0, 10);
+
+                const tbody = document.getElementById('ultimasFolhas');
+                if (folhas.length > 0) {
+                    tbody.innerHTML = folhas.map(f => `
+                        <tr>
+                            <td><strong>${f.funcionario_nome || 'N/A'}</strong></td>
+                            <td>${f.mes}/${f.ano}</td>
+                            <td>${formatMoney(f.salario_bruto)} KZ</td>
+                            <td class="text-danger">-${formatMoney(f.total_descontos)} KZ</td>
+                            <td class="text-success"><strong>${formatMoney(f.salario_liquido)} KZ</strong></td>
+                            <td><small>${new Date(f.calculado_em).toLocaleDateString('pt-AO')}</small></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox"></i> Nenhuma folha processada ainda
+                            </td>
+                        </tr>
+                    `;
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+            }
+        }
+
+        function inicializarDragCards() {
+            const container = document.getElementById('painelLateralCards');
+            if (!container) return;
+
+            container.querySelectorAll('.draggable-card').forEach(card => {
+                card.addEventListener('dragstart', onCardDragStart);
+                card.addEventListener('dragover', onCardDragOver);
+                card.addEventListener('drop', onCardDrop);
+                card.addEventListener('dragenter', onCardDragEnter);
+                card.addEventListener('dragleave', onCardDragLeave);
+                card.addEventListener('dragend', onCardDragEnd);
+            });
+
+            aplicarOrdemSalva(container);
+        }
+
+        function onCardDragStart(event) {
+            draggingCard = event.currentTarget;
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', draggingCard.dataset.cardId);
+            draggingCard.classList.add('dragging');
+        }
+
+        function onCardDragOver(event) {
+            if (!draggingCard) return;
+            event.preventDefault();
+            const alvo = event.currentTarget;
+            if (alvo === draggingCard) return;
+
+            const container = alvo.parentElement;
+            const rect = alvo.getBoundingClientRect();
+            const inserirDepois = (event.clientY - rect.top) > rect.height / 2;
+
+            if (inserirDepois) {
+                container.insertBefore(draggingCard, alvo.nextElementSibling);
+            } else {
+                container.insertBefore(draggingCard, alvo);
+            }
+        }
+
+        function onCardDrop(event) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('drop-target');
+            persistirOrdemCards(event.currentTarget.parentElement);
+        }
+
+        function onCardDragEnter(event) {
+            if (!draggingCard || event.currentTarget === draggingCard) return;
+            event.currentTarget.classList.add('drop-target');
+        }
+
+        function onCardDragLeave(event) {
+            event.currentTarget.classList.remove('drop-target');
+        }
+
+        function onCardDragEnd(event) {
+            event.currentTarget.classList.remove('dragging');
+            event.currentTarget.classList.remove('drop-target');
+            persistirOrdemCards(document.getElementById('painelLateralCards'));
+            draggingCard = null;
+        }
+
+        function persistirOrdemCards(container) {
+            if (!container) return;
+            try {
+                const ordem = Array.from(container.querySelectorAll('.draggable-card'))
+                    .map(card => card.dataset.cardId);
+                localStorage.setItem(CARD_ORDER_KEY, JSON.stringify(ordem));
+            } catch (error) {
+                console.warn('Não foi possível persistir ordem dos cards:', error);
+            }
+        }
+
+        function aplicarOrdemSalva(container) {
+            try {
+                const ordem = JSON.parse(localStorage.getItem(CARD_ORDER_KEY) || '[]');
+                if (!ordem.length) return;
+
+                const cards = Array.from(container.querySelectorAll('.draggable-card'));
+                ordem.forEach(id => {
+                    const card = cards.find(item => item.dataset.cardId === id);
+                    if (card) container.appendChild(card);
+                });
+                cards
+                    .filter(card => !ordem.includes(card.dataset.cardId))
+                    .forEach(card => container.appendChild(card));
+            } catch (error) {
+                console.warn('Não foi possível aplicar ordem salva:', error);
+            }
+        }
+
+        function inicializarResizeCards() {
+            const container = document.getElementById('painelLateralCards');
+            if (!container) return;
+
+            aplicarAlturasSalvas(container);
+
+            container.querySelectorAll('[data-resize-handle]').forEach(handle => {
+                handle.addEventListener('mousedown', iniciarResizeCard);
+                handle.addEventListener('touchstart', iniciarResizeCardTouch, { passive: false });
+            });
+        }
+
+        function iniciarResizeCard(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            iniciarProcessoResize(event.currentTarget, event.clientY);
+        }
+
+        function iniciarResizeCardTouch(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            const touch = event.touches[0];
+            iniciarProcessoResize(event.currentTarget, touch.clientY, true);
+        }
+
+        function iniciarProcessoResize(handle, clientY, isTouch = false) {
+            const cardWrapper = handle.closest('.draggable-card');
+            const cardContent = cardWrapper?.querySelector('.card');
+            if (!cardWrapper || !cardContent) return;
+
+            resizingState = {
+                cardWrapper,
+                cardContent,
+                startY: clientY,
+                startHeight: cardContent.offsetHeight,
+                cardId: cardWrapper.dataset.cardId,
+                isTouch,
+                moveEvent: isTouch ? 'touchmove' : 'mousemove',
+                endEvent: isTouch ? 'touchend' : 'mouseup',
+                moveOptions: { passive: false }
+            };
+
+            cardWrapper.classList.add('resizing');
+            document.body.classList.add('resizing-card-active');
+            document.addEventListener(resizingState.moveEvent, processarResizeCard, resizingState.moveOptions);
+            document.addEventListener(resizingState.endEvent, finalizarResizeCard);
+        }
+
+        function processarResizeCard(event) {
+            if (!resizingState) return;
+            event.preventDefault();
+            const clientY = resizingState.isTouch ? (event.touches?.[0]?.clientY || event.changedTouches?.[0]?.clientY || resizingState.startY) : event.clientY;
+            const delta = clientY - resizingState.startY;
+            const novoTamanho = Math.max(MIN_CARD_HEIGHT, resizingState.startHeight + delta);
+            resizingState.cardContent.style.height = `${novoTamanho}px`;
+        }
+
+        function finalizarResizeCard(event) {
+            if (!resizingState) return;
+            const alturaAtual = parseInt(resizingState.cardContent.style.height, 10) || resizingState.cardContent.offsetHeight;
+            persistirAlturaCard(resizingState.cardId, alturaAtual);
+
+            resizingState.cardWrapper.classList.remove('resizing');
+            document.body.classList.remove('resizing-card-active');
+
+            document.removeEventListener(resizingState.moveEvent, processarResizeCard, resizingState.moveOptions);
+            document.removeEventListener(resizingState.endEvent, finalizarResizeCard);
+            resizingState = null;
+        }
+
+        function persistirAlturaCard(cardId, height) {
+            try {
+                const stored = JSON.parse(localStorage.getItem(CARD_SIZE_KEY) || '{}');
+                stored[cardId] = height;
+                localStorage.setItem(CARD_SIZE_KEY, JSON.stringify(stored));
+            } catch (error) {
+                console.warn('Não foi possível salvar altura do card:', error);
+            }
+        }
+
+        function aplicarAlturasSalvas(container) {
+            try {
+                const stored = JSON.parse(localStorage.getItem(CARD_SIZE_KEY) || '{}');
+                Object.entries(stored).forEach(([cardId, height]) => {
+                    const card = container.querySelector(`.draggable-card[data-card-id="${cardId}"] .card`);
+                    if (card && Number(height) > 0) {
+                        card.style.height = `${height}px`;
+                    }
+                });
+            } catch (error) {
+                console.warn('Não foi possível aplicar alturas salvas:', error);
+            }
+        }
+
+        function formatMoney(value) {
+            return new Intl.NumberFormat('pt-AO', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(value || 0);
+        }
+
+        function inicializarSidebarResize() {
+            const columns = document.getElementById('dashboardColumns');
+            const handle = document.getElementById('sidebarResizeHandle');
+            if (!columns || !handle) return;
+
+            aplicarLarguraSalva(columns);
+
+            handle.addEventListener('mousedown', iniciarResizeSidebar);
+            handle.addEventListener('touchstart', iniciarResizeSidebarTouch, { passive: false });
+        }
+
+        function iniciarResizeSidebar(event) {
+            event.preventDefault();
+            iniciarProcessoSidebar(event.clientX, false);
+        }
+
+        function iniciarResizeSidebarTouch(event) {
+            event.preventDefault();
+            const touch = event.touches[0];
+            iniciarProcessoSidebar(touch.clientX, true);
+        }
+
+        function iniciarProcessoSidebar(clientX, isTouch) {
+            const columns = document.getElementById('dashboardColumns');
+            if (!columns) return;
+
+            const currentWidth = parseInt(getComputedStyle(columns).getPropertyValue('--sidebar-width')) || 360;
+            resizingSidebar = {
+                columns,
+                startX: clientX,
+                startWidth: currentWidth,
+                isTouch,
+                moveEvent: isTouch ? 'touchmove' : 'mousemove',
+                endEvent: isTouch ? 'touchend' : 'mouseup'
+            };
+
+            document.body.classList.add('resizing-col-active');
+            document.addEventListener(resizingSidebar.moveEvent, processarResizeSidebar, { passive: false });
+            document.addEventListener(resizingSidebar.endEvent, finalizarResizeSidebar);
+        }
+
+        function processarResizeSidebar(event) {
+            if (!resizingSidebar) return;
+            event.preventDefault();
+            const clientX = resizingSidebar.isTouch ? (event.touches?.[0]?.clientX || event.changedTouches?.[0]?.clientX || resizingSidebar.startX) : event.clientX;
+            const delta = resizingSidebar.startX - clientX;
+            const novoValor = Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, resizingSidebar.startWidth + delta));
+            resizingSidebar.columns.style.setProperty('--sidebar-width', `${novoValor}px`);
+        }
+
+        function finalizarResizeSidebar(event) {
+            if (!resizingSidebar) return;
+            const columns = resizingSidebar.columns;
+            const larguraFinal = parseInt(getComputedStyle(columns).getPropertyValue('--sidebar-width')) || resizingSidebar.startWidth;
+            persistirLarguraSidebar(larguraFinal);
+
+            document.body.classList.remove('resizing-col-active');
+            document.removeEventListener(resizingSidebar.moveEvent, processarResizeSidebar);
+            document.removeEventListener(resizingSidebar.endEvent, finalizarResizeSidebar);
+            resizingSidebar = null;
+        }
+
+        function persistirLarguraSidebar(width) {
+            try {
+                localStorage.setItem(SIDEBAR_WIDTH_KEY, String(width));
+            } catch (error) {
+                console.warn('Não foi possível salvar largura da sidebar:', error);
+            }
+        }
+
+        function aplicarLarguraSalva(columns) {
+            try {
+                const width = parseInt(localStorage.getItem(SIDEBAR_WIDTH_KEY), 10);
+                if (width) {
+                    columns.style.setProperty('--sidebar-width', `${width}px`);
+                }
+            } catch (error) {
+                console.warn('Não foi possível aplicar largura salva:', error);
+            }
+        }
+
+        // Inicializar
+        carregarDashboard();
+        inicializarDragCards();
+        inicializarResizeCards();
+        inicializarSidebarResize();
+    </script>
+    <script src="js/folha-footer.js"></script>
+</body>
+</html>

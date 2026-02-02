@@ -1,0 +1,234 @@
+/* Estilos compartilhados das páginas Folha */
+:root {
+    --folha-gradient-start: #667eea;
+    --folha-gradient-end: #764ba2;
+    --folha-sidebar-width: 260px;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+.sidebar {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--folha-gradient-start) 0%, var(--folha-gradient-end) 100%);
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 1000;
+    width: var(--folha-sidebar-width);
+}
+
+.sidebar .nav-link {
+    color: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+
+.sidebar .nav-link:hover,
+.sidebar .nav-link.active {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar .nav-link i {
+    margin-right: 0.5rem;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+main {
+    min-height: 100vh;
+}
+
+.badge {
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+@media (max-width: 991px) {
+    .sidebar {
+        position: static;
+        height: auto;
+        min-height: 0;
+        width: 100%;
+    }
+}
+
+@media (min-width: 992px) {
+    .sidebar + main {
+        margin-left: var(--folha-sidebar-width);
+    }
+}
+
+.offline-mode .sidebar {
+    width: var(--folha-sidebar-width);
+}
+
+@media (min-width: 992px) {
+    .offline-mode .sidebar + main {
+        margin-left: var(--folha-sidebar-width);
+    }
+}
+
+.offline-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.offline-chart__row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.offline-chart__label {
+    min-width: 120px;
+    font-weight: 600;
+    color: #495057;
+}
+
+.offline-chart__bar {
+    flex: 1;
+    background: #f1f3f5;
+    height: 10px;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.offline-chart__bar-fill {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+}
+
+.offline-chart__value {
+    min-width: 80px;
+    text-align: right;
+    font-weight: 600;
+    color: #212529;
+}
+
+.table-scroll {
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.offline-table-wrap {
+    overflow-x: auto;
+}
+
+.offline-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.offline-table th,
+.offline-table td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+/* Rodapé dinâmico */
+.dynamic-footer {
+    position: fixed;
+    bottom: 0;
+    left: var(--folha-sidebar-width);
+    right: 0;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: 1rem 1.5rem;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 998;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    animation: slideUp 0.3s ease-out;
+    min-height: 60px;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.dynamic-footer .footer-section {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.dynamic-footer .footer-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.dynamic-footer .footer-info i {
+    font-size: 1.1rem;
+}
+
+.dynamic-footer .footer-badge {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.dynamic-footer .footer-company {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+@media (max-width: 991px) {
+    .dynamic-footer {
+        left: 0;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
+    }
+    
+    .dynamic-footer .footer-section {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+}
+
+/* Adicionar padding no bottom do main para não sobrepor o rodapé */
+main {
+    min-height: 100vh;
+    padding-bottom: 140px !important;
+}
+
+/* Ajuste específico para grid de cards */
+#subsidiosGrid,
+.row.g-3,
+.row.g-4 {
+    padding-bottom: 3rem;
+}
+
+.row:last-child,
+.container-fluid > .row:last-child {
+    margin-bottom: 3rem;
+}
