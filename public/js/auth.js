@@ -4,7 +4,8 @@
   const LEGACY_USER_KEY = 'user';
   const DEFAULT_LOGIN_PAGE = 'login.html';
   const DEFAULT_APP_PAGE = 'index.html';
-  const API_URL = 'http://localhost:3000/api';
+  // Use relative path for API to work in both dev and production
+  const API_URL = '/api';
 
   const readSession = () => {
     try {

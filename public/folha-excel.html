@@ -290,7 +290,8 @@
 
     <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
     <script>
-        const API_BASE = 'http://localhost:3000/api/folha-relatorios';
+        // Use relative path for API to work in both dev and production
+        const API_BASE = '/api/folha-relatorios';
 
         function mostrarStatus(mensagem) {
             const status = document.getElementById('status-export');

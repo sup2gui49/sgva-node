@@ -497,7 +497,8 @@
     </script>
     <script>
         window.bootstrap = window.bootstrap || {};
-        const API_URL = 'http://localhost:3000/api';
+        // Use relative path for API
+        const API_URL = '/api';
         let chartCategorias, chartSubsidios;
         const subsidioAssociadosCache = {};
         const FOLHA_CHART_CACHE_KEY = 'folhaDashboardChartsCacheV1';

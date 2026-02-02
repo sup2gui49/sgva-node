@@ -1,7 +1,7 @@
 // SGVA AI Chat Widget
 (function() {
-    // Configurações
-    const API_CHAT = 'http://localhost:3000/api/ai/chat';
+    // Configurações - Caminho relativo para funcionar em Prod e Dev
+    const API_CHAT = '/api/ai/chat';
     
     // Injetar CSS
     const css = `

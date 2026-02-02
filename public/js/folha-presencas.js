@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:3000/api';
+// Path relativo para production/dev
+const API_URL = '/api';
 
 async function fetchAuth(url, options = {}) {
     const defaultOptions = {
