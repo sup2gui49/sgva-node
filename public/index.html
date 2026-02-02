@@ -598,9 +598,9 @@
         async function carregarStats() {
             try {
                 const [funcResp, subsResp, folhasResp] = await Promise.all([
-                    securedFetch('http://localhost:3000/api/funcionarios'),
-                    securedFetch('http://localhost:3000/api/subsidios'),
-                    securedFetch('http://localhost:3000/api/folha-profissional/folhas')
+                    securedFetch('/api/funcionarios'),
+                    securedFetch('/api/subsidios'),
+                    securedFetch('/api/folha-profissional/folhas')
                 ]);
 
                 if (!funcResp.ok || !subsResp.ok || !folhasResp.ok) {
