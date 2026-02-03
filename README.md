@@ -26,6 +26,10 @@ npm install
 # Configurar variáveis de ambiente
 cp .env.example .env
 
+# IMPORTANTE: Edite o arquivo .env e configure o JWT_SECRET
+# Gere uma chave segura com:
+# node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+
 # Criar banco de dados (já criado)
 # O banco já está configurado em database/sgva.db
 
