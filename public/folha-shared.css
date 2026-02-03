@@ -28,6 +28,11 @@ body {
     background: linear-gradient(135deg, var(--folha-gradient-start) 0%, var(--folha-gradient-end) 100%);
 }
 
+/* Force sidebar to always display (override Bootstrap's d-md-block behavior) */
+nav.sidebar {
+    display: block !important;
+}
+
 .sidebar {
     min-height: 100vh;
     /* Fallback and modern unit */
@@ -81,6 +86,7 @@ main {
     }
 
     .sidebar {
+        display: block !important; /* Force sidebar to display on mobile */
         position: relative !important;
         left: 0;
         right: 0;
