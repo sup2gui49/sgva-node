@@ -17,6 +17,36 @@ function montarFiltroPeriodo(campoData, mes, ano) {
 }
 
 const ensureFinanceConfig = () => {
+  // HEAL: Ensure table exists
+  try {
+    const tableExists = db.prepare("SELECT count(*) as qtd FROM sqlite_master WHERE type='table' AND name='config_financeira'").get();
+    if (!tableExists || tableExists.qtd === 0) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS config_financeira (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          margem_minima REAL DEFAULT 30,
+          capital_giro_percentual REAL DEFAULT 40,
+          fundo_reserva_percentual REAL DEFAULT 10,
+          distribuicao_lucro_percentual REAL DEFAULT 50,
+          inss_empregado REAL DEFAULT 3.0,
+          inss_patronal REAL DEFAULT 8.0,
+          irt_estimado_percentual REAL DEFAULT 0,
+          imposto_selo_percentual REAL DEFAULT 0,
+          imposto_selo_limite_faturacao REAL DEFAULT 0,
+          atualizado_em TEXT DEFAULT (datetime('now', 'localtime'))
+        )
+      `);
+      // Initialize default row
+      db.prepare(`
+        INSERT INTO config_financeira 
+        (id, margem_minima, capital_giro_percentual, fundo_reserva_percentual, distribuicao_lucro_percentual)
+        VALUES (1, 30, 40, 10, 50)
+      `).run();
+    }
+  } catch (e) {
+    console.error('Auto-heal financeiro failed:', e);
+  }
+
   const columns = db.prepare('PRAGMA table_info(config_financeira)').all().map(col => col.name);
   const addColumn = (name, sql) => {
     if (!columns.includes(name)) {

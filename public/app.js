@@ -683,26 +683,29 @@ function createEvolucaoChart(vendasData) {
 }
 
 async function createProdutosChart(vendasData) {
-    const ctx = document.getElementById('chart-produtos');
-    if (!ctx) return;
-    
-    // Correção: Verificar se já existe um gráfico associado ao canvas e destruir
-    const existingChart = Chart.getChart(ctx);
-    if (existingChart) {
-        existingChart.destroy();
-    }
-    
-    if (chartInstances['produtos']) {
-        // Verificar se a instância salva não é a mesma que acabamos de destruir
-        if (chartInstances['produtos'] !== existingChart) {
-            try {
-                chartInstances['produtos'].destroy();
-            } catch (e) {
-                // Ignorar erro se já foi destruído
-            }
+    const canvas = document.getElementById('chart-produtos');
+    if (!canvas) return;
+
+    // Tentar destruir qualquer gráfico Chart.js associado a este canvas (por elemento ou por id)
+    try {
+        const canvasId = canvas.id || 'chart-produtos';
+        const existingChart = Chart.getChart(canvas) || Chart.getChart(canvasId);
+        if (existingChart) {
+            try { existingChart.destroy(); } catch (e) { /* ignorar */ }
         }
+    } catch (e) {
+        // Se Chart.getChart não existir ou falhar, continuar
     }
-    
+
+    // Destruir também qualquer instância salva em chartInstances
+    if (chartInstances['produtos']) {
+        try { chartInstances['produtos'].destroy(); } catch (e) { /* ignorar */ }
+        delete chartInstances['produtos'];
+    }
+
+    // Usar contexto 2D se disponível
+    const ctx = (canvas.getContext) ? canvas.getContext('2d') : canvas;
+
     try {
         // Buscar produtos para ter os nomes
         const produtosResponse = await fetch(`${API_URL}/produtos`);

@@ -5,6 +5,37 @@ const path = require('path');
 
 const dbPath = path.join(__dirname, '..', '..', 'database', 'sgva.db');
 
+function ensureEmpresaTable(db) {
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS empresa (
+            id INTEGER PRIMARY KEY CHECK (id = 1),
+            nome TEXT NOT NULL,
+            nif TEXT,
+            endereco TEXT,
+            cidade TEXT,
+            telefone TEXT,
+            email TEXT,
+            website TEXT,
+            logo_base64 TEXT,
+            rodape_documentos TEXT,
+            created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+            updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+        );
+
+        INSERT OR IGNORE INTO empresa (id, nome, nif, endereco, cidade, telefone, email, rodape_documentos)
+        VALUES (
+            1,
+            'Sua Empresa Lda',
+            '000000000',
+            'Rua Principal, nº 123',
+            'Luanda, Angola',
+            '+244 900 000 000',
+            'contato@suaempresa.ao',
+            'Documento gerado pelo SGVA'
+        );
+    `);
+}
+
 // GET - Obter informações da empresa
 router.get('/', (req, res) => {
     let db;
@@ -13,6 +44,7 @@ router.get('/', (req, res) => {
         console.log('📁 DB Path:', dbPath);
         
         db = new Database(dbPath);
+        ensureEmpresaTable(db);
         const empresa = db.prepare('SELECT * FROM empresa WHERE id = 1').get();
 
         if (!empresa) {
@@ -77,6 +109,7 @@ router.put('/', (req, res) => {
         }
 
         db = new Database(dbPath);
+        ensureEmpresaTable(db);
         
         // Verificar se registro existe
         const existe = db.prepare('SELECT id FROM empresa WHERE id = 1').get();

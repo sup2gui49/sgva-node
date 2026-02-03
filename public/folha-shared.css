@@ -115,8 +115,12 @@ main {
 }
 
 @media (min-width: 992px) {
+    /* Fix para Desktop: Sidebar Fixa + Main com Margem */
     .sidebar + main {
-        margin-left: var(--folha-sidebar-width);
+        margin-left: var(--folha-sidebar-width) !important; /* Force override Bootstrap ms-auto */
+        width: auto !important; /* Override col-md-10 fixed percentage */
+        max-width: none !important;
+        flex: 1; /* Take remaining space */
     }
 }
 

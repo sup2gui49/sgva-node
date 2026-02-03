@@ -267,12 +267,88 @@ router.post('/', (req, res) => {
       const regimeIvaAtual = calculoIva.regime_iva || 'normal';
       const sujeitoIvaFlag = regimeIvaAtual === 'exclusao' ? 0 : 1;
       
+      // Inserir venda
+      const insertVendaStmt = db.prepare(`
+        INSERT INTO vendas (
+          cliente_id,
+          usuario_id,
+          data_venda,
+          subtotal,
+          desconto,
+          total,
+          tipo_pagamento,
+          status,
+          observacoes,
+          taxa_iva,
+          valor_iva,
+          regime_iva,
+          sujeito_iva
+        ) VALUES (?, ?, datetime('now','localtime'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      const vendaResult = insertVendaStmt.run(
+        vendaData.cliente_id || null,
+        vendaData.usuario_id || null,
+        subtotal,
+        descontoValor,
+        total,
+        vendaData.tipo_pagamento || 'dinheiro',
+        'concluida',
+        vendaData.observacoes || null,
+        (calculoIva.resumo_iva && calculoIva.resumo_iva[0]) ? calculoIva.resumo_iva[0].taxa_iva : 0,
+        valorIva,
+        regimeIvaAtual,
+        sujeitoIvaFlag
+      );
+
+      const vendaId = vendaResult.lastInsertRowid;
+
+      // Inserir itens
+      const insertItemStmt = db.prepare(`
+        INSERT INTO itens_venda (
+          venda_id,
+          produto_id,
+          receita_id,
+          descricao,
+          quantidade,
+          preco_unitario,
+          subtotal
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      calculoIva.itens.forEach((itemDetalhado) => {
+        insertItemStmt.run(
+          vendaId,
+          itemDetalhado.produto_id || null,
+          itemDetalhado.receita_id || null,
+          itemDetalhado.produto_nome || itemDetalhado.descricao || 'Item',
+          itemDetalhado.quantidade,
+          itemDetalhado.preco_unitario,
+          itemDetalhado.subtotal
+        );
+      });
+
+      return {
+        vendaId,
+        subtotal,
+        descontoValor,
+        valorIva,
+        total,
+        regimeIva: regimeIvaAtual,
+        detalhes_iva: calculoIva.resumo_iva,
+        itens_detalhados: calculoIva.itens
+      };
+    });
+
+    const resultado = insertVenda({
+      cliente_id,
+      usuario_id,
       itens,
       desconto,
       tipo_pagamento,
       observacoes
     });
-    
+
     res.status(201).json({
       success: true,
       message: 'Venda registrada com sucesso com IVA automático por categoria!',
@@ -282,7 +358,7 @@ router.post('/', (req, res) => {
         desconto: resultado.descontoValor,
         valor_iva: resultado.valorIva,
         total: resultado.total,
-        regime_iva: resultado.regime_iva,
+        regime_iva: resultado.regimeIva,
         detalhes_iva: resultado.detalhes_iva,
         itens_processados: resultado.itens_detalhados.length
       }

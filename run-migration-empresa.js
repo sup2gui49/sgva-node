@@ -2,8 +2,8 @@ const sqlite3 = require('better-sqlite3');
 const fs = require('fs');
 const path = require('path');
 
-const dbPath = 'C:\\xampp\\htdocs\\sgva-node\\database\\sgva.db';
-const migrationPath = 'C:\\xampp\\htdocs\\sgva-node\\database\\migrations\\005_create_empresa_table.sql';
+const dbPath = path.join(__dirname, 'database', 'sgva.db');
+const migrationPath = path.join(__dirname, 'database', 'migrations', '005_create_empresa_table.sql');
 
 console.log('🔄 Executando migration para tabela empresa...\n');
 

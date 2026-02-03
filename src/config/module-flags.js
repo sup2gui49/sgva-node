@@ -9,6 +9,29 @@ const DEFAULT_CONFIG = {
 
 const VALID_MODES = ['nenhuma', 'folha->vendas', 'vendas->folha', 'bidirecional'];
 
+function ensureTable() {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS sistema_modulos (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      vendas_enabled INTEGER NOT NULL DEFAULT 1,
+      folha_enabled INTEGER NOT NULL DEFAULT 1,
+      integracao_modo TEXT NOT NULL DEFAULT 'bidirecional',
+      updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+      created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+      CHECK (vendas_enabled IN (0,1)),
+      CHECK (folha_enabled IN (0,1)),
+      CHECK (integracao_modo IN ('nenhuma','folha->vendas','vendas->folha','bidirecional'))
+    );
+
+    INSERT INTO sistema_modulos (id, vendas_enabled, folha_enabled, integracao_modo)
+    VALUES (1, 1, 1, 'bidirecional')
+    ON CONFLICT(id) DO NOTHING;
+  `);
+}
+
+// Garantir que a tabela existe mesmo em bases antigas
+ensureTable();
+
 function ensureConfigRow() {
   const existing = db.prepare('SELECT * FROM sistema_modulos WHERE id = 1').get();
   if (!existing) {
@@ -22,11 +45,27 @@ function ensureConfigRow() {
 }
 
 function getModuleConfig() {
-  const config = db.prepare('SELECT * FROM sistema_modulos WHERE id = 1').get();
-  if (!config) {
-    return ensureConfigRow();
+  try {
+    try {
+      ensureTable();
+    } catch (ensureError) {
+      console.warn('⚠️ Falha ao garantir tabela sistema_modulos:', ensureError?.message || ensureError);
+      return DEFAULT_CONFIG;
+    }
+
+    const config = db.prepare('SELECT * FROM sistema_modulos WHERE id = 1').get();
+    if (!config) {
+      return ensureConfigRow();
+    }
+    return config;
+  } catch (err) {
+    // Auto-heal bases que ainda não têm a tabela
+    if (err && /no such table/i.test(err.message || '')) {
+      ensureTable();
+      return ensureConfigRow();
+    }
+    throw err;
   }
-  return config;
 }
 
 function updateModuleConfig(updates = {}) {
