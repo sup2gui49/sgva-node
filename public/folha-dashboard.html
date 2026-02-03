@@ -230,7 +230,7 @@
                                 <small>Atualização automática (60s)</small>
                             </label>
                         </div>
-                        <button class="btn btn-primary" id="btnRefreshDashboard" onclick="recarregarDashboard()" title="Atualizar dados do dashboard">
+                        <button class="btn btn-primary" id="btnRefreshDashboard" onclick="recarregarDashboard()" title="Atualizar dados do dashboard" aria-live="polite">
                             <i class="bi bi-arrow-clockwise"></i> Atualizar
                         </button>
                         <span class="badge bg-success p-3" id="badgePeriodo">
@@ -1620,27 +1620,41 @@
 
         // Função para recarregar o dashboard
         let autoRefreshInterval = null;
+        let isRefreshing = false;
         const AUTO_REFRESH_INTERVAL = 60000; // 60 segundos
+
+        // Helper para limpar todos os gráficos
+        function limparTodosGraficos() {
+            const charts = [
+                { ref: chartCategorias, name: 'chartCategorias' },
+                { ref: chartSubsidios, name: 'chartSubsidios' }
+            ];
+            
+            charts.forEach(({ ref, name }) => {
+                if (ref) {
+                    ref.destroy();
+                    if (name === 'chartCategorias') chartCategorias = null;
+                    if (name === 'chartSubsidios') chartSubsidios = null;
+                }
+            });
+        }
 
         async function recarregarDashboard() {
             const btn = document.getElementById('btnRefreshDashboard');
-            if (!btn) return;
+            if (!btn || isRefreshing) return;
 
-            // Desabilitar botão e mostrar loading
+            // Marcar como em refresh para evitar sobreposição
+            isRefreshing = true;
+
+            // Desabilitar botão e mostrar loading com acessibilidade
             const originalHTML = btn.innerHTML;
             btn.disabled = true;
+            btn.setAttribute('aria-busy', 'true');
             btn.innerHTML = '<i class="bi bi-arrow-clockwise spinner-border spinner-border-sm"></i> Atualizando...';
 
             try {
                 // Limpar gráficos existentes para forçar re-render
-                if (chartCategorias) {
-                    chartCategorias.destroy();
-                    chartCategorias = null;
-                }
-                if (chartSubsidios) {
-                    chartSubsidios.destroy();
-                    chartSubsidios = null;
-                }
+                limparTodosGraficos();
 
                 // Recarregar todos os dados do dashboard
                 await carregarDashboard();
@@ -1649,6 +1663,7 @@
                 btn.innerHTML = '<i class="bi bi-check-circle"></i> Atualizado!';
                 btn.classList.remove('btn-primary');
                 btn.classList.add('btn-success');
+                btn.setAttribute('aria-busy', 'false');
 
                 // Restaurar botão após 2 segundos
                 setTimeout(() => {
@@ -1656,21 +1671,27 @@
                     btn.classList.remove('btn-success');
                     btn.classList.add('btn-primary');
                     btn.disabled = false;
+                    isRefreshing = false;
                 }, 2000);
             } catch (error) {
                 console.error('Erro ao recarregar dashboard:', error);
                 
-                // Feedback visual de erro
+                // Feedback visual de erro com mais detalhes
+                const errorMsg = error.message || 'Erro desconhecido';
                 btn.innerHTML = '<i class="bi bi-exclamation-circle"></i> Erro ao atualizar';
+                btn.title = `Erro: ${errorMsg}`;
                 btn.classList.remove('btn-primary');
                 btn.classList.add('btn-danger');
+                btn.setAttribute('aria-busy', 'false');
 
                 // Restaurar botão após 2 segundos
                 setTimeout(() => {
                     btn.innerHTML = originalHTML;
+                    btn.title = 'Atualizar dados do dashboard';
                     btn.classList.remove('btn-danger');
                     btn.classList.add('btn-primary');
                     btn.disabled = false;
+                    isRefreshing = false;
                 }, 2000);
             }
         }
@@ -1683,8 +1704,11 @@
             if (toggle.checked) {
                 // Ativar auto-refresh
                 autoRefreshInterval = setInterval(async () => {
-                    console.log('Auto-refresh: Atualizando dashboard...');
-                    await recarregarDashboard();
+                    // Evitar sobreposição de refreshes
+                    if (!isRefreshing) {
+                        console.log('Auto-refresh: Atualizando dashboard...');
+                        await recarregarDashboard();
+                    }
                 }, AUTO_REFRESH_INTERVAL);
                 
                 // Salvar preferência
