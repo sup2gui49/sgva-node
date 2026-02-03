@@ -23,6 +23,11 @@ body {
     }
 }
 
+/* Top Navbar for Folha pages */
+.folha-navbar {
+    background: linear-gradient(135deg, var(--folha-gradient-start) 0%, var(--folha-gradient-end) 100%);
+}
+
 .sidebar {
     min-height: 100vh;
     /* Fallback and modern unit */
