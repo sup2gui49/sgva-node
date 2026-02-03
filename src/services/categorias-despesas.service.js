@@ -1,5 +1,31 @@
 const db = require('../config/database');
 
+// AUTO-HEAL: Ensure table exists
+try {
+  const tableCheck = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='categorias_despesas'").get();
+  if (!tableCheck) {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS categorias_despesas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT NOT NULL,
+        descricao TEXT,
+        codigo_fiscal TEXT,
+        dedutivel_irt INTEGER DEFAULT 1,
+        ativo INTEGER DEFAULT 1,
+        criado_em TEXT DEFAULT (datetime('now', 'localtime')),
+        atualizado_em TEXT DEFAULT (datetime('now', 'localtime'))
+      );
+      -- Seed defaults
+      INSERT OR IGNORE INTO categorias_despesas (nome, descricao, dedutivel_irt) VALUES 
+      ('Operacional', 'Despesas do dia a dia', 1),
+      ('Pessoal', 'Despesas com equipe', 1),
+      ('Impostos', 'Pagamento de impostos', 0);
+    `);
+  }
+} catch (e) {
+  console.error('Auto-heal categorias_despesas failed:', e);
+}
+
 class CategoriasDespesasService {
     // Listar todas as categorias de despesas
     static getAll() {

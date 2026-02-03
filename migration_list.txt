@@ -1,0 +1,10 @@
+
+    Directory: C:\xampp\htdocs\sgva-node\database\migrations
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a---          09/11/2025    17:23              0 004_create_folha_tables.sql
+-a---          23/11/2025    14:52            783 005_create_empresa_table.sql
+-a---          29/11/2025    20:52            751 006_create_sistema_modulos.sq
+                                                  l
+

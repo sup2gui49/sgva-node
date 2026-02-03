@@ -1,5 +1,31 @@
 const db = require('../config/database');
 
+// AUTO-HEAL: Ensure table exists
+try {
+  const tableCheck = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='categorias_produtos'").get();
+  if (!tableCheck) {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS categorias_produtos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT NOT NULL,
+        descricao TEXT,
+        tipo TEXT DEFAULT 'produto',
+        taxa_iva_padrao REAL DEFAULT 14.0,
+        sujeito_iva INTEGER DEFAULT 1,
+        ativo INTEGER DEFAULT 1,
+        criado_em TEXT DEFAULT (datetime('now', 'localtime')),
+        atualizado_em TEXT DEFAULT (datetime('now', 'localtime'))
+      );
+      -- Seed defaults
+      INSERT OR IGNORE INTO categorias_produtos (nome, descricao, tipo, taxa_iva_padrao) VALUES 
+      ('Geral', 'Produtos diversos', 'produto', 14.0),
+      ('Serviços', 'Prestação de serviços', 'servico', 6.5);
+    `);
+  }
+} catch (e) {
+  console.error('Auto-heal categorias_produtos failed:', e);
+}
+
 class CategoriasProdutosService {
     // Listar todas as categorias de produtos
     static getAll() {

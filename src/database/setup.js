@@ -169,6 +169,37 @@ db.exec(`
 `);
 console.log('✅ Tabela config_financeira criada');
 
+// 11. Tabela de Categorias de Produtos
+db.exec(`
+  CREATE TABLE IF NOT EXISTS categorias_produtos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL,
+    descricao TEXT,
+    tipo TEXT DEFAULT 'produto',
+    taxa_iva_padrao REAL DEFAULT 14.0,
+    sujeito_iva INTEGER DEFAULT 1,
+    ativo INTEGER DEFAULT 1,
+    criado_em TEXT DEFAULT (datetime('now', 'localtime')),
+    atualizado_em TEXT DEFAULT (datetime('now', 'localtime'))
+  )
+`);
+console.log('✅ Tabela categorias_produtos criada');
+
+// 12. Tabela de Categorias de Despesas
+db.exec(`
+  CREATE TABLE IF NOT EXISTS categorias_despesas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL,
+    descricao TEXT,
+    codigo_fiscal TEXT,
+    dedutivel_irt INTEGER DEFAULT 1,
+    ativo INTEGER DEFAULT 1,
+    criado_em TEXT DEFAULT (datetime('now', 'localtime')),
+    atualizado_em TEXT DEFAULT (datetime('now', 'localtime'))
+  )
+`);
+console.log('✅ Tabela categorias_despesas criada');
+
 // Inserir configuração padrão
 const configExists = db.prepare('SELECT COUNT(*) as count FROM config_financeira').get();
 if (configExists.count === 0) {
