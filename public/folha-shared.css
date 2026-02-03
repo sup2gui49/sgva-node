@@ -55,6 +55,11 @@ body {
     margin-right: 0.5rem;
 }
 
+.mobile-topnav,
+.mobile-topnav__menu {
+    display: none;
+}
+
 .card {
     border: none;
     border-radius: 15px;
