@@ -71,13 +71,30 @@ main {
 }
 
 @media (max-width: 991px) {
+    .container-fluid > .row {
+        flex-direction: column;
+    }
+
     .sidebar {
-        position: static;
+        position: relative !important;
+        left: 0;
+        right: 0;
         height: auto;
         min-height: 0;
         width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        flex: 0 0 100% !important;
+        overflow-x: auto;
         /* Padding safe area para mobile */
         padding-top: env(safe-area-inset-top);
+    }
+
+    .sidebar + main {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: 0 0 100% !important;
+        margin-left: 0 !important;
     }
     
     /* Ajuste para o header na sidebar móvel */
@@ -98,6 +115,16 @@ main {
         white-space: nowrap;
         padding-bottom: 0.5rem;
         -webkit-overflow-scrolling: touch;
+        min-width: max-content;
+    }
+
+    .dashboard-columns {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    .dashboard-columns .sidebar-resize-handle {
+        display: none !important;
     }
 
     .sidebar .nav-item {
@@ -113,11 +140,69 @@ main {
         display: inline-flex;
         align-items: center;
         gap: 0.35rem;
+        min-width: max-content;
     }
     
     /* Ajuste no rodapé mobile */
     .dynamic-footer {
         padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        display: none !important;
+    }
+
+    .mobile-topnav {
+        display: flex !important;
+        align-items: center;
+        gap: 0.75rem;
+        background: linear-gradient(135deg, var(--folha-gradient-start) 0%, var(--folha-gradient-end) 100%);
+        color: #fff;
+        padding: 0.75rem 1rem;
+        border-radius: 14px;
+        margin: 0.75rem 0 1rem;
+        box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+    }
+
+    .mobile-topnav__title {
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .mobile-topnav__actions {
+        margin-left: auto;
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .mobile-topnav__btn {
+        border: none;
+        background: rgba(255,255,255,0.2);
+        color: #fff;
+        padding: 0.35rem 0.6rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+    }
+
+    .mobile-topnav__menu {
+        display: flex;
+        gap: 0.5rem;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 0.25rem;
+    }
+
+    .mobile-topnav__menu a {
+        white-space: nowrap;
+        color: #fff;
+        text-decoration: none;
+        background: rgba(255,255,255,0.15);
+        border: 1px solid rgba(255,255,255,0.2);
+        padding: 0.4rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
     }
 }
 

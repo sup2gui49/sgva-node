@@ -24,23 +24,55 @@ function getDiasUteisPadrao() {
  * Busca escalões IRT ativos
  */
 function getEscaloesIRT() {
-  const escaloes = db.prepare(`
-    SELECT id, ordem, de, ate, parcela_fixa, taxa, excesso
-    FROM irt_grupos
-    WHERE ativo = 1
-    ORDER BY ordem
-  `).all();
+  // Tentar primeiro a tabela padrão nova: escaloes_irt
+  try {
+    const tableExists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='escaloes_irt'").get();
+    
+    if (tableExists) {
+       const escaloes = db.prepare(`
+        SELECT id, escalao, limite_inferior, limite_superior, taxa_percentual, parcela_abater, descricao
+        FROM escaloes_irt
+        ORDER BY escalao
+      `).all();
 
-  return escaloes.map(e => ({
-    id: e.id,
-    ordem: e.ordem,
-    de: parseFloat(e.de),
-    ate: e.ate ? parseFloat(e.ate) : null,
-    parcela: parseFloat(e.parcela_fixa),
-    parcela_fixa: parseFloat(e.parcela_fixa),
-    taxa: parseFloat(e.taxa),
-    excesso: parseFloat(e.excesso)
-  }));
+      return escaloes.map(e => ({
+        id: e.id,
+        ordem: e.escalao,
+        de: parseFloat(e.limite_inferior),
+        ate: e.limite_superior ? parseFloat(e.limite_superior) : null,
+        parcela: parseFloat(e.parcela_abater || 0),
+        parcela_fixa: parseFloat(e.parcela_abater || 0),
+        taxa: parseFloat(e.taxa_percentual) / 100.0,
+        excesso: Math.max(0, parseFloat(e.limite_inferior) - 1)
+      }));
+    }
+  } catch (err) {
+    console.warn('Erro ao ler escaloes_irt, tentando tabela legado:', err);
+  }
+
+  // Fallback para tabela antiga (irt_grupos)
+  try {
+    const escaloes = db.prepare(`
+      SELECT id, ordem, de, ate, parcela_fixa, taxa, excesso
+      FROM irt_grupos
+      WHERE ativo = 1
+      ORDER BY ordem
+    `).all();
+
+    return escaloes.map(e => ({
+      id: e.id,
+      ordem: e.ordem,
+      de: parseFloat(e.de),
+      ate: e.ate ? parseFloat(e.ate) : null,
+      parcela: parseFloat(e.parcela_fixa),
+      parcela_fixa: parseFloat(e.parcela_fixa),
+      taxa: parseFloat(e.taxa),
+      excesso: parseFloat(e.excesso)
+    }));
+  } catch (err) {
+    console.error('Falha crítica: Nenhuma tabela de IRT encontrada.');
+    return [];
+  }
 }
 
 /**
