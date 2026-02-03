@@ -150,9 +150,6 @@ main {
 }
 
 @media (max-width: 768px) {
-    /* Keep sidebar visible on mobile but in horizontal layout */
-    /* Removed: display: none !important; */
-
     .mobile-topnav {
         display: flex !important;
         align-items: center;
