@@ -200,6 +200,58 @@ db.exec(`
 `);
 console.log('✅ Tabela categorias_despesas criada');
 
+// 13. Tabela de Categorias de Funcionários
+db.exec(`
+  CREATE TABLE IF NOT EXISTS categorias_funcionarios (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL,
+    descricao TEXT,
+    encargos_especificos REAL DEFAULT 0,
+    ativo INTEGER DEFAULT 1,
+    criado_em TEXT DEFAULT (datetime('now', 'localtime')),
+    atualizado_em TEXT DEFAULT (datetime('now', 'localtime'))
+  )
+`);
+console.log('✅ Tabela categorias_funcionarios criada');
+
+// 14. Tabela de Escalões IRT
+db.exec(`
+  CREATE TABLE IF NOT EXISTS escaloes_irt (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    escalao INTEGER,
+    limite_inferior REAL,
+    limite_superior REAL,
+    taxa_percentual REAL,
+    parcela_abater REAL,
+    descricao TEXT,
+    created_at TEXT DEFAULT (datetime('now', 'localtime')),
+    updated_at TEXT DEFAULT (datetime('now', 'localtime'))
+  )
+`);
+console.log('✅ Tabela escaloes_irt criada');
+
+// Seed Escalões IRT 2025 default if empty
+const escaloesCount = db.prepare('SELECT COUNT(*) as count FROM escaloes_irt').get();
+if (escaloesCount.count === 0) {
+    console.log('Populando escaloes IRT 2025...');
+    db.prepare(`
+        INSERT INTO escaloes_irt (escalao, limite_inferior, limite_superior, taxa_percentual, parcela_abater, descricao) VALUES
+        (1, 0, 100000, 0, 0, 'Até 100.000 (Isento)'),
+        (2, 100001, 150000, 13, 0, '100.001 a 150.000'),
+        (3, 150001, 200000, 16, 3000, '150.001 a 200.000'),
+        (4, 200001, 300000, 18, 5250, '200.001 a 300.000'),
+        (5, 300001, 500000, 19, 11250, '300.001 a 500.000'),
+        (6, 500001, 1000000, 20, 21250, '500.001 a 1.000.000'),
+        (7, 1000001, 1500000, 21, 51250, '1.000.001 a 1.500.000'),
+        (8, 1500001, 2000000, 22, 91250, '1.500.001 a 2.000.000'),
+        (9, 2000001, 2500000, 23, 141250, '2.000.001 a 2.500.000'),
+        (10, 2500001, 3000000, 24, 201250, '2.500.001 a 3.000.000'),
+        (11, 3000001, 5000000, 24.5, 231250, '3.000.001 a 5.000.000'),
+        (12, 5000001, 10000000, 25, 331250, '5.000.001 a 10.000.000'),
+        (13, 10000001, 99999999999, 25, 331250, 'Acima de 10.000.000')
+    `).run();
+}
+
 // Inserir configuração padrão
 const configExists = db.prepare('SELECT COUNT(*) as count FROM config_financeira').get();
 if (configExists.count === 0) {

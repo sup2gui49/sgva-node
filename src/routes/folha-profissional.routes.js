@@ -177,10 +177,37 @@ function registrarStatusPagamento(funcionarioId, mes, ano, status, valorPago, de
   );
 }
 
+// HELPER: Auto-criar tabela categorias_funcionarios se nao existir
+function ensureCategoriasTable() {
+  try {
+    const tableExists = db.prepare("SELECT count(*) as qtd FROM sqlite_master WHERE type='table' AND name='categorias_funcionarios'").get();
+    if (!tableExists || tableExists.qtd === 0) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS categorias_funcionarios (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          nome TEXT NOT NULL,
+          descricao TEXT,
+          encargos_especificos REAL DEFAULT 0,
+          ativo INTEGER DEFAULT 1,
+          criado_em TEXT DEFAULT (datetime('now', 'localtime')),
+          atualizado_em TEXT DEFAULT (datetime('now', 'localtime'))
+        );
+        INSERT INTO categorias_funcionarios (nome, descricao) VALUES
+        ('Geral', 'Funcionários gerais'),
+        ('Administrativo', 'Pessoal de escritório'),
+        ('Gerência', 'Gestores e diretores');
+      `);
+    }
+  } catch (e) {
+    console.error('Auto-heal categorias_funcionarios failed:', e);
+  }
+}
+
 // ==================== CATEGORIAS PROFISSIONAIS ====================
 
 // Listar todas as categorias
 router.get('/', (req, res) => {
+  ensureCategoriasTable();
   try {
     const categorias = db.prepare(`
       SELECT * FROM categorias_funcionarios ORDER BY nome
@@ -202,6 +229,7 @@ router.get('/', (req, res) => {
 
 // Criar categoria
 router.post('/', (req, res) => {
+  ensureCategoriasTable();
   try {
     const { nome, descricao, encargos_especificos } = req.body;
 
@@ -233,6 +261,7 @@ router.post('/', (req, res) => {
 
 // Atualizar categoria
 router.put('/:id', (req, res) => {
+  ensureCategoriasTable();
   try {
     const { nome, descricao, encargos_especificos, ativo } = req.body;
 
@@ -257,6 +286,7 @@ router.put('/:id', (req, res) => {
 
 // Deletar categoria
 router.delete('/:id', (req, res) => {
+  ensureCategoriasTable();
   try {
     db.prepare('DELETE FROM categorias_funcionarios WHERE id = ?').run(req.params.id);
 

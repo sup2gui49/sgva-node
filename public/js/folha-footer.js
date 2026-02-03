@@ -2,7 +2,10 @@
 (function() {
     'use strict';
     
-    const API_URL = 'http://localhost:3000/api';
+    // Detectar URL da API dinamicamente
+    const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+        ? 'http://localhost:3000/api' 
+        : '/api';
     
     // Criar e adicionar rodapé
     function criarRodapeDinamico() {
