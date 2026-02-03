@@ -571,11 +571,33 @@ table tr:hover {
         display: block;
         overflow-x: auto;
         white-space: nowrap;
+        font-size: 0.85rem;
     }
 
     table th,
     table td {
-        padding: 10px;
+        padding: 8px 6px;
+    }
+    
+    /* Make data tables more readable on mobile */
+    .data-table {
+        font-size: 0.85rem;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 10px 8px;
+    }
+    
+    /* Stack action buttons vertically on mobile */
+    .btn-group {
+        flex-direction: column;
+        gap: 3px;
+    }
+    
+    .btn-group-sm .btn {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
     }
 
     #sale-items {
@@ -739,7 +761,7 @@ table tr:hover {
 .data-table {
     width: 100%;
     border-collapse: collapse;
-    background: rgb(103, 255, 191);
+    background: white;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -759,7 +781,7 @@ table tr:hover {
 }
 
 .data-table tr:hover {
-    background: #76bbe9;
+    background: #f5f7ff;
 }
 
 .btn-group {
