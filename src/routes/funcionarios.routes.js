@@ -1,6 +1,93 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
+const { getJwtSecret } = require('../config/security');
 const router = express.Router();
 const db = require('../config/database');
+const JWT_SECRET = getJwtSecret();
+
+const SETORES_VALIDOS = new Set(['CAIXA', 'RH', 'CEO', 'GERENTE']);
+
+const ensureSetorHistoryTable = (() => {
+  let ensured = false;
+  return () => {
+    if (ensured) return;
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS funcionarios_setor_historico (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        funcionario_id INTEGER NOT NULL,
+        setor_anterior TEXT,
+        setor_novo TEXT,
+        alterado_por TEXT,
+        alterado_em TEXT DEFAULT (datetime('now', 'localtime')),
+        FOREIGN KEY (funcionario_id) REFERENCES funcionarios(id) ON DELETE CASCADE
+      )
+    `);
+    ensured = true;
+  };
+})();
+
+ensureSetorHistoryTable();
+
+function getUserFromAuthHeader(req) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return null;
+  const parts = authHeader.split(' ');
+  if (parts.length !== 2 || !/^Bearer$/i.test(parts[0])) return null;
+  try {
+    const decoded = jwt.verify(parts[1], JWT_SECRET);
+    return {
+      id: decoded.id,
+      nome: decoded.nome,
+      role: decoded.role || decoded.funcao || 'funcionario'
+    };
+  } catch (error) {
+    return null;
+  }
+}
+
+function enforceSetorPermission(req, res) {
+  const user = getUserFromAuthHeader(req);
+  if (!user) {
+    res.status(401).json({
+      success: false,
+      message: 'Token não fornecido ou inválido'
+    });
+    return null;
+  }
+
+  if (!['admin', 'gerente'].includes(user.role)) {
+    res.status(403).json({
+      success: false,
+      message: 'Apenas admin ou gerente podem distribuir setores'
+    });
+    return null;
+  }
+
+  return user;
+}
+
+function normalizeSetor(value) {
+  if (value === null || value === undefined || value === '') return null;
+  return String(value).trim().toUpperCase();
+}
+
+function validarSetor(value) {
+  if (!value) return true;
+  return SETORES_VALIDOS.has(value);
+}
+
+function registrarHistoricoSetor(funcionarioId, setorAnterior, setorNovo, user) {
+  if (setorAnterior === setorNovo) return;
+  db.prepare(`
+    INSERT INTO funcionarios_setor_historico (funcionario_id, setor_anterior, setor_novo, alterado_por)
+    VALUES (?, ?, ?, ?)
+  `).run(
+    funcionarioId,
+    setorAnterior || null,
+    setorNovo || null,
+    user?.nome || user?.id || null
+  );
+}
 
 // Garante que a tabela possua colunas opcionais usadas pela UI mais recente
 const ensureFuncionarioColumns = (() => {
@@ -16,7 +103,8 @@ const ensureFuncionarioColumns = (() => {
       { name: 'turno_id', type: 'INTEGER' },
       { name: 'foto', type: 'TEXT' },
       { name: 'documento', type: 'TEXT' },
-      { name: 'trabalha_fds', type: 'INTEGER DEFAULT 0' }
+      { name: 'trabalha_fds', type: 'INTEGER DEFAULT 0' },
+      { name: 'setor', type: 'TEXT' }
     ];
 
     optionalColumns.forEach(column => {
@@ -126,7 +214,8 @@ router.post('/', (req, res) => {
       turno_id,
       foto,
       documento,
-      trabalha_fds
+      trabalha_fds,
+      setor
     } = req.body;
 
     if (!nome || !salario_base) {
@@ -136,11 +225,23 @@ router.post('/', (req, res) => {
       });
     }
 
+    const setorNormalizado = normalizeSetor(setor);
+    if (setorNormalizado !== null) {
+      const user = enforceSetorPermission(req, res);
+      if (!user) return;
+      if (!validarSetor(setorNormalizado)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Setor inválido'
+        });
+      }
+    }
+
     const categoriaNome = resolveCategoriaNome(categoria_id);
 
     const result = db.prepare(`
-      INSERT INTO funcionarios (nome, categoria, salario_base, categoria_id, ativo, data_admissao, nif, email, telefone, turno_id, foto, documento, trabalha_fds)
-      VALUES (?, ?, ?, ?, ?, COALESCE(?, datetime('now', 'localtime')), ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO funcionarios (nome, categoria, salario_base, categoria_id, ativo, data_admissao, nif, email, telefone, turno_id, foto, documento, trabalha_fds, setor)
+      VALUES (?, ?, ?, ?, ?, COALESCE(?, datetime('now', 'localtime')), ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       nome,
       categoriaNome,
@@ -154,8 +255,14 @@ router.post('/', (req, res) => {
       turno_id || 1,
       foto || null,
       documento || null,
-      trabalha_fds ? 1 : 0
+      trabalha_fds ? 1 : 0,
+      setorNormalizado
     );
+
+    if (setorNormalizado !== null) {
+      const user = getUserFromAuthHeader(req);
+      registrarHistoricoSetor(result.lastInsertRowid, null, setorNormalizado, user);
+    }
 
     res.status(201).json({
       success: true,
@@ -178,12 +285,25 @@ router.put('/:id', (req, res) => {
     const updates = req.body;
 
     // Verificar se funcionário existe
-    const existe = db.prepare('SELECT id FROM funcionarios WHERE id = ?').get(id);
+    const existe = db.prepare('SELECT id, setor FROM funcionarios WHERE id = ?').get(id);
     if (!existe) {
       return res.status(404).json({
         success: false,
         message: 'Funcionário não encontrado'
       });
+    }
+
+    let setorNormalizado;
+    if (updates.setor !== undefined) {
+      const user = enforceSetorPermission(req, res);
+      if (!user) return;
+      setorNormalizado = normalizeSetor(updates.setor);
+      if (!validarSetor(setorNormalizado)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Setor inválido'
+        });
+      }
     }
 
     // Construir query dinamicamente baseado nos campos enviados
@@ -241,6 +361,10 @@ router.put('/:id', (req, res) => {
        campos.push('trabalha_fds = ?');
        valores.push(updates.trabalha_fds ? 1 : 0);
     }
+    if (updates.setor !== undefined) {
+      campos.push('setor = ?');
+      valores.push(setorNormalizado);
+    }
     if (updates.data_admissao !== undefined) {
       campos.push('data_admissao = ?');
       valores.push(updates.data_admissao);
@@ -276,6 +400,11 @@ router.put('/:id', (req, res) => {
       SET ${campos.join(', ')}
       WHERE id = ?
     `).run(...valores);
+
+    if (updates.setor !== undefined && existe.setor !== setorNormalizado) {
+      const user = getUserFromAuthHeader(req);
+      registrarHistoricoSetor(id, existe.setor, setorNormalizado, user);
+    }
 
     res.json({
       success: true,

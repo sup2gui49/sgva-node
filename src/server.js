@@ -29,6 +29,9 @@ const saftRoutes = require('./routes/saft.routes');
 const aiRoutes = require('./routes/ai.routes');
 const configuracoesRoutes = require('./routes/configuracoes.routes');
 
+// Garantir tabelas essenciais da folha profissional
+require('./database/setup-folha-profissional');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 

@@ -1,4 +1,6 @@
 const db = require('../config/database');
+const fs = require('fs');
+const path = require('path');
 
 console.log('🔧 Criando tabelas profissionais de Folha de Pagamento...\n');
 
@@ -14,6 +16,52 @@ db.exec(`
   )
 `);
 console.log('✅ Tabela categorias_funcionarios criada');
+
+function loadDefaultCategorias() {
+  const seedPath = path.join(__dirname, 'categorias-funcionarios-default.json');
+  if (fs.existsSync(seedPath)) {
+    try {
+      const raw = fs.readFileSync(seedPath, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length) {
+        return parsed;
+      }
+    } catch (error) {
+      console.warn('⚠️ Falha ao ler categorias padrão:', error.message);
+    }
+  }
+
+  return [
+    { nome: 'Geral', descricao: 'Funcionários gerais', encargos_especificos: null },
+    { nome: 'Administrativo', descricao: 'Pessoal de escritório', encargos_especificos: null },
+    { nome: 'Gerência', descricao: 'Gestores e diretores', encargos_especificos: null }
+  ];
+}
+
+function seedCategoriasDefault() {
+  const count = db.prepare('SELECT COUNT(*) as total FROM categorias_funcionarios').get();
+  if (count && count.total > 0) {
+    return;
+  }
+
+  const defaults = loadDefaultCategorias();
+  const insert = db.prepare(`
+    INSERT OR IGNORE INTO categorias_funcionarios (nome, descricao, encargos_especificos)
+    VALUES (?, ?, ?)
+  `);
+
+  defaults.forEach((categoria) => {
+    insert.run(
+      categoria.nome,
+      categoria.descricao || null,
+      categoria.encargos_especificos || null
+    );
+  });
+
+  console.log(`✅ Categorias padrão aplicadas: ${defaults.length}`);
+}
+
+seedCategoriasDefault();
 
 // 2. Tabela de Subsídios Configuráveis
 db.exec(`
@@ -55,7 +103,26 @@ db.exec(`
 `);
 console.log('✅ Tabela funcionarios_subsidios criada');
 
-// 4. Tabela IRT (Escalões de Imposto sobre Rendimentos)
+// 4. Tabela de Turnos
+db.exec(`
+  CREATE TABLE IF NOT EXISTS turnos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL,
+    entrada TEXT NOT NULL,
+    saida TEXT NOT NULL,
+    inicio_intervalo TEXT,
+    fim_intervalo TEXT,
+    tolerancia_entrada INTEGER DEFAULT 5,
+    tolerancia_saida INTEGER DEFAULT 5,
+    dias_semana TEXT DEFAULT '[1,2,3,4,5]',
+    ativo INTEGER DEFAULT 1,
+    criado_em TEXT DEFAULT (datetime('now', 'localtime')),
+    atualizado_em TEXT DEFAULT (datetime('now', 'localtime'))
+  )
+`);
+console.log('✅ Tabela turnos criada');
+
+// 5. Tabela IRT (Escalões de Imposto sobre Rendimentos)
 db.exec(`
   CREATE TABLE IF NOT EXISTS irt_grupos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -71,7 +138,7 @@ db.exec(`
 `);
 console.log('✅ Tabela irt_grupos criada');
 
-// 5. Tabela de Snapshots IRT (Histórico)
+// 6. Tabela de Snapshots IRT (Histórico)
 db.exec(`
   CREATE TABLE IF NOT EXISTS irt_snapshot_meta (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -96,7 +163,7 @@ db.exec(`
 `);
 console.log('✅ Tabelas irt_snapshot_meta e irt_grupos_snapshots criadas');
 
-// 6. Tabela de Folhas de Pagamento Calculadas
+// 7. Tabela de Folhas de Pagamento Calculadas
 db.exec(`
   CREATE TABLE IF NOT EXISTS folhas_pagamento (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -122,7 +189,7 @@ db.exec(`
 `);
 console.log('✅ Tabela folhas_pagamento criada');
 
-// 7. Tabela de Detalhes de Subsídios na Folha
+// 8. Tabela de Detalhes de Subsídios na Folha
 db.exec(`
   CREATE TABLE IF NOT EXISTS folha_subsidios_detalhes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -138,7 +205,7 @@ db.exec(`
 `);
 console.log('✅ Tabela folha_subsidios_detalhes criada');
 
-// 8. Tabela de Histórico de Funcionários (Auditoria)
+// 9. Tabela de Histórico de Funcionários (Auditoria)
 db.exec(`
   CREATE TABLE IF NOT EXISTS funcionarios_historico (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

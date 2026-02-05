@@ -1,0 +1,52 @@
+[
+  {
+    "nome": "Administrativo",
+    "descricao": "Apoio administrativo geral",
+    "encargos_especificos": null
+  },
+  {
+    "nome": "Auxiliar/Operacional",
+    "descricao": "Funções operacionais e auxiliares",
+    "encargos_especificos": null
+  },
+  {
+    "nome": "CEO/Diretor Geral",
+    "descricao": "Alta direção da empresa",
+    "encargos_especificos": null
+  },
+  {
+    "nome": "Comercial/Vendas",
+    "descricao": "Equipe comercial e vendas",
+    "encargos_especificos": null
+  },
+  {
+    "nome": "Direção/Gerência",
+    "descricao": "Cargos de direção e gerência",
+    "encargos_especificos": null
+  },
+  {
+    "nome": "Financeiro",
+    "descricao": "Departamento financeiro e contabilidade",
+    "encargos_especificos": null
+  },
+  {
+    "nome": "Limpeza",
+    "descricao": "Serviços de limpeza",
+    "encargos_especificos": null
+  },
+  {
+    "nome": "Produção",
+    "descricao": "Área de produção e manufatura",
+    "encargos_especificos": null
+  },
+  {
+    "nome": "Recursos Humanos",
+    "descricao": "Gestão de pessoal e RH",
+    "encargos_especificos": null
+  },
+  {
+    "nome": "Segurança",
+    "descricao": "Segurança patrimonial",
+    "encargos_especificos": null
+  }
+]

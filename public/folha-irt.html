@@ -500,10 +500,22 @@
         const API_URL = '/api';
         let escaloes = [];
 
+        async function fetchAuth(url, options = {}) {
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    ...options.headers
+                }
+            };
+
+            return fetch(url, { ...options, ...defaultOptions });
+        }
+
         // Carregar escalões
         async function carregarEscaloes() {
             try {
-                const response = await fetch(`${API_URL}/folha-profissional/irt`);
+                const response = await fetchAuth(`${API_URL}/folha-profissional/irt`);
                 const data = await response.json();
                 escaloes = data.data || [];
                 renderizarEscaloes();
@@ -585,9 +597,8 @@
             }
 
             try {
-                const response = await fetch(`${API_URL}/folha-profissional/irt/${id}`, {
+                const response = await fetchAuth(`${API_URL}/folha-profissional/irt/${id}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(dados)
                 });
 
@@ -652,12 +663,8 @@
             celula.classList.add('saving');
 
             try {
-                const response = await fetch(`${API_URL}/folha-profissional/irt/${id}`, {
+                const response = await fetchAuth(`${API_URL}/folha-profissional/irt/${id}`, {
                     method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
                     body: JSON.stringify(dados)
                 });
 
@@ -742,12 +749,8 @@
             console.log('➕ Adicionando escalão:', dados);
 
             try {
-                const response = await fetch(`${API_URL}/folha-profissional/irt`, {
+                const response = await fetchAuth(`${API_URL}/folha-profissional/irt`, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
                     body: JSON.stringify(dados)
                 });
 
@@ -774,19 +777,8 @@
             console.log('🗑️ Eliminando escalão:', { id, ordem });
 
             try {
-                const token = localStorage.getItem('token');
-                if (!token) {
-                    alert('Sessão expirada. Faça login novamente.');
-                    window.location.href = 'login.html';
-                    return;
-                }
-
-                const response = await fetch(`${API_URL}/folha-profissional/irt/${id}`, {
+                const response = await fetchAuth(`${API_URL}/folha-profissional/irt/${id}`, {
                     method: 'DELETE',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
                 });
 
                 console.log('📡 Resposta:', response.status);
@@ -858,9 +850,8 @@
             if (!label) return;
 
             try {
-                const response = await fetch(`${API_URL}/folha-profissional/irt/snapshot`, {
+                const response = await fetchAuth(`${API_URL}/folha-profissional/irt/snapshot`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ label })
                 });
 
@@ -879,7 +870,7 @@
         // Carregar snapshots
         async function carregarSnapshots() {
             try {
-                const response = await fetch(`${API_URL}/folha-profissional/irt/snapshots`);
+                const response = await fetchAuth(`${API_URL}/folha-profissional/irt/snapshots`);
                 const data = await response.json();
                 
                 const lista = document.getElementById('listaSnapshots');
@@ -918,9 +909,8 @@
             }
 
             try {
-                const response = await fetch(`${API_URL}/folha-profissional/irt/snapshot/${snapshotId}/restore`, {
+                const response = await fetchAuth(`${API_URL}/folha-profissional/irt/snapshot/${snapshotId}/restore`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
                 });
 
                 const data = await response.json();
