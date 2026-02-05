@@ -2,9 +2,9 @@
 
 // Função auxiliar de notificação
 function showNotification(message, type) {
-    // Para compatibilidade, usa alert() simples
-    // type pode ser 'success', 'error', etc. mas por enquanto não usamos
-    alert(message);
+    // Para compatibilidade, usa alert() simples com prefixo baseado no tipo
+    const prefix = type === 'success' ? '✅ ' : type === 'error' ? '❌ ' : '';
+    alert(prefix + message);
 }
 
 class CategoriasManager {
