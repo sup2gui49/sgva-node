@@ -455,6 +455,12 @@ table tr:hover {
         overflow: hidden;
     }
 
+    .container {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
     .menu {
         flex-direction: column;
     }
@@ -465,6 +471,9 @@ table tr:hover {
     
     .charts-container {
         grid-template-columns: 1fr;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
     }
     
     .navbar {
@@ -473,9 +482,14 @@ table tr:hover {
     }
 
     #dashboard-section {
-        height: 100%;
+        flex: 1;
+        min-height: 0;
         display: flex;
         flex-direction: column;
+    }
+
+    #dashboard-section.section.active {
+        display: flex !important;
     }
 
     .navbar {
@@ -492,9 +506,38 @@ table tr:hover {
 
     .page {
         flex: 1;
+        min-height: 0;
         overflow: auto;
         overscroll-behavior: contain;
         -webkit-overflow-scrolling: touch;
+    }
+
+    .chart-box {
+        min-width: 280px;
+        scroll-snap-align: start;
+    }
+
+    table {
+        display: block;
+        width: max-content;
+        min-width: 100%;
+        max-height: 60vh;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table thead,
+    table tbody {
+        display: table;
+        width: max-content;
+        min-width: 100%;
+        table-layout: fixed;
+    }
+
+    table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
     }
 }
 
@@ -549,43 +592,6 @@ table tr:hover {
         gap: 8px;
     }
 
-
-@media (max-width: 768px) {
-    .charts-container {
-        grid-template-columns: 1fr;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scroll-snap-type: x mandatory;
-    }
-
-    .chart-box {
-        min-width: 280px;
-        scroll-snap-align: start;
-    }
-
-    table {
-        display: block;
-        width: max-content;
-        min-width: 100%;
-        max-height: 60vh;
-        overflow: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    table thead,
-    table tbody {
-        display: table;
-        width: max-content;
-        min-width: 100%;
-        table-layout: fixed;
-    }
-
-    table thead th {
-        position: sticky;
-        top: 0;
-        z-index: 2;
-    }
-}
     .menu-btn {
         flex: 0 0 auto;
         padding: 10px 14px;
