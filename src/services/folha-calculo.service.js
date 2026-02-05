@@ -274,6 +274,7 @@ function calcularSubsidiosFuncionario(funcionario, mes, salarioBaseOverride = nu
     }
 
     detalhes.push({
+      id: sub.id,
       nome: sub.nome,
       tipo: sub.tipo_subsidio || 'regular',
       valor: valorParcela,
