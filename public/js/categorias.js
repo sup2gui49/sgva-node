@@ -3,6 +3,7 @@
 // Função auxiliar de notificação
 function showNotification(message, type) {
     // Para compatibilidade, usa alert() simples com prefixo baseado no tipo
+    if (!message) return; // Não mostrar alert se mensagem não for fornecida
     const prefixes = { success: '✅ ', error: '❌ ' };
     const prefix = prefixes[type] || '';
     alert(prefix + message);
