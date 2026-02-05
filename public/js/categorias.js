@@ -3,7 +3,8 @@
 // Função auxiliar de notificação
 function showNotification(message, type) {
     // Para compatibilidade, usa alert() simples com prefixo baseado no tipo
-    const prefix = type === 'success' ? '✅ ' : type === 'error' ? '❌ ' : '';
+    const prefixes = { success: '✅ ', error: '❌ ' };
+    const prefix = prefixes[type] || '';
     alert(prefix + message);
 }
 
