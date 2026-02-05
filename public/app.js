@@ -788,6 +788,11 @@ async function createProdutosChart(vendasData) {
 // ==================== PRODUTOS ====================
 async function loadProducts() {
     try {
+        // Load categories when products page loads
+        if (window.categoriasManager) {
+            await window.categoriasManager.carregarCategorias();
+        }
+        
         const response = await fetch(`${API_URL}/produtos`);
         
         const data = await response.json();
@@ -914,7 +919,11 @@ async function deleteProduct(id, nome) {
     }
 }
 
-function showAddProduct() {
+async function showAddProduct() {
+    // Ensure categories are loaded before showing the form
+    if (window.categoriasManager) {
+        await window.categoriasManager.carregarCategorias();
+    }
     document.getElementById('add-product-form').style.display = 'block';
 }
 
