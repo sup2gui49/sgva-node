@@ -218,7 +218,7 @@
                         <h6 class="mb-0">Filtros de Pesquisa</h6>
                     </div>
                     <div class="row">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <input type="text" class="form-control" id="filtro-nome" placeholder="🔍 Buscar por nome..." onkeyup="filtrarFuncionarios()">
                             </div>
                             <div class="col-md-3">
@@ -226,7 +226,12 @@
                                     <option value="">Todas as Categorias</option>
                                 </select>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
+                                <select class="form-select" id="filtro-setor" onchange="filtrarFuncionarios()">
+                                    <option value="">Todos os Setores</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
                                 <select class="form-select" id="filtro-status" onchange="filtrarFuncionarios()">
                                     <option value="">Todos os Status</option>
                                     <option value="1">Ativos</option>
@@ -294,11 +299,18 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Setor de Atuação</label>
+                                <select class="form-select" id="func-setor">
+                                    <option value="">Sem setor</option>
+                                </select>
+                                <small class="text-muted" id="func-setor-hint"></small>
+                            </div>
+                            <div class="col-md-4 mb-3">
                                 <label class="form-label">NIF/BI</label>
                                 <input type="text" class="form-control" id="func-nif" placeholder="Opcional">
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label class="form-label">Data de Admissão</label>
                                 <input type="date" class="form-control" id="func-admissao">
                             </div>
@@ -376,6 +388,65 @@
         let funcionarios = [];
         let categorias = [];
         let modalFuncionario;
+        const SETORES = [
+            { value: 'CAIXA', label: 'Caixa' },
+            { value: 'RH', label: 'RH' },
+            { value: 'CEO', label: 'CEO' },
+            { value: 'GERENTE', label: 'Gerente' }
+        ];
+        const SETOR_BADGES = {
+            CAIXA: 'primary',
+            RH: 'info',
+            CEO: 'danger',
+            GERENTE: 'warning'
+        };
+
+        function getSessionUser() {
+            try {
+                const raw = localStorage.getItem('sgva.session');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed?.user) return parsed.user;
+                }
+            } catch (error) {
+                console.warn('Sessao invalida:', error);
+            }
+
+            try {
+                const legacy = localStorage.getItem('user');
+                return legacy ? JSON.parse(legacy) : null;
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function getUserRole() {
+            const user = getSessionUser();
+            const role = user?.role || user?.funcao || '';
+            return String(role).toLowerCase();
+        }
+
+        function canManageSetor() {
+            return ['admin', 'gerente'].includes(getUserRole());
+        }
+
+        function buildAuthHeaders() {
+            const headers = { 'Content-Type': 'application/json' };
+            const token = localStorage.getItem('token');
+            if (token) {
+                headers.Authorization = `Bearer ${token}`;
+            }
+            return headers;
+        }
+
+        function getSetorLabel(value) {
+            const setor = SETORES.find(item => item.value === value);
+            return setor ? setor.label : value || 'Sem setor';
+        }
+
+        function getSetorBadgeClass(value) {
+            return SETOR_BADGES[value] || 'secondary';
+        }
 
         // Gerar iniciais do nome
         function getInitials(nome) {
@@ -407,9 +478,36 @@
         async function carregarDados() {
             await Promise.all([
                 carregarCategorias(),
+                carregarSetores(),
                 carregarTurnos(),
                 carregarFuncionarios()
             ]);
+        }
+
+        async function carregarSetores() {
+            const selectFiltro = document.getElementById('filtro-setor');
+            const selectForm = document.getElementById('func-setor');
+
+            if (selectFiltro) {
+                selectFiltro.innerHTML = '<option value="">Todos os Setores</option>';
+                SETORES.forEach(setor => {
+                    selectFiltro.innerHTML += `<option value="${setor.value}">${setor.label}</option>`;
+                });
+            }
+
+            if (selectForm) {
+                selectForm.innerHTML = '<option value="">Sem setor</option>';
+                SETORES.forEach(setor => {
+                    selectForm.innerHTML += `<option value="${setor.value}">${setor.label}</option>`;
+                });
+
+                const hint = document.getElementById('func-setor-hint');
+                if (hint) {
+                    hint.textContent = canManageSetor()
+                        ? 'Gerente/admin pode ajustar setores.'
+                        : 'Apenas gerente/admin pode ajustar setores.';
+                }
+            }
         }
 
         async function carregarTurnos() {
@@ -541,6 +639,12 @@
                                             ${trabalhaFds}
                                         </span>
                                     </div>
+                                    <div class="func-info-row">
+                                        <i class="bi bi-diagram-2 text-secondary"></i>
+                                        <span class="ms-2">
+                                            ${func.setor ? `<span class="badge bg-${getSetorBadgeClass(func.setor)}">${getSetorLabel(func.setor)}</span>` : '<span class="badge bg-secondary">Sem setor</span>'}
+                                        </span>
+                                    </div>
                                     ${func.email ? `<div class="func-info-row"><i class="bi bi-envelope text-info"></i><small class="ms-2 text-truncate" style="max-width: 200px;">${func.email}</small></div>` : ''}
                                     ${func.telefone ? `<div class="func-info-row"><i class="bi bi-telephone text-warning"></i><small class="ms-2">${func.telefone}</small></div>` : ''}
                                     ${func.nif ? `<div class="func-info-row"><i class="bi bi-card-text text-secondary"></i><small class="ms-2">NIF: ${func.nif}</small></div>` : ''}
@@ -564,6 +668,7 @@
         function filtrarFuncionarios() {
             const nome = document.getElementById('filtro-nome').value.toLowerCase();
             const categoria = document.getElementById('filtro-categoria').value;
+            const setor = document.getElementById('filtro-setor').value;
             const status = document.getElementById('filtro-status').value;
 
             let filtrados = [...funcionarios];
@@ -576,6 +681,10 @@
                 filtrados = filtrados.filter(f => f.categoria_id == categoria);
             }
 
+            if (setor) {
+                filtrados = filtrados.filter(f => f.setor === setor);
+            }
+
             if (status !== '') {
                 filtrados = filtrados.filter(f => f.ativo == status);
             }
@@ -586,6 +695,7 @@
         function limparFiltros() {
             document.getElementById('filtro-nome').value = '';
             document.getElementById('filtro-categoria').value = '';
+            document.getElementById('filtro-setor').value = '';
             document.getElementById('filtro-status').value = '';
             renderizarFuncionarios(funcionarios);
         }
@@ -607,12 +717,18 @@
             document.getElementById('func-salario').value = func.salario_base;
             document.getElementById('func-ativo').value = func.ativo;
             document.getElementById('func-categoria').value = func.categoria_id || '';
+            document.getElementById('func-setor').value = func.setor || '';
             document.getElementById('func-nif').value = func.nif || '';
             document.getElementById('func-email').value = func.email || '';
             document.getElementById('func-telefone').value = func.telefone || '';
             document.getElementById('func-turno').value = func.turno_id || 1;
             document.getElementById('func-admissao').value = normalizeDateInput(func.data_admissao);
             document.getElementById('func-trabalha-fds').checked = func.trabalha_fds === 1;
+
+            const setorSelect = document.getElementById('func-setor');
+            if (setorSelect) {
+                setorSelect.disabled = !canManageSetor();
+            }
             
             // Files
             limparFoto();
@@ -641,6 +757,8 @@
             const ativo = parseInt(document.getElementById('func-ativo').value);
             const categoriaValue = document.getElementById('func-categoria').value;
             const categoria_id = categoriaValue && categoriaValue !== '' ? parseInt(categoriaValue) : null;
+            const setorValue = document.getElementById('func-setor').value;
+            const setor = setorValue && setorValue !== '' ? setorValue : null;
             const nif = document.getElementById('func-nif').value.trim();
             const email = document.getElementById('func-email').value.trim();
             const telefone = document.getElementById('func-telefone').value.trim();
@@ -662,23 +780,29 @@
                 const method = id ? 'PUT' : 'POST';
                 const url = id ? `${API_BASE}/funcionarios/${id}` : `${API_BASE}/funcionarios`;
 
+                const payload = {
+                    nome,
+                    salario_base: salario,
+                    ativo,
+                    categoria_id,
+                    nif: nif || null,
+                    email: email || null,
+                    telefone: telefone || null,
+                    data_admissao,
+                    turno_id,
+                    trabalha_fds,
+                    foto: foto || null,
+                    documento: documento || null
+                };
+
+                if (canManageSetor()) {
+                    payload.setor = setor;
+                }
+
                 const response = await fetch(url, {
                     method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        nome,
-                        salario_base: salario,
-                        ativo,
-                        categoria_id,
-                        nif: nif || null,
-                        email: email || null,
-                        telefone: telefone || null,
-                        data_admissao,
-                        turno_id,
-                        trabalha_fds,
-                        foto: foto || null,
-                        documento: documento || null
-                    })
+                    headers: buildAuthHeaders(),
+                    body: JSON.stringify(payload)
                 });
 
                 const result = await response.json();
@@ -759,7 +883,12 @@
             document.getElementById('formFuncionario').reset();
             document.getElementById('func-id').value = '';
             document.getElementById('func-ativo').value = '1';
+            document.getElementById('func-setor').value = '';
             document.getElementById('func-trabalha-fds').checked = false;
+            const setorSelect = document.getElementById('func-setor');
+            if (setorSelect) {
+                setorSelect.disabled = !canManageSetor();
+            }
             limparFoto();
             limparDoc();
         }
