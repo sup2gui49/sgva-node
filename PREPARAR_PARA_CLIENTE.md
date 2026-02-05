@@ -53,7 +53,8 @@ node limpar-para-producao.js
 
 - [ ] Execute `criar-banco-producao.js`
 - [ ] Verifique que o banco está limpo
-- [ ] Atualize o `.env` com configurações padrão
+- [ ] Atualize o `.env` com configurações seguras
+- [ ] Configure JWT_SECRET com chave segura (use: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`)
 - [ ] Remova senhas e tokens sensíveis do .env
 - [ ] Inclua o arquivo `INSTALACAO_CLIENTE.md`
 - [ ] Prepare pacote ZIP com:
@@ -223,10 +224,11 @@ Ao entregar o sistema:
 ### Dia 1 - Instalação:
 1. Preparar ambiente (Node.js)
 2. Extrair sistema
-3. Executar `criar-banco-producao.js`
-4. Configurar .env
-5. Iniciar servidor
-6. Primeiro login
+3. Configurar .env (copiar .env.example e configurar JWT_SECRET)
+4. Executar `npm install`
+5. Executar `criar-banco-producao.js`
+6. Iniciar servidor com `npm start`
+7. Primeiro login
 
 ### Dia 2 - Configuração:
 1. Dados da empresa

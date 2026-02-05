@@ -33,6 +33,11 @@ Este script irá:
 - ✅ Criar usuário administrador inicial
 
 ### 4. Configurar arquivo .env
+Copie o arquivo de exemplo e configure:
+```bash
+cp .env.example .env
+```
+
 Edite o arquivo `.env` e configure:
 
 ```env
@@ -42,8 +47,9 @@ PORT=3000
 # Banco de dados (use o banco de produção criado)
 DB_PATH=./database/sgva_producao.db
 
-# Segurança JWT (ALTERE ESTE SECRET!)
-JWT_SECRET=sua_chave_secreta_muito_segura_aqui_2025
+# Segurança JWT (OBRIGATÓRIO - Gere uma chave segura!)
+# Use: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+JWT_SECRET=cole_aqui_a_chave_gerada_pelo_comando_acima
 JWT_EXPIRES_IN=7d
 
 # Configurações Financeiras (ajuste conforme necessário)
@@ -53,7 +59,10 @@ FUNDO_RESERVA_PERCENTUAL=10
 DISTRIBUICAO_LUCRO_PERCENTUAL=50
 ```
 
-**⚠️ IMPORTANTE:** Altere o `JWT_SECRET` para uma string aleatória única!
+**⚠️ CRÍTICO:** 
+- Gere uma chave JWT_SECRET segura usando o comando acima
+- NUNCA use valores de exemplo ou chaves fracas
+- O sistema não iniciará sem uma chave de pelo menos 32 caracteres
 
 ### 5. Iniciar o servidor
 ```bash

@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="folha-shared.css">
+    <link rel="stylesheet" href="folha-shared.css?v=3">
     <style>
         .timeline {
             position: relative;
@@ -42,10 +42,41 @@
     </style>
 </head>
 <body class="bg-light">
+    <!-- Top Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark folha-navbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="folha-dashboard.html">
+                <i class="bi bi-cash-stack"></i> SGVA Folha
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="bi bi-house-door"></i> Início
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="folha-dashboard.html">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="folha-configuracoes.html">
+                            <i class="bi bi-gear"></i> Configurações
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <nav class="col-md-2 d-md-block sidebar p-3">
+            <nav class="col-12 col-md-2 sidebar p-3">
                 <div class="text-white mb-4">
                     <h4><i class="bi bi-cash-stack"></i> SGVA Folha</h4>
                     <small>Sistema Profissional</small>
