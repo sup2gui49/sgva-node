@@ -160,10 +160,11 @@ main {
     }
 }
 
+/* Mobile topnav styles (if needed for custom implementations like folha-irt.html) */
 @media (max-width: 768px) {
-    .sidebar {
-        display: none !important;
-    }
+    /* Removed conflicting .sidebar { display: none !important; } rule
+       The sidebar is now handled by the @media (max-width: 991px) rule above
+       which properly shows it with responsive mobile layout */
 
     .mobile-topnav {
         display: flex !important;
