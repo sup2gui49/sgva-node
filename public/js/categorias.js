@@ -1,4 +1,6 @@
 // ===== GESTÃO DE CATEGORIAS =====
+const API_URL = '/api';
+
 class CategoriasManager {
     constructor() {
         this.categoriasProdutos = [];
