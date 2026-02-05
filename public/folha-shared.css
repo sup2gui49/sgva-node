@@ -56,6 +56,11 @@ body {
     margin-right: 0.5rem;
 }
 
+.mobile-topnav,
+.mobile-topnav__menu {
+    display: none;
+}
+
 .card {
     border: none;
     border-radius: 15px;
@@ -196,6 +201,10 @@ main {
         padding: 0.35rem 0.6rem;
         border-radius: 8px;
         font-size: 0.85rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .mobile-topnav__menu {
