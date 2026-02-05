@@ -229,6 +229,15 @@ main {
     }
 }
 
+@keyframes footerMarquee {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(calc(-100% - 1rem));
+    }
+}
+
 @media (max-width: 768px) {
     html,
     body {
@@ -296,6 +305,17 @@ main {
     canvas {
         max-width: 100%;
         height: auto !important;
+    }
+}
+
+@media (max-width: 768px) and (prefers-reduced-motion: no-preference) {
+    .dynamic-footer .footer-section {
+        animation: footerMarquee 18s linear infinite;
+        will-change: transform;
+    }
+
+    .dynamic-footer .footer-section:last-child {
+        animation-delay: 6s;
     }
 }
 
