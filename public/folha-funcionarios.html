@@ -427,7 +427,8 @@
         }
 
         function canManageSetor() {
-            return ['admin', 'gerente'].includes(getUserRole());
+            const role = getUserRole();
+            return ['admin', 'administrador', 'gerente', 'gerencia', 'ceo', 'diretor', 'diretora'].includes(role);
         }
 
         function buildAuthHeaders() {

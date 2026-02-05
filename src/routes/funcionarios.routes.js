@@ -55,10 +55,12 @@ function enforceSetorPermission(req, res) {
     return null;
   }
 
-  if (!['admin', 'gerente'].includes(user.role)) {
+  const role = String(user.role || '').toLowerCase();
+  const allowed = new Set(['admin', 'administrador', 'gerente', 'gerencia', 'ceo', 'diretor', 'diretora']);
+  if (!allowed.has(role)) {
     res.status(403).json({
       success: false,
-      message: 'Apenas admin ou gerente podem distribuir setores'
+      message: 'Apenas admin, gerente ou direcao podem distribuir setores'
     });
     return null;
   }
