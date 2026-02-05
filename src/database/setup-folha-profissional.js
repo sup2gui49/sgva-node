@@ -356,4 +356,6 @@ console.log('   - folha_subsidios_detalhes');
 console.log('   - funcionarios_historico');
 console.log('\n✨ Sistema pronto para uso!\n');
 
-db.close();
+if (require.main === module) {
+  db.close();
+}

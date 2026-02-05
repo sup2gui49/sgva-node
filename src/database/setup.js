@@ -230,6 +230,9 @@ db.exec(`
 `);
 console.log('✅ Tabela escaloes_irt criada');
 
+// Tabelas profissionais da folha (subsídios, IRT avançado, etc.)
+require('./setup-folha-profissional');
+
 // Seed Escalões IRT 2025 default if empty
 const escaloesCount = db.prepare('SELECT COUNT(*) as count FROM escaloes_irt').get();
 if (escaloesCount.count === 0) {
