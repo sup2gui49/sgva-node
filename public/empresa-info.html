@@ -43,6 +43,17 @@
             padding-bottom: 0.5rem;
             border-bottom: 2px solid #667eea;
         }
+
+        @media (max-width: 768px), (hover: none) and (pointer: coarse) {
+            .sidebar {
+                display: block !important;
+            }
+
+            .mobile-topnav,
+            .mobile-topnav__menu {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-light">
