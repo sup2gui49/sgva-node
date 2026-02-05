@@ -1,4 +1,12 @@
 // ===== GESTÃO DE CATEGORIAS =====
+
+// Função auxiliar de notificação
+function showNotification(message, type) {
+    // Para compatibilidade, usa alert() simples
+    // type pode ser 'success', 'error', etc. mas por enquanto não usamos
+    alert(message);
+}
+
 class CategoriasManager {
     constructor() {
         this.categoriasProdutos = [];
