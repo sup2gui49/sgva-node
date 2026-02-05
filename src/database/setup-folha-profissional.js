@@ -87,6 +87,65 @@ db.exec(`
 `);
 console.log('✅ Tabela subsidios criada');
 
+function loadDefaultSubsidios() {
+  const seedPath = path.join(__dirname, 'subsidios-default.json');
+  if (fs.existsSync(seedPath)) {
+    try {
+      const raw = fs.readFileSync(seedPath, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length) {
+        return parsed;
+      }
+    } catch (error) {
+      console.warn('⚠️ Falha ao ler subsídios padrão:', error.message);
+    }
+  }
+
+  return [];
+}
+
+function seedSubsidiosDefault() {
+  const count = db.prepare('SELECT COUNT(*) as total FROM subsidios').get();
+  if (count && count.total > 0) {
+    return;
+  }
+
+  const defaults = loadDefaultSubsidios();
+  if (!defaults.length) {
+    return;
+  }
+
+  const insert = db.prepare(`
+    INSERT INTO subsidios (
+      nome, descricao, tipo_calculo, tipo_subsidio, valor_padrao_empresa,
+      percentual, limite_isencao_fiscal, meses_pagamento, parcelas,
+      incide_inss, incide_irt, aplicar_a, categoria_aplicavel
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  defaults.forEach((subsidio) => {
+    insert.run(
+      subsidio.nome,
+      subsidio.descricao || '',
+      subsidio.tipo_calculo,
+      subsidio.tipo_subsidio,
+      subsidio.valor_padrao_empresa || 0,
+      subsidio.percentual || 0,
+      subsidio.limite_isencao_fiscal || 0,
+      subsidio.meses_pagamento || '1,2,3,4,5,6,7,8,9,10,11,12',
+      subsidio.parcelas || 1,
+      subsidio.incide_inss ? 1 : 0,
+      subsidio.incide_irt ? 1 : 0,
+      subsidio.aplicar_a || 'todos',
+      subsidio.categoria_aplicavel || null
+    );
+  });
+
+  console.log(`✅ Subsídios padrão aplicados: ${defaults.length}`);
+}
+
+seedSubsidiosDefault();
+
 // 3. Tabela de Atribuição de Subsídios a Funcionários
 db.exec(`
   CREATE TABLE IF NOT EXISTS funcionarios_subsidios (
@@ -279,142 +338,11 @@ if (irtCount.count === 0) {
   console.log('✅ 12 Escalões IRT (Angola) inseridos');
 }
 
-// SEED: Categorias Profissionais
-const catCount = db.prepare('SELECT COUNT(*) as count FROM categorias_funcionarios').get();
-if (catCount.count === 0) {
-  const categorias = [
-    ['CEO/Diretor Geral', 'Alta direção da empresa', null],
-    ['Direção/Gerência', 'Cargos de direção e gerência', null],
-    ['Financeiro', 'Departamento financeiro e contabilidade', null],
-    ['Recursos Humanos', 'Gestão de pessoal e RH', null],
-    ['Produção', 'Área de produção e manufatura', null],
-    ['Comercial/Vendas', 'Equipe comercial e vendas', null],
-    ['Segurança', 'Segurança patrimonial', null],
-    ['Auxiliar/Operacional', 'Funções operacionais e auxiliares', null],
-    ['Limpeza', 'Serviços de limpeza', null],
-    ['Administrativo', 'Apoio administrativo geral', null]
-  ];
-
-  const insCat = db.prepare(`
-    INSERT INTO categorias_funcionarios (nome, descricao, encargos_especificos)
-    VALUES (?, ?, ?)
-  `);
-
-  for (const cat of categorias) {
-    insCat.run(cat[0], cat[1], cat[2]);
-  }
-  console.log('✅ 10 Categorias Profissionais inseridas');
-}
-
-// SEED: Subsídios Padrão
-const subCount = db.prepare('SELECT COUNT(*) as count FROM subsidios').get();
-if (subCount.count === 0) {
-  const subsidios = [
-    // [nome, descricao, tipo_calculo, tipo_subsidio, valor_padrao, percentual, limite_isencao, meses, parcelas, inss, irt, aplicar_a]
-    [
-      'Subsídio de Alimentação',
-      'Subsídio mensal para alimentação',
-      'fixo',
-      'regular',
-      20000.00,
-      0,
-      30000.00,
-      '1,2,3,4,5,6,7,8,9,10,11,12',
-      1,
-      1,
-      1,
-      'todos'
-    ],
-    [
-      'Subsídio de Transporte',
-      'Subsídio mensal para transporte',
-      'fixo',
-      'regular',
-      15000.00,
-      0,
-      20000.00,
-      '1,2,3,4,5,6,7,8,9,10,11,12',
-      1,
-      1,
-      1,
-      'todos'
-    ],
-    [
-      'Abono de Família',
-      'Abono de família (5% do salário base)',
-      'percentual',
-      'regular',
-      0,
-      5.00,
-      0,
-      '1,2,3,4,5,6,7,8,9,10,11,12',
-      1,
-      0,
-      0,
-      'todos'
-    ],
-    [
-      '13º Salário (1ª Parcela)',
-      'Primeira parcela do 13º salário (50% do salário base)',
-      'percentual',
-      'anual',
-      0,
-      50.00,
-      0,
-      '6',
-      1,
-      1,
-      1,
-      'todos'
-    ],
-    [
-      '13º Salário (2ª Parcela)',
-      'Segunda parcela do 13º salário (50% do salário base)',
-      'percentual',
-      'anual',
-      0,
-      50.00,
-      0,
-      '12',
-      1,
-      1,
-      1,
-      'todos'
-    ],
-    [
-      'Subsídio de Função - Direção',
-      'Subsídio especial para cargos de direção',
-      'fixo',
-      'especial',
-      50000.00,
-      0,
-      40000.00,
-      '1,2,3,4,5,6,7,8,9,10,11,12',
-      1,
-      1,
-      1,
-      'categoria_especifica'
-    ]
-  ];
-
-  const insSub = db.prepare(`
-    INSERT INTO subsidios (
-      nome, descricao, tipo_calculo, tipo_subsidio, valor_padrao_empresa,
-      percentual, limite_isencao_fiscal, meses_pagamento, parcelas,
-      incide_inss, incide_irt, aplicar_a
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-
-  for (const sub of subsidios) {
-    insSub.run(...sub);
-  }
-  console.log('✅ 6 Subsídios Padrão inseridos');
-}
 
 console.log('\n🎉 Sistema Profissional de Folha de Pagamento configurado com sucesso!\n');
 console.log('📋 Tabelas criadas:');
-console.log('   - categorias_funcionarios (10 categorias)');
-console.log('   - subsidios (6 subsídios padrão)');
+console.log('   - categorias_funcionarios (padrão configurável)');
+console.log('   - subsidios (padrão configurável)');
 console.log('   - funcionarios_subsidios');
 console.log('   - irt_grupos (12 escalões Angola)');
 console.log('   - irt_snapshot_meta + irt_grupos_snapshots');
@@ -423,6 +351,3 @@ console.log('   - folha_subsidios_detalhes');
 console.log('   - funcionarios_historico');
 console.log('\n✨ Sistema pronto para uso!\n');
 
-if (require.main === module) {
-  db.close();
-}

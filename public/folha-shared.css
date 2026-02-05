@@ -71,6 +71,14 @@ main {
     font-weight: 600;
 }
 
+.modal {
+    z-index: 2000;
+}
+
+.modal-backdrop {
+    z-index: 1990;
+}
+
 @media (max-width: 991px) {
     .container-fluid > .row {
         flex-direction: column;
@@ -241,16 +249,30 @@ main {
 @media (max-width: 768px) {
     html,
     body {
-        height: 100%;
-        overflow: hidden;
+        min-height: 100%;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     main {
-        max-height: calc(100vh - 180px);
-        overflow: auto;
+        max-height: none;
+        overflow: visible;
         overscroll-behavior: contain;
         -webkit-overflow-scrolling: touch;
         padding-bottom: calc(var(--folha-footer-height) + 48px) !important;
+    }
+
+    .modal-dialog {
+        margin: 0.75rem;
+        max-width: calc(100% - 1.5rem);
+    }
+
+    .modal-content {
+        max-height: calc(100vh - 1.5rem);
+    }
+
+    .modal-body {
+        overflow-y: auto;
     }
 
     .dynamic-footer {
@@ -504,4 +526,32 @@ main {
 .row:last-child,
 .container-fluid > .row:last-child {
     margin-bottom: 3rem;
+}
+
+@media print {
+    html,
+    body {
+        height: auto !important;
+        overflow: visible !important;
+        background: #fff !important;
+    }
+
+    .sidebar,
+    .mobile-topnav,
+    .mobile-topnav__menu,
+    .dynamic-footer {
+        display: none !important;
+    }
+
+    main {
+        margin: 0 !important;
+        padding: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
 }
