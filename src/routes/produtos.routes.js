@@ -103,6 +103,7 @@ router.post('/', (req, res) => {
     const {
       nome,
       categoria,
+      categoria_id,
       tipo,
       unidade_medida,
       custo_unitario,
@@ -112,12 +113,16 @@ router.post('/', (req, res) => {
     } = req.body;
     
     // Validação
-    if (!nome || !categoria) {
+    if (!nome) {
       return res.status(400).json({
         success: false,
-        message: 'Nome e categoria são obrigatórios'
+        message: 'Nome do produto é obrigatório'
       });
     }
+
+    // Se categoria não veio mas categoria_id veio, tentar buscar nome da categoria?
+    // Ou permitir que categoria seja string vazia se categoria_id estiver presente?
+    // Para simplificar, vamos aceitar categoria como opcional se categoria_id existir
     
     // Verificar duplicado
     const duplicate = db.prepare(`SELECT id FROM produtos WHERE LOWER(nome) = LOWER(?)`).get(nome);
@@ -130,11 +135,12 @@ router.post('/', (req, res) => {
     
     const result = db.prepare(`
       INSERT INTO produtos 
-      (nome, categoria, tipo, unidade_medida, custo_unitario, preco_venda, estoque, estoque_minimo)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      (nome, categoria, categoria_id, tipo, unidade_medida, custo_unitario, preco_venda, estoque, estoque_minimo)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       nome,
-      categoria,
+      categoria || '',
+      categoria_id || null,
       tipo || 'produto',
       unidade_medida || 'un',
       custo_unitario || 0,

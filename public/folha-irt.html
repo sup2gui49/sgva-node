@@ -16,7 +16,7 @@
             }
         })();
     </script>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' ry='3' fill='%23667eea'/%3E%3Ctext x='8' y='11' text-anchor='middle' font-size='8' fill='white' font-family='Arial'%3ES%3C/text%3E%3C/svg%3E">
+    <link rel="icon" type="image/x-icon" href="LogGuiMont_1.ico">
     <style id="fallback-css" disabled>
         /* Reset básico */
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -181,27 +181,31 @@
     </script>
 </head>
 <body class="bg-light">
+    <!-- Mobile Navigation (Outside Grid) -->
+    <div class="d-md-none">
+        <div class="mobile-topnav">
+            <div class="mobile-topnav__title"><i class="bi bi-cash-stack"></i> SGVA Folha</div>
+            <div class="mobile-topnav__actions">
+                <button class="mobile-topnav__btn" onclick="window.location.href='index.html'">
+                    <i class="bi bi-arrow-left"></i> Painel
+                </button>
+            </div>
+        </div>
+        <div class="mobile-topnav__menu">
+            <a href="folha-dashboard.html">Dashboard</a>
+            <a href="folha-funcionarios.html">Funcionários</a>
+            <a href="folha-subsidios.html">Subsídios</a>
+            <a href="folha-categorias.html">Categorias</a>
+            <a href="folha-calculo.html">Calcular</a>
+            <a href="folha-salarios.html">Salários</a>
+            <a href="folha-irt.html" class="active">IRT</a>
+            <a href="folha-historico.html">Histórico</a>
+            <a href="folha-excel.html">Exportar</a>
+        </div>
+    </div>
+    
     <div class="container-fluid">
         <div class="row">
-            <div class="col-12">
-                <div class="mobile-topnav" style="display:none;">
-                    <div class="mobile-topnav__title"><i class="bi bi-cash-stack"></i> SGVA Folha</div>
-                    <div class="mobile-topnav__actions">
-                        <button class="mobile-topnav__btn" onclick="window.location.href='folha-dashboard.html'">Dashboard</button>
-                    </div>
-                </div>
-                <div class="mobile-topnav__menu" style="display:none;">
-                    <a href="folha-dashboard.html">Dashboard</a>
-                    <a href="folha-funcionarios.html">Funcionários</a>
-                    <a href="folha-subsidios.html">Subsídios</a>
-                    <a href="folha-categorias.html">Categorias</a>
-                    <a href="folha-calculo.html">Calcular</a>
-                    <a href="folha-salarios.html">Salários</a>
-                    <a href="folha-irt.html">Escalões IRT</a>
-                    <a href="folha-historico.html">Histórico</a>
-                    <a href="folha-excel.html">Exportar</a>
-                </div>
-            </div>
             <!-- Sidebar -->
             <nav class="col-12 col-md-2 d-md-block sidebar p-3">
                 <div class="text-white mb-4">

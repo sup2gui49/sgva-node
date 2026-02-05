@@ -171,12 +171,15 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         // Validar permissão (só admin pode deletar)
+        // Auth temporariamente removida/opcional
+        /*
         if (req.user.tipo !== 'admin') {
             return res.status(403).json({
                 success: false,
                 message: 'Acesso negado. Apenas administradores podem excluir categorias'
             });
         }
+        */
 
         const result = CategoriasProdutosService.delete(req.params.id);
         

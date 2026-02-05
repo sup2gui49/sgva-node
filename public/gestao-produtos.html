@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
     <link rel="stylesheet" href="vendor/bootstrap-icons/bootstrap-icons.css">
     <link rel="stylesheet" href="folha-shared.css">
+    <link rel="icon" type="image/x-icon" href="LogGuiMont_1.ico">
     <style>
         .product-card {
             border: 2px solid #e9ecef;
@@ -99,39 +100,54 @@
         }
     </style>
 </head>
-<body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-folha">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="index-old.html">
-                <i class="bi bi-box-seam"></i> Produtos e Serviços
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
+<body class="bg-light">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-md-block sidebar p-3">
+                <div class="text-white mb-4">
+                    <h4><i class="bi bi-building"></i> SGVA</h4>
+                    <small>Configurações</small>
+                </div>
+                
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">
                         <a class="nav-link" href="index.html">
-                            <i class="bi bi-house-door"></i> Início
+                            <i class="bi bi-speedometer2"></i> Dashboard
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item mb-2">
                         <a class="nav-link" href="configuracoes.html">
-                            <i class="bi bi-gear"></i> Configurações
+                            <i class="bi bi-gear"></i> Config. Financeiras
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="index-old.html">
-                            <i class="bi bi-cart3"></i> Vendas
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="empresa-info.html">
+                            <i class="bi bi-building"></i> Dados da Empresa
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link active" href="gestao-produtos.html">
+                            <i class="bi bi-box-seam"></i> Produtos/Serviços
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="teste-categorias.html">
+                            <i class="bi bi-tags"></i> Categorias IVA
                         </a>
                     </li>
                 </ul>
-            </div>
-        </div>
-    </nav>
+                
+                <div class="mt-4 pt-3 border-top border-light">
+                    <a href="index.html" class="btn btn-outline-light btn-sm w-100">
+                        <i class="bi bi-arrow-left"></i> Voltar
+                    </a>
+                </div>
+            </nav>
 
-    <div class="container my-5">
+            <!-- Main Content -->
+            <main class="col-md-10 ms-sm-auto px-4 py-4">
+                <div class="container my-4">
         <!-- Filtros -->
         <div class="filter-section">
             <div class="row align-items-end g-3">
@@ -171,25 +187,25 @@
                 <p class="mt-3">Carregando...</p>
             </div>
         </div>
-    </div>
-
-    <!-- Botão Adicionar -->
-    <button class="add-btn" onclick="abrirModalAdicionar()" title="Adicionar Novo">
-        <i class="bi bi-plus"></i>
-    </button>
-
-    <!-- Modal Adicionar/Editar -->
-    <div class="modal fade" id="modalItem" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="modalTitle">
-                        <i class="bi bi-plus-circle"></i> Novo Item
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <form id="formItem">
+
+                <!-- Botão Adicionar -->
+                <button class="add-btn" onclick="abrirModalAdicionar()" title="Adicionar Novo">
+                    <i class="bi bi-plus"></i>
+                </button>
+
+                <!-- Modal Adicionar/Editar -->
+                <div class="modal fade" id="modalItem" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header bg-primary text-white">
+                                <h5 class="modal-title" id="modalTitle">
+                                    <i class="bi bi-plus-circle"></i> Novo Item
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="formItem">
                         <!-- Seletor de Tipo -->
                         <div class="tipo-selector">
                             <div class="tipo-option active" id="tipoProduto" onclick="selecionarTipo('produto')">
@@ -281,6 +297,10 @@
                     </button>
                 </div>
             </div>
+        </div>
+    </div>
+
+            </main>
         </div>
     </div>
 

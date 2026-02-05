@@ -804,6 +804,8 @@ async function loadProducts() {
 function filterProducts() {
     const searchTerm = document.getElementById('filter-produto')?.value.toLowerCase() || '';
     const categoryFilter = document.getElementById('filter-categoria')?.value || '';
+    const categoriasProdutos = window.categoriasProdutos || [];
+    const categoriaSelecionada = categoriasProdutos.find(cat => String(cat.id) === String(categoryFilter));
     
     let filteredProducts = window.allProducts || [];
     
@@ -817,7 +819,8 @@ function filterProducts() {
     // Filtrar por categoria
     if (categoryFilter) {
         filteredProducts = filteredProducts.filter(p => 
-            p.categoria === categoryFilter
+            String(p.categoria_id || '') === String(categoryFilter) ||
+            (categoriaSelecionada && p.categoria && p.categoria.toLowerCase().trim() === categoriaSelecionada.nome.toLowerCase().trim())
         );
     }
     
@@ -830,16 +833,23 @@ function filterProducts() {
     html += '</tr></thead><tbody>';
     
     filteredProducts.forEach(produto => {
-        // Alerta de estoque baixo
-        const estoqueClass = produto.estoque <= (produto.estoque_minimo || 10) ? 'style="background-color: #ffebee;"' : '';
+        const categoriaInfo = categoriasProdutos.find(cat => String(cat.id) === String(produto.categoria_id));
+        const categoriaLabel = categoriaInfo?.nome || produto.categoria || 'Sem categoria';
+        const estoqueAtual = Number(produto.estoque) || 0;
+        const estoqueMinimoRaw = (produto.estoque_minimo === null || produto.estoque_minimo === undefined || produto.estoque_minimo === '')
+            ? 10
+            : Number(produto.estoque_minimo);
+        const estoqueMinimo = Number.isFinite(estoqueMinimoRaw) ? estoqueMinimoRaw : 10;
+        const estoqueBaixo = estoqueAtual <= estoqueMinimo;
+        const estoqueClass = estoqueBaixo ? 'style="background-color: #ffebee;"' : '';
         
         html += `
             <tr ${estoqueClass}>
                 <td>${produto.nome}</td>
-                <td>${produto.categoria}</td>
+                <td>${categoriaLabel}</td>
                 <td>${parseFloat(produto.custo_unitario || 0).toFixed(2)} KZ</td>
                 <td>${parseFloat(produto.preco_venda || 0).toFixed(2)} KZ</td>
-                <td>${produto.estoque} ${produto.estoque <= (produto.estoque_minimo || 10) ? '⚠️' : ''}</td>
+                <td>${estoqueAtual} ${estoqueBaixo ? '⚠️' : ''}</td>
         `;
         
         if (canEdit) {

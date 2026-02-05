@@ -3,6 +3,7 @@
     --folha-gradient-start: #667eea;
     --folha-gradient-end: #764ba2;
     --folha-sidebar-width: 260px;
+    --folha-footer-height: 72px;
     /* Variável para altura real da viewport (mobile fix) */
     --vh: 1vh;
 }
@@ -149,21 +150,32 @@ main {
     }
 }
 
-@media (max-width: 768px) {
+/* Mobile Nav - Base Styles (Hidden on Desktop) */
+.mobile-topnav, 
+.mobile-topnav__menu {
+    display: none;
+}
+
+@media (max-width: 768px), (hover: none) and (pointer: coarse) {
     .sidebar {
         display: none !important;
     }
 
+    /* Force visibility on mobile */
     .mobile-topnav {
         display: flex !important;
+        /* width: 100%; Removed to allow margins */
         align-items: center;
         gap: 0.75rem;
         background: linear-gradient(135deg, var(--folha-gradient-start) 0%, var(--folha-gradient-end) 100%);
         color: #fff;
         padding: 0.75rem 1rem;
         border-radius: 14px;
-        margin: 0.75rem 0 1rem;
+        margin: 0.75rem; /* Margin on all sides */
         box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+        position: sticky;
+        top: 0;
+        z-index: 1100;
     }
 
     .mobile-topnav__title {
@@ -192,17 +204,98 @@ main {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         padding-bottom: 0.25rem;
+        margin: 0 0.75rem 1rem 0.75rem; /* Match side margins with topnav */
+        position: sticky;
+        top: 64px;
+        z-index: 1090;
     }
 
     .mobile-topnav__menu a {
         white-space: nowrap;
-        color: #fff;
+        color: #6c757d; /* Dark text for visibility on light bg */
         text-decoration: none;
-        background: rgba(255,255,255,0.15);
-        border: 1px solid rgba(255,255,255,0.2);
+        background: #fff;
+        border: 1px solid #dee2e6;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         padding: 0.4rem 0.75rem;
         border-radius: 999px;
         font-size: 0.85rem;
+    }
+    
+    .mobile-topnav__menu a.active {
+        background: var(--folha-gradient-start);
+        color: white;
+        border-color: transparent;
+    }
+}
+
+@media (max-width: 768px) {
+    html,
+    body {
+        height: 100%;
+        overflow: hidden;
+    }
+
+    main {
+        max-height: calc(100vh - 180px);
+        overflow: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: calc(var(--folha-footer-height) + 48px) !important;
+    }
+
+    .dynamic-footer {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        min-height: 60px;
+    }
+
+    .dynamic-footer .footer-section {
+        flex-wrap: nowrap;
+        min-width: max-content;
+    }
+
+    .dynamic-footer .footer-info {
+        white-space: nowrap;
+    }
+
+    .dynamic-footer .footer-badge {
+        white-space: nowrap;
+    }
+
+    table {
+        display: block;
+        width: max-content;
+        min-width: 100%;
+        max-height: 60vh;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table thead,
+    table tbody {
+        display: table;
+        width: max-content;
+        min-width: 100%;
+        table-layout: fixed;
+    }
+
+    table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background: #fff;
+    }
+
+    canvas {
+        max-width: 100%;
+        height: auto !important;
     }
 }
 
@@ -309,6 +402,10 @@ main {
     align-items: center;
     animation: slideUp 0.3s ease-out;
     min-height: 60px;
+    height: var(--folha-footer-height);
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
 }
 
 @keyframes slideUp {
@@ -326,6 +423,8 @@ main {
     display: flex;
     align-items: center;
     gap: 1.5rem;
+    flex-wrap: nowrap;
+    min-width: max-content;
 }
 
 .dynamic-footer .footer-info {
@@ -333,6 +432,7 @@ main {
     align-items: center;
     gap: 0.5rem;
     font-size: 0.9rem;
+    white-space: nowrap;
 }
 
 .dynamic-footer .footer-info i {
@@ -355,14 +455,14 @@ main {
 @media (max-width: 991px) {
     .dynamic-footer {
         left: 0;
-        flex-direction: column;
+        flex-direction: row;
         gap: 0.5rem;
         padding: 0.75rem 1rem;
         font-size: 0.85rem;
     }
     
     .dynamic-footer .footer-section {
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         justify-content: center;
         gap: 0.75rem;
     }
@@ -371,7 +471,7 @@ main {
 /* Adicionar padding no bottom do main para não sobrepor o rodapé */
 main {
     min-height: 100vh;
-    padding-bottom: 140px !important;
+    padding-bottom: calc(var(--folha-footer-height) + 32px) !important;
 }
 
 /* Ajuste específico para grid de cards */

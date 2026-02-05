@@ -66,12 +66,16 @@ class CategoriasManager {
                 option.dataset.taxaIva = cat.taxa_iva_padrao;
                 option.dataset.sujeitoIva = cat.sujeito_iva;
                 option.dataset.tipo = cat.tipo;
+                option.dataset.nome = cat.nome;
                 selectCategoriaProduto.appendChild(option);
             });
             
             // Adicionar evento de mudança para mostrar preview do IVA
             selectCategoriaProduto.addEventListener('change', this.mostrarPreviewIva.bind(this));
         }
+
+        this.atualizarFiltroCategoriasProdutos();
+        window.categoriasProdutos = this.categoriasProdutos;
 
         // Atualizar selectores de categoria em despesas
         const selectCategoriaDespesa = document.getElementById('despesa-categoria');
@@ -105,43 +109,64 @@ class CategoriasManager {
                 tbody.innerHTML = '<tr><td colspan="6" class="text-center">Nenhuma categoria encontrada</td></tr>';
             }
             
+            const renderTabelaProdutos = (contagemPorCategoria = {}) => {
+                tbody.innerHTML = '';
+                this.categoriasProdutos.forEach(cat => {
+                    const qtdProdutos = contagemPorCategoria[cat.id] || 0;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${cat.nome}</td>
+                        <td><span class="badge ${cat.tipo === 'produto' ? 'badge-primary' : 'badge-secondary'}">${cat.tipo}</span></td>
+                        <td class="text-center">
+                            <span class="badge ${cat.sujeito_iva ? 'badge-success' : 'badge-warning'}">
+                                ${cat.sujeito_iva ? cat.taxa_iva_padrao + '%' : 'Isento'}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge badge-info" style="font-size: 14px;">
+                                📦 ${qtdProdutos} ${qtdProdutos === 1 ? 'produto' : 'produtos'}
+                            </span>
+                        </td>
+                        <td>${cat.descricao || '-'}</td>
+                        <td>
+                            <button onclick="categoriasManager.editarCategoriaProduto(${cat.id})" style="background: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-right: 5px;">✏️</button>
+                            <button onclick="categoriasManager.excluirCategoriaProduto(${cat.id})" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">🗑️</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            };
+
             // Buscar contagem de produtos por categoria
-            fetch(`${API_URL}/produtos`)
+            fetch('/api/produtos')
                 .then(res => res.json())
                 .then(data => {
                     const produtos = data.data || [];
                     const contagemPorCategoria = {};
-                    
-                    produtos.forEach(p => {
-                        if (p.categoria_id) {
-                            contagemPorCategoria[p.categoria_id] = (contagemPorCategoria[p.categoria_id] || 0) + 1;
+                    const categoriasPorNome = {};
+
+                    this.categoriasProdutos.forEach(cat => {
+                        if (cat.nome) {
+                            categoriasPorNome[cat.nome.toLowerCase()] = cat.id;
                         }
                     });
                     
-                    this.categoriasProdutos.forEach(cat => {
-                        const qtdProdutos = contagemPorCategoria[cat.id] || 0;
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>${cat.nome}</td>
-                            <td><span class="badge ${cat.tipo === 'produto' ? 'badge-primary' : 'badge-secondary'}">${cat.tipo}</span></td>
-                            <td class="text-center">
-                                <span class="badge ${cat.sujeito_iva ? 'badge-success' : 'badge-warning'}">
-                                    ${cat.sujeito_iva ? cat.taxa_iva_padrao + '%' : 'Isento'}
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge badge-info" style="font-size: 14px;">
-                                    📦 ${qtdProdutos} ${qtdProdutos === 1 ? 'produto' : 'produtos'}
-                                </span>
-                            </td>
-                            <td>${cat.descricao || '-'}</td>
-                            <td>
-                                <button onclick="categoriasManager.editarCategoriaProduto(${cat.id})" style="background: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-right: 5px;">✏️</button>
-                                <button onclick="categoriasManager.excluirCategoriaProduto(${cat.id})" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">🗑️</button>
-                            </td>
-                        `;
-                        tbody.appendChild(tr);
+                    produtos.forEach(p => {
+                        let categoriaId = p.categoria_id;
+                        if (!categoriaId && p.categoria) {
+                            const matchId = categoriasPorNome[p.categoria.toLowerCase().trim()];
+                            if (matchId) categoriaId = matchId;
+                        }
+                        if (categoriaId) {
+                            contagemPorCategoria[categoriaId] = (contagemPorCategoria[categoriaId] || 0) + 1;
+                        }
                     });
+                    
+                    renderTabelaProdutos(contagemPorCategoria);
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar produtos para contagem:', error);
+                    renderTabelaProdutos();
                 });
         }
 
@@ -174,6 +199,24 @@ class CategoriasManager {
                 `;
                 tbody.appendChild(tr);
             });
+        }
+    }
+
+    atualizarFiltroCategoriasProdutos() {
+        const filtroCategoria = document.getElementById('filter-categoria');
+        if (!filtroCategoria) return;
+
+        filtroCategoria.innerHTML = '<option value="">Todas Categorias</option>';
+        this.categoriasProdutos.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat.id;
+            option.textContent = cat.nome;
+            option.dataset.tipo = cat.tipo;
+            filtroCategoria.appendChild(option);
+        });
+
+        if (typeof filterProducts === 'function') {
+            filterProducts();
         }
     }
 
