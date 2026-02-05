@@ -79,7 +79,9 @@ curl -I https://sgva-node.onrender.com/index.html
    ```bash
    git log --oneline -5
    ```
-   Deve mostrar: "Add cache-busting and visible version indicator to index.html"
+   Deve mostrar commits recentes incluindo:
+   - "Add deployment verification documentation and script"
+   - "Add cache-busting and visible version indicator to index.html"
 
 4. **Verificar se o branch está atualizado**:
    ```bash
