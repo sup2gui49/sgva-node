@@ -106,8 +106,13 @@ class CategoriasManager {
             }
             
             // Buscar contagem de produtos por categoria
-            fetch(`${API_URL}/produtos`)
-                .then(res => res.json())
+            fetch('/api/produtos')
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+                    return res.json();
+                })
                 .then(data => {
                     const produtos = data.data || [];
                     const contagemPorCategoria = {};
@@ -132,6 +137,33 @@ class CategoriasManager {
                             <td class="text-center">
                                 <span class="badge badge-info" style="font-size: 14px;">
                                     📦 ${qtdProdutos} ${qtdProdutos === 1 ? 'produto' : 'produtos'}
+                                </span>
+                            </td>
+                            <td>${cat.descricao || '-'}</td>
+                            <td>
+                                <button onclick="categoriasManager.editarCategoriaProduto(${cat.id})" style="background: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-right: 5px;">✏️</button>
+                                <button onclick="categoriasManager.excluirCategoriaProduto(${cat.id})" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">🗑️</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(error => {
+                    console.warn('⚠️ Não foi possível carregar contagem de produtos:', error.message);
+                    // Continue mostrando as categorias mesmo sem a contagem de produtos
+                    this.categoriasProdutos.forEach(cat => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${cat.nome}</td>
+                            <td><span class="badge ${cat.tipo === 'produto' ? 'badge-primary' : 'badge-secondary'}">${cat.tipo}</span></td>
+                            <td class="text-center">
+                                <span class="badge ${cat.sujeito_iva ? 'badge-success' : 'badge-warning'}">
+                                    ${cat.sujeito_iva ? cat.taxa_iva_padrao + '%' : 'Isento'}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge badge-secondary" style="font-size: 14px;">
+                                    📦 N/A
                                 </span>
                             </td>
                             <td>${cat.descricao || '-'}</td>
