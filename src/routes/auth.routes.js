@@ -180,4 +180,60 @@ router.get('/verify', (req, res) => {
   }
 });
 
+// Listar todos os usuários (Apenas Admin/Gerente)
+router.get('/users', (req, res) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) return res.status(401).json({ success: false, message: 'Não autorizado' });
+    
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      if (decoded.role !== 'admin' && decoded.role !== 'gerente') {
+        return res.status(403).json({ success: false, message: 'Permissão negada' });
+      }
+
+      const users = db.prepare('SELECT id, nome, email, role, funcao, ativo FROM usuarios ORDER BY nome').all();
+      res.json({ success: true, data: users });
+    } catch (err) {
+      return res.status(401).json({ success: false, message: 'Token inválido' });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Resetar senha (Apenas Admin)
+router.post('/reset-password', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) return res.status(401).json({ success: false, message: 'Não autorizado' });
+    
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      if (decoded.role !== 'admin') {
+        return res.status(403).json({ success: false, message: 'Apenas administradores podem resetar senhas' });
+      }
+
+      const { userId, newPassword } = req.body;
+      if (!userId || !newPassword) {
+        return res.status(400).json({ success: false, message: 'Dados incompletos' });
+      }
+
+      const senhaHash = await bcrypt.hash(newPassword, 10);
+      
+      const result = db.prepare('UPDATE usuarios SET senha = ? WHERE id = ?').run(senhaHash, userId);
+      
+      if (result.changes === 0) {
+        return res.status(404).json({ success: false, message: 'Usuário não encontrado' });
+      }
+
+      res.json({ success: true, message: 'Senha atualizada com sucesso' });
+    } catch (err) {
+      return res.status(401).json({ success: false, message: 'Token inválido' });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 module.exports = router;
