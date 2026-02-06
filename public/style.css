@@ -510,9 +510,7 @@ table tr:hover {
     .page {
         flex: 1;
         min-height: 0;
-        overflow: auto;
-        overscroll-behavior: contain;
-        -webkit-overflow-scrolling: touch;
+        overflow: visible;
     }
 
     .chart-box {
