@@ -785,9 +785,28 @@ async function createProdutosChart(vendasData) {
     }
 }
 
+// Helper function to ensure categories are loaded
+async function ensureCategoriesLoaded() {
+    if (window.categoriasManager) {
+        try {
+            await window.categoriasManager.carregarCategorias();
+            return true;
+        } catch (error) {
+            console.error('Erro ao carregar categorias:', error);
+            return false;
+        }
+    } else {
+        console.warn('⚠️ CategoriasManager não disponível. O dropdown de categorias pode estar vazio.');
+        return false;
+    }
+}
+
 // ==================== PRODUTOS ====================
 async function loadProducts() {
     try {
+        // Load categories when products page loads
+        await ensureCategoriesLoaded();
+        
         const response = await fetch(`${API_URL}/produtos`);
         
         const data = await response.json();
@@ -928,7 +947,12 @@ async function deleteProduct(id, nome) {
     }
 }
 
-function showAddProduct() {
+async function showAddProduct() {
+    // Ensure categories are loaded before showing the form
+    const categoriesLoaded = await ensureCategoriesLoaded();
+    if (!categoriesLoaded) {
+        console.warn('⚠️ Categorias não puderam ser carregadas. O formulário será exibido, mas o dropdown pode estar vazio.');
+    }
     document.getElementById('add-product-form').style.display = 'block';
 }
 
