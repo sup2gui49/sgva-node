@@ -623,17 +623,19 @@
                     body: JSON.stringify(dados)
                 });
 
+                const data = await response.json();
+
                 if (response.ok) {
                     bootstrap.Modal.getInstance(document.getElementById('modalSubsidio')).hide();
                     await carregarSubsidios();
                     document.getElementById('formSubsidio').reset();
                     editandoId = null;
                 } else {
-                    alert('Erro ao salvar subsídio');
+                    alert('Erro ao salvar subsídio: ' + (data.message || 'Erro desconhecido'));
                 }
             } catch (error) {
                 console.error('Erro:', error);
-                alert('Erro ao salvar subsídio');
+                alert('Erro de conexão ao salvar subsídio');
             }
         }
 
