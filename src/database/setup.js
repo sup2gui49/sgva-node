@@ -23,6 +23,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nome TEXT NOT NULL,
     categoria TEXT NOT NULL,
+    categoria_id INTEGER,
     tipo TEXT DEFAULT 'produto',
     unidade_medida TEXT DEFAULT 'un',
     custo_unitario REAL DEFAULT 0,
@@ -31,7 +32,8 @@ db.exec(`
     estoque_minimo REAL DEFAULT 0,
     ativo INTEGER DEFAULT 1,
     criado_em TEXT DEFAULT (datetime('now', 'localtime')),
-    atualizado_em TEXT DEFAULT (datetime('now', 'localtime'))
+    atualizado_em TEXT DEFAULT (datetime('now', 'localtime')),
+    FOREIGN KEY (categoria_id) REFERENCES categorias_produtos(id)
   )
 `);
 console.log('✅ Tabela produtos criada');
