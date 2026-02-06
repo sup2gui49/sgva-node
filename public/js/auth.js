@@ -34,6 +34,40 @@
     return null;
   };
 
+  let logoutTimer = null;
+
+  const clearLogoutTimer = () => {
+    if (logoutTimer) {
+      clearTimeout(logoutTimer);
+      logoutTimer = null;
+    }
+  };
+
+  const parseJwtPayload = (token) => {
+    if (!token) return null;
+    try {
+      const payload = token.split('.')[1];
+      if (!payload) return null;
+      const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const decoded = atob(normalized);
+      return JSON.parse(decoded);
+    } catch (error) {
+      console.warn('Nao foi possivel ler o token:', error);
+      return null;
+    }
+  };
+
+  const scheduleAutoLogout = (token) => {
+    clearLogoutTimer();
+    const payload = parseJwtPayload(token);
+    if (!payload || !payload.exp) return;
+    const expiresAt = payload.exp * 1000;
+    const delay = Math.max(expiresAt - Date.now() - 5000, 0);
+    logoutTimer = setTimeout(() => {
+      logout({ redirectNext: getCurrentPath() });
+    }, delay);
+  };
+
   const persistSession = (token, user) => {
     const payload = {
       token,
@@ -43,6 +77,7 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
     localStorage.setItem(LEGACY_TOKEN_KEY, token);
     localStorage.setItem(LEGACY_USER_KEY, JSON.stringify(user));
+    scheduleAutoLogout(token);
     return payload;
   };
 
@@ -50,6 +85,7 @@
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(LEGACY_TOKEN_KEY);
     localStorage.removeItem(LEGACY_USER_KEY);
+    clearLogoutTimer();
   };
 
   const getCurrentPath = () => {
@@ -67,7 +103,12 @@
   const getToken = () => readSession()?.token || null;
   const getUser = () => readSession()?.user || null;
 
-  const isAuthenticated = () => !!getToken();
+  const isAuthenticated = () => {
+    const token = getToken();
+    if (!token) return false;
+    scheduleAutoLogout(token);
+    return true;
+  };
 
   const setSession = (token, user) => persistSession(token, user);
 

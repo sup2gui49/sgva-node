@@ -8,6 +8,17 @@ const db = require('../config/database');
 const { getJwtSecret } = require('../config/security');
 const JWT_SECRET = getJwtSecret();
 
+const ROLE_EXPIRY = {
+  admin: process.env.JWT_EXPIRES_ADMIN || '8h',
+  gerente: process.env.JWT_EXPIRES_GERENTE || '6h',
+  funcionario: process.env.JWT_EXPIRES_FUNCIONARIO || '4h'
+};
+
+function getRoleExpiry(role) {
+  const normalized = String(role || '').toLowerCase();
+  return ROLE_EXPIRY[normalized] || process.env.JWT_EXPIRES_IN || '6h';
+}
+
 // Verificar se existem usuários no sistema
 router.get('/check-users', (req, res) => {
   try {
@@ -117,7 +128,7 @@ router.post('/login', async (req, res) => {
         role: user.role || user.funcao || 'funcionario'
       },
       JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      { expiresIn: getRoleExpiry(user.role || user.funcao || 'funcionario') }
     );
 
     res.json({
