@@ -241,7 +241,8 @@ const pageNames = {
     'relatorios': 'Relatórios',
     'configuracoes': 'Configurações',
     'financeiro': 'Financeiro',
-    'categorias': 'Categorias'
+    'categorias': 'Categorias',
+    'folha': 'Folha'
 };
 
 function showPage(page) {
@@ -268,17 +269,7 @@ function showPage(page) {
     if (page === 'folha') loadEmployees();
 }
 
-// Mapeamento de nomes de página
-const pageNames = {
-    'dashboard': 'Dashboard',
-    'produtos': 'Produtos',
-    'categorias': 'Categorias',
-    'vendas': 'Vendas',
-    'clientes': 'Clientes',
-    'financeiro': 'Financeiro',
-    'folha': 'Folha',
-    'relatorios': 'Relatórios'
-};
+// [Mapeamento removido - declarado no topo do arquivo]
 
 // Restaurar página ao carregar
 window.addEventListener('load', () => {

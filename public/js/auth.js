@@ -172,6 +172,16 @@
 
     const response = await fetch(input, opts);
     if (response.status === 401) {
+      // Tentar ler a mensagem de erro do servidor para depuração
+      try {
+        const errBody = await response.clone().json();
+        console.warn('Erro 401 do servidor:', errBody.message);
+        // Opcional: Salvar no sessionStorage para mostrar na tela de login
+        sessionStorage.setItem('auth_error', errBody.message || 'Sessão expirada');
+      } catch (e) {
+        console.warn('Erro 401 sem JSON:', e);
+      }
+
       console.warn('Sessão expirada. Redirecionando para login...');
       logout({ redirectNext: getCurrentPath() });
       throw new Error('Sessão expirada');
