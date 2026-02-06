@@ -168,7 +168,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Deletar categoria (soft delete)
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
     try {
         // Validar permissão (só admin pode deletar)
         // Auth temporariamente removida/opcional

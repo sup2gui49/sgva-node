@@ -788,6 +788,9 @@ async function createProdutosChart(vendasData) {
 // ==================== PRODUTOS ====================
 async function loadProducts() {
     try {
+        // Load categories for filter first
+        await loadCategoriesForFilter();
+        
         const response = await fetch(`${API_URL}/produtos`);
         
         const data = await response.json();
@@ -802,6 +805,37 @@ async function loadProducts() {
         if (listDiv) {
             listDiv.innerHTML = `<div class="error" style="padding: 20px; text-align: center;">Erro ao carregar produtos. Verifique sua conexão.</div>`;
         }
+    }
+}
+
+async function loadCategoriesForFilter() {
+    try {
+        const response = await fetch(`${API_URL}/categorias-produtos`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const filterSelect = document.getElementById('filter-categoria');
+            if (filterSelect) {
+                // Keep the "Todas Categorias" option
+                const currentValue = filterSelect.value;
+                filterSelect.innerHTML = '<option value="">Todas Categorias</option>';
+                
+                // Add categories dynamically
+                data.data.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat.nome; // Use category name for filtering
+                    option.textContent = `${cat.nome} (${cat.tipo})`;
+                    filterSelect.appendChild(option);
+                });
+                
+                // Restore selected value if it exists
+                if (currentValue) {
+                    filterSelect.value = currentValue;
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao carregar categorias para filtro:', error);
     }
 }
 
