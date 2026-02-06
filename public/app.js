@@ -2396,3 +2396,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+};
+
+// Inicializar
+bootstrapSalesApp();

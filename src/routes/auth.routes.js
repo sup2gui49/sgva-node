@@ -119,6 +119,14 @@ router.post('/login', async (req, res) => {
       });
     }
 
+    // Validar expiry para evitar segundos acidentais
+    let expiry = getRoleExpiry(user.role || user.funcao || 'funcionario');
+    if (!isNaN(expiry) && parseInt(expiry) < 300) {
+        // Se for número e menor que 300 (5 min), assumir que houve erro de config
+        console.warn(`⚠️ Aviso: Exspiração de token muito curta detectada (${expiry}). Forçando 8h.`);
+        expiry = '8h';
+    }
+
     // Gerar token JWT
     const token = jwt.sign(
       { 
@@ -128,7 +136,7 @@ router.post('/login', async (req, res) => {
         role: user.role || user.funcao || 'funcionario'
       },
       JWT_SECRET,
-      { expiresIn: getRoleExpiry(user.role || user.funcao || 'funcionario') }
+      { expiresIn: expiry }
     );
 
     res.json({
