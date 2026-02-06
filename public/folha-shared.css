@@ -300,6 +300,12 @@ main {
         white-space: nowrap;
     }
 
+    /* Fix para tabelas responsive no mobile: 
+       Apenas permitimos que o wrapper .table-responsive do Bootstrap funcione.
+       Não forçamos display: block na table para não quebrar o alinhamento das colunas. */
+    
+    /* REMOVIDO: Estilos que quebravam layout de tabela */
+    /*
     table {
         display: block;
         width: max-content;
@@ -315,6 +321,12 @@ main {
         width: max-content;
         min-width: 100%;
         table-layout: fixed;
+    }
+    */
+    
+    table {
+        /* Garantir que a tabela ocupe a largura disponível dentro do wrapper */
+        width: 100%;
     }
 
     table thead th {

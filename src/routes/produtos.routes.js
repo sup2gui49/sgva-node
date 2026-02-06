@@ -133,6 +133,32 @@ router.post('/', (req, res) => {
       });
     }
     
+    // Validação robusta de Categoria
+    let final_categoria_id = categoria_id;
+    
+    // Tentar recuperar ID pelo nome se não informado ou verificar se existe
+    if (final_categoria_id) {
+        const catExists = db.prepare('SELECT id FROM categorias_produtos WHERE id = ?').get(final_categoria_id);
+        if (!catExists) {
+            console.warn(`Categoria ID ${final_categoria_id} não encontrado. Tentando buscar por nome '${categoria}'...`);
+            const catByName = db.prepare('SELECT id FROM categorias_produtos WHERE nome = ?').get(categoria);
+            if (catByName) {
+                final_categoria_id = catByName.id;
+            } else {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: `Categoria selecionada inválida (ID: ${final_categoria_id}) e nome não encontrado.` 
+                });
+            }
+        }
+    } else if (categoria) {
+        // Se não tem ID mas tem nome (ex: vindo de importação simples), tenta achar ID
+        const catByName = db.prepare('SELECT id FROM categorias_produtos WHERE nome = ?').get(categoria);
+        if (catByName) {
+             final_categoria_id = catByName.id;
+        }
+    }
+
     const result = db.prepare(`
       INSERT INTO produtos 
       (nome, categoria, categoria_id, tipo, unidade_medida, custo_unitario, preco_venda, estoque, estoque_minimo)
@@ -140,7 +166,7 @@ router.post('/', (req, res) => {
     `).run(
       nome,
       categoria || '',
-      categoria_id || null,
+      final_categoria_id || null,
       tipo || 'produto',
       unidade_medida || 'un',
       custo_unitario || 0,
@@ -160,7 +186,7 @@ router.post('/', (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Erro ao criar produto',
+      message: 'Erro ao criar produto: ' + error.message,
       error: error.message
     });
   }

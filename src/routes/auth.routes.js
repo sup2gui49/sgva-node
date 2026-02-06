@@ -40,7 +40,7 @@ router.get('/check-users', (req, res) => {
 // Registrar novo usuário
 router.post('/register', async (req, res) => {
   try {
-    const { nome, email, senha, funcao, role } = req.body;
+    const { nome, email, senha, funcao, role, funcionario_id } = req.body;
 
     // Validação
     if (!nome || !email || !senha) {
@@ -65,9 +65,9 @@ router.post('/register', async (req, res) => {
     // Inserir usuário (usando role em vez de funcao)
     const userRole = role || funcao || 'usuario';
     const result = db.prepare(`
-      INSERT INTO usuarios (nome, email, senha, role, funcao)
-      VALUES (?, ?, ?, ?, ?)
-    `).run(nome, email, senhaHash, userRole, userRole);
+      INSERT INTO usuarios (nome, email, senha, role, funcao, funcionario_id)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(nome, email, senhaHash, userRole, userRole, funcionario_id || null);
 
     res.status(201).json({
       success: true,
@@ -76,7 +76,8 @@ router.post('/register', async (req, res) => {
         id: result.lastInsertRowid,
         nome,
         email,
-        role: userRole
+        role: userRole,
+        funcionario_id
       }
     });
   } catch (error) {
@@ -200,7 +201,12 @@ router.get('/users', (req, res) => {
         return res.status(403).json({ success: false, message: 'Permissão negada' });
       }
 
-      const users = db.prepare('SELECT id, nome, email, role, funcao, ativo FROM usuarios ORDER BY nome').all();
+      const users = db.prepare(`
+        SELECT u.id, u.nome, u.email, u.role, u.funcao, u.ativo, u.funcionario_id, f.nome as nome_funcionario 
+        FROM usuarios u
+        LEFT JOIN funcionarios f ON u.funcionario_id = f.id
+        ORDER BY u.nome
+      `).all();
       res.json({ success: true, data: users });
     } catch (err) {
       console.error('❌ Falha na verificação do token (GET /users):', err.message);

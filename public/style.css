@@ -520,13 +520,15 @@ table tr:hover {
 
     table {
         display: block;
-        width: max-content;
-        min-width: 100%;
-        max-height: 60vh;
-        overflow: auto;
+        width: 100%;
+        overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        /* Remover max-height se estiver cortando linhas, ou aumentar */
+        max-height: 70vh; 
     }
 
+    /* REMOVIDO: display: table em thead/tbody quebra alinhamento de colunas */
+    /*
     table thead,
     table tbody {
         display: table;
@@ -534,7 +536,10 @@ table tr:hover {
         min-width: 100%;
         table-layout: fixed;
     }
+    */
 
+    /* Manter sticky header se possível, mas dentro de block pode falhar dependendo do browser. 
+       Geralmente funciona se o block tiver height definida. */
     table thead th {
         position: sticky;
         top: 0;
