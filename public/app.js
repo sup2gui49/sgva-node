@@ -233,6 +233,17 @@ function showDashboard() {
 }
 
 // ==================== NAVIGATION ====================
+const pageNames = {
+    'dashboard': 'Dashboard',
+    'produtos': 'Produtos',
+    'vendas': 'Vendas',
+    'clientes': 'Clientes',
+    'relatorios': 'Relatórios',
+    'configuracoes': 'Configurações',
+    'financeiro': 'Financeiro',
+    'categorias': 'Categorias'
+};
+
 function showPage(page) {
     document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
