@@ -147,12 +147,18 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Digite a nova senha para o usuário <strong id="resetUserName">...</strong></p>
-                    <input type="hidden" id="resetUserId">
-                    <div class="mb-3">
-                        <label class="form-label">Nova Senha</label>
-                        <input type="password" class="form-control" id="newPassword" required minlength="6">
-                    </div>
+                    <form id="formReset">
+                        <p>Digite a nova senha para o usuário <strong id="resetUserName">...</strong></p>
+                        <input type="hidden" id="resetUserId" name="userId">
+                        <!-- Campo hidden username para acessibilidade e gerenciadores de senha -->
+                        <input type="text" name="username" style="display:none;" autocomplete="username">
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Nova Senha</label>
+                            <input type="password" class="form-control" id="newPassword" name="newPassword" 
+                                required minlength="6" autocomplete="new-password">
+                        </div>
+                    </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>

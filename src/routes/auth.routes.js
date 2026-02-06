@@ -195,7 +195,8 @@ router.get('/users', (req, res) => {
       const users = db.prepare('SELECT id, nome, email, role, funcao, ativo FROM usuarios ORDER BY nome').all();
       res.json({ success: true, data: users });
     } catch (err) {
-      return res.status(401).json({ success: false, message: 'Token inválido' });
+      console.error('JWT Verify Error:', err.message);
+      return res.status(401).json({ success: false, message: 'Token inválido: ' + err.message });
     }
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
