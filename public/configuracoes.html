@@ -59,23 +59,31 @@
             margin-right: 0.5rem;
         }
 
-        @media (max-width: 768px), (hover: none) and (pointer: coarse) {
-            .sidebar {
-                display: block !important;
-            }
-
-            .mobile-topnav,
-            .mobile-topnav__menu {
-                display: none !important;
-            }
-        }
     </style>
 </head>
 <body class="bg-light">
+    <!-- Mobile Navigation (Outside Grid) -->
+    <div class="d-md-none">
+        <div class="mobile-topnav">
+            <div class="mobile-topnav__title"><i class="bi bi-gear"></i> SGVA Config</div>
+            <div class="mobile-topnav__actions">
+                <button class="mobile-topnav__btn" onclick="window.location.href='index.html'">
+                    <i class="bi bi-arrow-left"></i> Painel
+                </button>
+            </div>
+        </div>
+        <div class="mobile-topnav__menu">
+            <a href="configuracoes.html" class="active">Config. Financeiras</a>
+            <a href="empresa-info.html">Dados da Empresa</a>
+            <a href="gestao-produtos.html">Produtos/Serviços</a>
+            <a href="teste-categorias.html">Categorias IVA</a>
+        </div>
+    </div>
+
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <nav class="col-md-2 d-md-block sidebar p-3">
+            <nav class="col-12 col-md-2 d-md-block sidebar p-3">
                 <div class="text-white mb-4">
                     <h4><i class="bi bi-building"></i> SGVA</h4>
                     <small>Configurações</small>

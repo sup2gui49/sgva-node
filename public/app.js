@@ -31,7 +31,7 @@ window.addEventListener('unhandledrejection', function(event) {
 });
 // ===================================================================================
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = '/api';
 let token = null;
 let currentUser = null;
 let saleItems = [];
@@ -798,6 +798,10 @@ async function loadProducts() {
         }
     } catch (error) {
         console.error('Erro ao carregar produtos:', error);
+        const listDiv = document.getElementById('produtos-list');
+        if (listDiv) {
+            listDiv.innerHTML = `<div class="error" style="padding: 20px; text-align: center;">Erro ao carregar produtos. Verifique sua conexão.</div>`;
+        }
     }
 }
 
@@ -1048,25 +1052,40 @@ async function loadSales() {
 }
 
 async function showNewSale() {
-    // Carregar produtos no select
-    const response = await fetch(`${API_URL}/produtos?ativo=true`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-    });
-    
-    const data = await response.json();
-    
-    if (data.success) {
-        let options = '<option value="">Selecione um produto</option>';
-        data.data.forEach(p => {
-            options += `<option value="${p.id}">${p.nome} - ${p.preco_venda} KZ</option>`;
+    try {
+        // Carregar produtos no select
+        const response = await fetch(`${API_URL}/produtos?ativo=true`, {
+            headers: { 'Authorization': `Bearer ${token}` }
         });
-        document.getElementById('sale-produto').innerHTML = options;
+
+        if (!response.ok) {
+            throw new Error(`Erro na API: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.success) {
+            let options = '<option value="">Selecione um produto</option>';
+            data.data.forEach(p => {
+                options += `<option value="${p.id}">${p.nome} - ${p.preco_venda} KZ</option>`;
+            });
+            document.getElementById('sale-produto').innerHTML = options;
+        } else {
+            console.error('Erro ao carregar produtos:', data.message);
+            alert('Não foi possível carregar a lista de produtos. Verifique se há produtos cadastrados.');
+        }
+
+        saleItems = [];
+        document.getElementById('sale-items').innerHTML = '';
+        document.getElementById('new-sale-form').style.display = 'block';
+        
+        // Scroll para o formulário para garantir visibilidade em mobile
+        document.getElementById('new-sale-form').scrollIntoView({ behavior: 'smooth' });
+
+    } catch (error) {
+        console.error('Erro ao abrir nova venda:', error);
+        alert('Ocorreu um erro ao tentar abrir a tela de vendas: ' + error.message);
     }
-    
-    saleItems = [];
-    document.getElementById('sale-items').innerHTML = '';
-    document.getElementById('new-sale-form').style.display = 'block';
-}
 
 function hideNewSale() {
     document.getElementById('new-sale-form').style.display = 'none';

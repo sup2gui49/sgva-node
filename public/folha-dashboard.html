@@ -570,11 +570,13 @@
         async function carregarGraficos() {
             const mesAtual = new Date().getMonth() + 1;
             const anoAtual = new Date().getFullYear();
+            const token = localStorage.getItem('token');
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
             try {
                 const [custosResp, subsResp] = await Promise.all([
-                    fetch(`${API_URL}/folha-relatorios/custos-categoria?mes=${mesAtual}&ano=${anoAtual}`),
-                    fetch(`${API_URL}/folha-relatorios/dashboard-stats?mes=${mesAtual}&ano=${anoAtual}`)
+                    fetch(`${API_URL}/folha-relatorios/custos-categoria?mes=${mesAtual}&ano=${anoAtual}`, { headers }),
+                    fetch(`${API_URL}/folha-relatorios/dashboard-stats?mes=${mesAtual}&ano=${anoAtual}`, { headers })
                 ]);
 
                 const custosData = await custosResp.json();
