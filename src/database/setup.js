@@ -277,6 +277,42 @@ if (adminExists.count === 0) {
   console.log('✅ Usuário admin criado (Email: admin@sgva.com | Senha: admin123)');
 }
 
+// 15. Tabela de Turnos
+db.exec(`
+  CREATE TABLE IF NOT EXISTS turnos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL,
+    entrada TEXT NOT NULL,
+    saida TEXT NOT NULL,
+    inicio_intervalo TEXT,
+    fim_intervalo TEXT,
+    tolerancia_entrada INTEGER DEFAULT 5,
+    tolerancia_saida INTEGER DEFAULT 5,
+    ativo INTEGER DEFAULT 1,
+    dias_semana TEXT DEFAULT '[1,2,3,4,5]',
+    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+console.log('✅ Tabela turnos criada');
+
+// 16. Tabela de Presenças (Monitoramento)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS presencas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    funcionario_id INTEGER NOT NULL,
+    data DATE NOT NULL,
+    entrada_registrada DATETIME,
+    saida_registrada DATETIME,
+    status TEXT DEFAULT 'presente',
+    observacao TEXT,
+    turno_id INTEGER,
+    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(funcionario_id) REFERENCES funcionarios(id) ON DELETE CASCADE,
+    FOREIGN KEY(turno_id) REFERENCES turnos(id)
+  )
+`);
+console.log('✅ Tabela presencas criada');
+
 console.log('\n🎉 Banco de dados configurado com sucesso!\n');
 
 db.close();

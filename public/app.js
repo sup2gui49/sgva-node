@@ -1094,7 +1094,8 @@ function hideNewSale() {
 }
 
 async function addItemToSale() {
-    const produtoId = document.getElementById('sale-produto').value;
+    try {
+        const produtoId = document.getElementById('sale-produto').value;
     const quantidade = document.getElementById('sale-quantidade').value;
     
     if (!produtoId || !quantidade) {
@@ -1140,6 +1141,13 @@ async function addItemToSale() {
         });
         
         updateSaleItems();
+    } else {
+        console.error('Erro ao buscar produto:', data);
+        alert('Erro ao buscar dados do produto: ' + (data.message || 'Erro desconhecido. Verifique o console.'));
+    }
+    } catch (error) {
+        console.error('Erro de exceção ao adicionar item:', error);
+        alert('Erro: ' + error.message);
     }
 }
 
