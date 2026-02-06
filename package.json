@@ -4,7 +4,7 @@
   "description": "Sistema de Gestão de Vendas Adaptável - SGVA",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/database/setup.js && node run-migration-empresa.js && node run-migration-sistema-modulos.js && node src/server.js",
+    "start": "node src/database/setup.js && node src/database/setup-folha-profissional.js && node run-migration-empresa.js && node run-migration-sistema-modulos.js && node src/server.js",
     "dev": "nodemon src/server.js",
     "db:setup": "node src/database/setup.js",
     "test": "echo \"Testes em desenvolvimento\" && exit 0",
