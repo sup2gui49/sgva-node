@@ -88,6 +88,15 @@ function setDashboardOfflineBanner(message) {
     }
 }
 
+function formatKzValue(value) {
+    const numeric = Number(String(value).replace(/[^0-9.-]/g, ''));
+    if (!Number.isFinite(numeric)) return '--';
+    return new Intl.NumberFormat('pt-AO', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(numeric);
+}
+
 const bootstrapSalesApp = () => {
     if (!window.auth) {
         console.warn('Auth helper indisponível; não foi possível validar a sessão.');
@@ -337,15 +346,6 @@ function renderDashboardCards(d) {
         return;
     }
 
-    const formatKz = (value) => {
-        const numeric = Number(String(value).replace(/[^0-9.-]/g, ''));
-        if (!Number.isFinite(numeric)) return '--';
-        return new Intl.NumberFormat('pt-AO', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }).format(numeric);
-    };
-
     const crescimento = parseFloat(d.crescimento_receita) || 0;
     const crescimentoIcon = crescimento >= 0 ? '📈' : '📉';
     const crescimentoColor = crescimento >= 0 ? '#27ae60' : '#e74c3c';
@@ -354,12 +354,12 @@ function renderDashboardCards(d) {
     container.innerHTML = `
         <div class="stat-card">
             <h3>💰 Receita Total</h3>
-            <div class="value">${formatKz(d.receita_total)} KZ</div>
+            <div class="value">${formatKzValue(d.receita_total)} KZ</div>
             <small style="color: ${crescimentoColor};">${crescimentoIcon} ${d.crescimento_receita} vs mês anterior</small>
         </div>
         <div class="stat-card">
             <h3>📊 Lucro Líquido</h3>
-            <div class="value" style="color: ${lucroCor};">${formatKz(d.lucro_liquido)} KZ</div>
+            <div class="value" style="color: ${lucroCor};">${formatKzValue(d.lucro_liquido)} KZ</div>
             <small>Margem: ${d.margem_lucro}</small>
         </div>
         <div class="stat-card">
@@ -369,27 +369,27 @@ function renderDashboardCards(d) {
         </div>
         <div class="stat-card">
             <h3>🎫 Ticket Médio</h3>
-            <div class="value">${formatKz(d.ticket_medio)} KZ</div>
+            <div class="value">${formatKzValue(d.ticket_medio)} KZ</div>
             <small>${d.total_vendas} vendas no mês</small>
         </div>
         <div class="stat-card">
             <h3>📦 Custos (CMV)</h3>
-            <div class="value">${formatKz(d.custos_vendas)} KZ</div>
+            <div class="value">${formatKzValue(d.custos_vendas)} KZ</div>
             <small>Margem bruta: ${d.margem_bruta}</small>
         </div>
         <div class="stat-card">
             <h3>💸 Despesas</h3>
-            <div class="value">${formatKz(d.despesas_totais)} KZ</div>
+            <div class="value">${formatKzValue(d.despesas_totais)} KZ</div>
             <small>Operacionais do mês</small>
         </div>
         <div class="stat-card">
             <h3>🏛️ IVA a Recolher</h3>
-            <div class="value">${formatKz(d.iva_recolher)} KZ</div>
+            <div class="value">${formatKzValue(d.iva_recolher)} KZ</div>
             <small>Imposto sobre vendas</small>
         </div>
         <div class="stat-card">
             <h3>🎁 Descontos</h3>
-            <div class="value">${formatKz(d.descontos_concedidos)} KZ</div>
+            <div class="value">${formatKzValue(d.descontos_concedidos)} KZ</div>
             <small>Concedidos no mês</small>
         </div>
     `;
@@ -1672,23 +1672,23 @@ async function loadDRE() {
                             </tr>
                             <tr>
                                 <td style="padding: 8px 20px;">Receita Bruta de Vendas (com IVA)</td>
-                                <td style="padding: 8px; text-align: right;">${dre.receita_bruta_com_iva}</td>
+                                <td style="padding: 8px; text-align: right;">${formatKzValue(dre.receita_bruta_com_iva)}</td>
                             </tr>
                             <tr>
                                 <td style="padding: 8px 20px;">(-) IVA Recolhido (a repassar)</td>
-                                <td style="padding: 8px; text-align: right; color: #e74c3c;">(${dre.iva_recolhido})</td>
+                                <td style="padding: 8px; text-align: right; color: #e74c3c;">(${formatKzValue(dre.iva_recolhido)})</td>
                             </tr>
                             <tr style="font-weight: bold; background: #f8f9fa;">
                                 <td style="padding: 8px 20px;">= Receita Bruta (sem IVA)</td>
-                                <td style="padding: 8px; text-align: right;">${dre.receita_bruta}</td>
+                                <td style="padding: 8px; text-align: right;">${formatKzValue(dre.receita_bruta)}</td>
                             </tr>
                             <tr>
                                 <td style="padding: 8px 20px;">(-) Deduções/Descontos</td>
-                                <td style="padding: 8px; text-align: right; color: #e74c3c;">(${dre.deducoes})</td>
+                                <td style="padding: 8px; text-align: right; color: #e74c3c;">(${formatKzValue(dre.deducoes)})</td>
                             </tr>
                             <tr style="font-weight: bold; background: #d5e8d4;">
                                 <td style="padding: 8px 20px;">= RECEITA LÍQUIDA</td>
-                                <td style="padding: 8px; text-align: right;">${dre.receita_liquida}</td>
+                                <td style="padding: 8px; text-align: right;">${formatKzValue(dre.receita_liquida)}</td>
                             </tr>
                             
                             <!-- CUSTOS -->
@@ -1697,11 +1697,11 @@ async function loadDRE() {
                             </tr>
                             <tr>
                                 <td style="padding: 8px 20px;">(-) CMV (Custo da Mercadoria Vendida)</td>
-                                <td style="padding: 8px; text-align: right; color: #e74c3c;">(${dre.cmv})</td>
+                                <td style="padding: 8px; text-align: right; color: #e74c3c;">(${formatKzValue(dre.cmv)})</td>
                             </tr>
                             <tr style="font-weight: bold; background: #fff3cd;">
                                 <td style="padding: 8px 20px;">= LUCRO BRUTO</td>
-                                <td style="padding: 8px; text-align: right;">${dre.lucro_bruto}</td>
+                                <td style="padding: 8px; text-align: right;">${formatKzValue(dre.lucro_bruto)}</td>
                             </tr>
                             <tr>
                                 <td style="padding: 8px 40px;"><small>Margem Bruta:</small></td>
@@ -1714,19 +1714,19 @@ async function loadDRE() {
                             </tr>
                             <tr>
                                 <td style="padding: 8px 20px;">(-) Despesas Administrativas</td>
-                                <td style="padding: 8px; text-align: right; color: #e74c3c;">(${dre.despesas_operacionais.administrativas})</td>
+                                <td style="padding: 8px; text-align: right; color: #e74c3c;">(${formatKzValue(dre.despesas_operacionais.administrativas)})</td>
                             </tr>
                             <tr>
                                 <td style="padding: 8px 20px;">(-) Despesas Comerciais</td>
-                                <td style="padding: 8px; text-align: right; color: #e74c3c;">(${dre.despesas_operacionais.comerciais})</td>
+                                <td style="padding: 8px; text-align: right; color: #e74c3c;">(${formatKzValue(dre.despesas_operacionais.comerciais)})</td>
                             </tr>
                             <tr>
                                 <td style="padding: 8px 20px;">(-) Outras Despesas Operacionais</td>
-                                <td style="padding: 8px; text-align: right; color: #e74c3c;">(${dre.despesas_operacionais.operacionais})</td>
+                                <td style="padding: 8px; text-align: right; color: #e74c3c;">(${formatKzValue(dre.despesas_operacionais.operacionais)})</td>
                             </tr>
                             <tr style="font-weight: bold; background: #ffe6cc;">
                                 <td style="padding: 8px 20px;">= LUCRO OPERACIONAL</td>
-                                <td style="padding: 8px; text-align: right;">${dre.lucro_operacional}</td>
+                                <td style="padding: 8px; text-align: right;">${formatKzValue(dre.lucro_operacional)}</td>
                             </tr>
                             <tr>
                                 <td style="padding: 8px 40px;"><small>Margem Operacional:</small></td>
@@ -1746,30 +1746,30 @@ async function loadDRE() {
                             <tr>
                                 <td style="padding: 8px 40px; font-size: 0.9em; color: #7f8c8d;">
                                     ${dre.despesas_pessoal.detalhamento.total_funcionarios} funcionário(s) • 
-                                    Salário Base: ${dre.despesas_pessoal.detalhamento.salario_base_total} KZ • 
-                                    INSS Empregado: ${dre.despesas_pessoal.detalhamento.inss_empregado} KZ • 
-                                    IRT: ${dre.despesas_pessoal.detalhamento.irt_retido} KZ
+                                    Salário Base: ${formatKzValue(dre.despesas_pessoal.detalhamento.salario_base_total)} KZ • 
+                                    INSS Empregado: ${formatKzValue(dre.despesas_pessoal.detalhamento.inss_empregado)} KZ • 
+                                    IRT: ${formatKzValue(dre.despesas_pessoal.detalhamento.irt_retido)} KZ
                                 </td>
                                 <td></td>
                             </tr>
                             ` : ''}
                             <tr>
                                 <td style="padding: 8px 20px;">(-) Salários e Remunerações</td>
-                                <td style="padding: 8px; text-align: right; color: #e74c3c;">(${dre.despesas_pessoal?.salarios_liquidos || dre.folha_pagamento})</td>
+                                <td style="padding: 8px; text-align: right; color: #e74c3c;">(${formatKzValue(dre.despesas_pessoal?.salarios_liquidos || dre.folha_pagamento)})</td>
                             </tr>
                             <tr>
                                 <td style="padding: 8px 20px;">(-) INSS Patronal (8%)</td>
-                                <td style="padding: 8px; text-align: right; color: #e74c3c;">(${dre.despesas_pessoal?.inss_patronal || dre.inss_patronal})</td>
+                                <td style="padding: 8px; text-align: right; color: #e74c3c;">(${formatKzValue(dre.despesas_pessoal?.inss_patronal || dre.inss_patronal)})</td>
                             </tr>
                             ${dre.despesas_pessoal?.total_custo_pessoal ? `
                             <tr style="background: #fef5e7;">
                                 <td style="padding: 8px 30px; font-weight: bold;">Custo Total com Pessoal</td>
-                                <td style="padding: 8px; text-align: right; font-weight: bold; color: #e74c3c;">(${dre.despesas_pessoal.total_custo_pessoal})</td>
+                                <td style="padding: 8px; text-align: right; font-weight: bold; color: #e74c3c;">(${formatKzValue(dre.despesas_pessoal.total_custo_pessoal)})</td>
                             </tr>
                             ` : ''}
                             <tr style="font-weight: bold; background: #e1d5e7;">
                                 <td style="padding: 8px 20px;">= LUCRO ANTES DOS IMPOSTOS</td>
-                                <td style="padding: 8px; text-align: right;">${dre.lucro_antes_impostos}</td>
+                                <td style="padding: 8px; text-align: right;">${formatKzValue(dre.lucro_antes_impostos)}</td>
                             </tr>
                             
                             <!-- IMPOSTOS -->
@@ -1779,13 +1779,13 @@ async function loadDRE() {
                             ${parseFloat(dre.irt_estimado_percentual || 0) > 0 ? `
                             <tr>
                                 <td style="padding: 8px 20px;">(-) Imposto Industrial ESTIMADO (${dre.irt_estimado_percentual}%)</td>
-                                <td style="padding: 8px; text-align: right; color: #e74c3c;">(${dre.irt_estimado})</td>
+                                <td style="padding: 8px; text-align: right; color: #e74c3c;">(${formatKzValue(dre.irt_estimado)})</td>
                             </tr>
                             ` : ''}
                             ${parseFloat(dre.imposto_selo || 0) > 0 ? `
                             <tr>
                                 <td style="padding: 8px 20px;">(-) Imposto de Selo (${dre.imposto_selo_percentual}%)</td>
-                                <td style="padding: 8px; text-align: right; color: #e74c3c;">(${dre.imposto_selo})</td>
+                                <td style="padding: 8px; text-align: right; color: #e74c3c;">(${formatKzValue(dre.imposto_selo)})</td>
                             </tr>
                             ` : ''}
                             ${parseFloat(dre.irt_estimado || 0) === 0 && parseFloat(dre.imposto_selo || 0) === 0 ? `
@@ -1797,7 +1797,7 @@ async function loadDRE() {
                             <!-- RESULTADO FINAL -->
                             <tr style="background: ${parseFloat(dre.lucro_liquido) >= 0 ? '#d4edda' : '#f8d7da'}; font-weight: bold; font-size: 1.1em;">
                                 <td style="padding: 15px 20px;">= LUCRO LÍQUIDO DO PERÍODO</td>
-                                <td style="padding: 15px; text-align: right; color: ${parseFloat(dre.lucro_liquido) >= 0 ? '#27ae60' : '#e74c3c'};">${dre.lucro_liquido}</td>
+                                <td style="padding: 15px; text-align: right; color: ${parseFloat(dre.lucro_liquido) >= 0 ? '#27ae60' : '#e74c3c'};">${formatKzValue(dre.lucro_liquido)}</td>
                             </tr>
                             <tr>
                                 <td style="padding: 8px 40px;"><small>Margem Líquida:</small></td>
@@ -1956,16 +1956,16 @@ async function loadDespesas() {
             <div class="cards">
                 <div class="stat-card">
                     <h3>Total de Despesas</h3>
-                    <div class="value">${resumoData.resumo?.valor_total?.toLocaleString('pt-AO') || 0} KZ</div>
+                    <div class="value">${formatKzValue(resumoData.resumo?.valor_total)} KZ</div>
                     <small>${resumoData.resumo?.total_despesas || 0} despesas</small>
                 </div>
                 <div class="stat-card">
                     <h3>Despesas Pagas</h3>
-                    <div class="value">${resumoData.resumo?.valor_pago?.toLocaleString('pt-AO') || 0} KZ</div>
+                    <div class="value">${formatKzValue(resumoData.resumo?.valor_pago)} KZ</div>
                 </div>
                 <div class="stat-card">
                     <h3>Despesas Pendentes</h3>
-                    <div class="value">${resumoData.resumo?.valor_pendente?.toLocaleString('pt-AO') || 0} KZ</div>
+                    <div class="value">${formatKzValue(resumoData.resumo?.valor_pendente)} KZ</div>
                 </div>
                 <div class="stat-card">
                     <h3>Despesas Recorrentes</h3>
@@ -2032,7 +2032,7 @@ async function loadDespesas() {
                         <td>${desp.tipo}</td>
                         <td>${desp.categoria || '-'}</td>
                         <td>${desp.descricao} ${recorrenteIcon}</td>
-                        <td>${desp.valor.toLocaleString('pt-AO')} KZ</td>
+                        <td>${formatKzValue(desp.valor)} KZ</td>
                         <td>${statusIcon} ${statusText}</td>
                         <td>
                             <button onclick="togglePagoDespesa(${desp.id})" style="padding:5px 10px;">
@@ -2060,7 +2060,7 @@ async function loadDespesas() {
                         <td>${cat.categoria || 'Sem categoria'}</td>
                         <td>${cat.tipo}</td>
                         <td>${cat.quantidade}</td>
-                        <td>${cat.total.toLocaleString('pt-AO')} KZ</td>
+                        <td>${formatKzValue(cat.total)} KZ</td>
                     </tr>
                 `;
             });

@@ -141,7 +141,7 @@
                     <div class="card-body">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">Taxa INSS Empregado (%)</label>
+                                <label class="form-label fw-bold" for="inssEmpregado">Taxa INSS Empregado (%)</label>
                                 <div class="input-group">
                                     <input type="number" class="form-control" id="inssEmpregado" step="0.01" min="0" max="100">
                                     <span class="input-group-text">%</span>
@@ -149,7 +149,7 @@
                                 <small class="text-muted">Percentual descontado do salário do funcionário</small>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">Taxa INSS Patronal (%)</label>
+                                <label class="form-label fw-bold" for="inssPatronal">Taxa INSS Patronal (%)</label>
                                 <div class="input-group">
                                     <input type="number" class="form-control" id="inssPatronal" step="0.01" min="0" max="100">
                                     <span class="input-group-text">%</span>
@@ -213,17 +213,17 @@
                             <table class="table table-bordered table-hover">
                                 <thead class="table-light">
                                     <tr>
-                                        <th style="width: 30%">Componente</th>
-                                        <th style="width: 50%">Fórmula</th>
-                                        <th style="width: 20%">Ação</th>
+                                        <th class="formulas-col-component">Componente</th>
+                                        <th class="formulas-col-formula">Fórmula</th>
+                                        <th class="formulas-col-action">Ação</th>
                                     </tr>
                                 </thead>
                                 <tbody id="formulas-table">
                                     <tr data-formula="salario_bruto">
                                         <td><strong>Salário Bruto</strong></td>
                                         <td>
-                                            <input type="text" class="form-control form-control-sm" 
-                                                   value="salario_base + total_subsidios" readonly>
+                                              <input type="text" class="form-control form-control-sm" 
+                                                  value="salario_base + total_subsidios" readonly aria-label="Formula Salario Bruto">
                                         </td>
                                         <td>
                                             <span class="badge bg-secondary">Fixa</span>
@@ -232,8 +232,8 @@
                                     <tr data-formula="base_inss">
                                         <td><strong>Base INSS</strong></td>
                                         <td>
-                                            <input type="text" class="form-control form-control-sm" 
-                                                   value="salario_bruto - subsidios_isentos_inss" readonly>
+                                              <input type="text" class="form-control form-control-sm" 
+                                                  value="salario_bruto - subsidios_isentos_inss" readonly aria-label="Formula Base INSS">
                                         </td>
                                         <td>
                                             <span class="badge bg-secondary">Fixa</span>
@@ -242,8 +242,8 @@
                                     <tr data-formula="inss_empregado">
                                         <td><strong>INSS Empregado</strong></td>
                                         <td>
-                                            <input type="text" class="form-control form-control-sm" 
-                                                   value="base_inss * taxa_inss_empregado" readonly>
+                                              <input type="text" class="form-control form-control-sm" 
+                                                  value="base_inss * taxa_inss_empregado" readonly aria-label="Formula INSS Empregado">
                                         </td>
                                         <td>
                                             <span class="badge bg-secondary">Fixa</span>
@@ -252,8 +252,8 @@
                                     <tr data-formula="inss_patronal">
                                         <td><strong>INSS Patronal</strong></td>
                                         <td>
-                                            <input type="text" class="form-control form-control-sm" 
-                                                   value="base_inss * taxa_inss_patronal" readonly>
+                                              <input type="text" class="form-control form-control-sm" 
+                                                  value="base_inss * taxa_inss_patronal" readonly aria-label="Formula INSS Patronal">
                                         </td>
                                         <td>
                                             <span class="badge bg-secondary">Fixa</span>
@@ -262,8 +262,8 @@
                                     <tr data-formula="rendimento_colectavel">
                                         <td><strong>Rendimento Coletável (RC)</strong></td>
                                         <td>
-                                            <input type="text" class="form-control form-control-sm" 
-                                                   value="salario_base + subsidios_tributaveis_irt - inss_empregado" readonly>
+                                              <input type="text" class="form-control form-control-sm" 
+                                                  value="salario_base + subsidios_tributaveis_irt - inss_empregado" readonly aria-label="Formula Rendimento Coletavel">
                                         </td>
                                         <td>
                                             <span class="badge bg-secondary">Fixa</span>
@@ -272,8 +272,8 @@
                                     <tr data-formula="irt">
                                         <td><strong>IRT</strong></td>
                                         <td>
-                                            <input type="text" class="form-control form-control-sm" 
-                                                   value="calculado_pelos_escaloes(rendimento_colectavel)" readonly>
+                                              <input type="text" class="form-control form-control-sm" 
+                                                  value="calculado_pelos_escaloes(rendimento_colectavel)" readonly aria-label="Formula IRT">
                                         </td>
                                         <td>
                                             <span class="badge bg-secondary">Fixa</span>
@@ -282,8 +282,8 @@
                                     <tr data-formula="salario_liquido">
                                         <td><strong>Salário Líquido</strong></td>
                                         <td>
-                                            <input type="text" class="form-control form-control-sm" 
-                                                   value="salario_bruto - (inss_empregado + irt)" readonly>
+                                              <input type="text" class="form-control form-control-sm" 
+                                                  value="salario_bruto - (inss_empregado + irt)" readonly aria-label="Formula Salario Liquido">
                                         </td>
                                         <td>
                                             <span class="badge bg-secondary">Fixa</span>
@@ -308,17 +308,17 @@
                         <form id="formConfigRelatorios">
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Título do Relatório</label>
+                                    <label class="form-label fw-bold" for="config-titulo">Título do Relatório</label>
                                     <input type="text" class="form-control" id="config-titulo" placeholder="Relatório de Funcionários">
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Subtítulo</label>
+                                    <label class="form-label fw-bold" for="config-subtitulo">Subtítulo</label>
                                     <input type="text" class="form-control" id="config-subtitulo" placeholder="Listagem Completa">
                                 </div>
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label fw-bold">Rodapé</label>
+                                <label class="form-label fw-bold" for="config-rodape">Rodapé</label>
                                 <input type="text" class="form-control" id="config-rodape" placeholder="Documento Confidencial">
                             </div>
 
@@ -327,22 +327,22 @@
 
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Nome do Gerente</label>
+                                    <label class="form-label" for="config-assinatura-gerente">Nome do Gerente</label>
                                     <input type="text" class="form-control" id="config-assinatura-gerente" placeholder="Nome completo">
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Cargo do Gerente</label>
+                                    <label class="form-label" for="config-cargo-gerente">Cargo do Gerente</label>
                                     <input type="text" class="form-control" id="config-cargo-gerente" value="Gerente Geral">
                                 </div>
                             </div>
 
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Nome do Diretor de RH</label>
+                                    <label class="form-label" for="config-assinatura-rh">Nome do Diretor de RH</label>
                                     <input type="text" class="form-control" id="config-assinatura-rh" placeholder="Nome completo">
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Cargo do RH</label>
+                                    <label class="form-label" for="config-cargo-rh">Cargo do RH</label>
                                     <input type="text" class="form-control" id="config-cargo-rh" value="Diretor de RH">
                                 </div>
                             </div>
@@ -374,14 +374,14 @@
 
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Orientação do PDF</label>
+                                    <label class="form-label fw-bold" for="config-pdf-orientacao">Orientação do PDF</label>
                                     <select class="form-select" id="config-pdf-orientacao">
                                         <option value="portrait">Vertical (Retrato)</option>
                                         <option value="landscape">Horizontal (Paisagem)</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Tipo de Marca d'Água</label>
+                                    <label class="form-label fw-bold" for="config-marca-dagua-tipo">Tipo de Marca d'Água</label>
                                     <select class="form-select" id="config-marca-dagua-tipo" onchange="toggleMarcaDagua()">
                                         <option value="texto">Texto</option>
                                         <option value="imagem">Imagem</option>
@@ -391,13 +391,13 @@
                             </div>
 
                             <div id="marca-dagua-texto-container" class="mb-3">
-                                <label class="form-label fw-bold">Texto da Marca d'Água</label>
+                                <label class="form-label fw-bold" for="config-marca-dagua-texto">Texto da Marca d'Água</label>
                                 <input type="text" class="form-control" id="config-marca-dagua-texto" placeholder="CONFIDENCIAL" value="CONFIDENCIAL">
                                 <small class="text-muted">O texto aparecerá diagonalmente no centro da página</small>
                             </div>
 
-                            <div id="marca-dagua-imagem-container" class="mb-3" style="display: none;">
-                                <label class="form-label fw-bold">Imagem da Marca d'Água (Base64 ou URL)</label>
+                            <div id="marca-dagua-imagem-container" class="mb-3 is-hidden">
+                                <label class="form-label fw-bold" for="config-marca-dagua-imagem">Imagem da Marca d'Água (Base64 ou URL)</label>
                                 <textarea class="form-control" id="config-marca-dagua-imagem" rows="3" placeholder="data:image/png;base64,... ou URL da imagem"></textarea>
                                 <small class="text-muted">Cole a imagem em formato Base64 ou URL. A imagem aparecerá centralizada com transparência.</small>
                             </div>
@@ -413,7 +413,7 @@
                 <div class="card mb-4">
                     <div class="card-header bg-warning d-flex justify-content-between align-items-center">
                         <h5 class="mb-0"><i class="bi bi-lightbulb"></i> Auditoria - Exemplo com Funcionário Real</h5>
-                        <select class="form-select form-select-sm" style="max-width: 300px;" id="funcionario-auditoria" onchange="carregarAuditoria()">
+                        <select class="form-select form-select-sm audit-select" id="funcionario-auditoria" onchange="carregarAuditoria()" aria-label="Funcionario para auditoria">
                             <option value="">Selecione um funcionário...</option>
                         </select>
                     </div>
@@ -422,7 +422,7 @@
                             <p class="text-muted">Selecione um funcionário para ver o cálculo detalhado</p>
                         </div>
                         
-                        <div id="auditoria-resultado" style="display: none;">
+                        <div id="auditoria-resultado" class="is-hidden">
                             <div class="alert alert-info mb-3">
                                 <strong>Funcionário:</strong> <span id="func-nome"></span><br>
                                 <strong>Categoria:</strong> <span id="func-categoria"></span><br>
@@ -462,42 +462,42 @@
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="modalTurnoTitle">Novo Turno</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                         </div>
                         <div class="modal-body">
                             <form id="formTurno">
                                 <input type="hidden" id="turnoId">
                                 <div class="mb-3">
-                                    <label class="form-label">Nome do Turno</label>
+                                    <label class="form-label" for="turnoNome">Nome do Turno</label>
                                     <input type="text" class="form-control" id="turnoNome" required>
                                 </div>
                                 <div class="row g-2">
                                     <div class="col-6 mb-3">
-                                        <label class="form-label">Entrada</label>
+                                        <label class="form-label" for="turnoEntrada">Entrada</label>
                                         <input type="time" class="form-control" id="turnoEntrada" required>
                                     </div>
                                     <div class="col-6 mb-3">
-                                        <label class="form-label">Saída</label>
+                                        <label class="form-label" for="turnoSaida">Saída</label>
                                         <input type="time" class="form-control" id="turnoSaida" required>
                                     </div>
                                 </div>
                                 <div class="row g-2">
                                     <div class="col-6 mb-3">
-                                        <label class="form-label">Início Intervalo</label>
+                                        <label class="form-label" for="turnoInicioIntervalo">Início Intervalo</label>
                                         <input type="time" class="form-control" id="turnoInicioIntervalo">
                                     </div>
                                     <div class="col-6 mb-3">
-                                        <label class="form-label">Fim Intervalo</label>
+                                        <label class="form-label" for="turnoFimIntervalo">Fim Intervalo</label>
                                         <input type="time" class="form-control" id="turnoFimIntervalo">
                                     </div>
                                 </div>
                                 <div class="row g-2">
                                     <div class="col-6 mb-3">
-                                        <label class="form-label">Tolerância Entrada (min)</label>
+                                        <label class="form-label" for="turnoToleranciaEntrada">Tolerância Entrada (min)</label>
                                         <input type="number" class="form-control" id="turnoToleranciaEntrada" value="10">
                                     </div>
                                     <div class="col-6 mb-3">
-                                        <label class="form-label">Tolerância Saída (min)</label>
+                                        <label class="form-label" for="turnoToleranciaSaida">Tolerância Saída (min)</label>
                                         <input type="number" class="form-control" id="turnoToleranciaSaida" value="10">
                                     </div>
                                 </div>
@@ -590,10 +590,11 @@
                         <tr data-formula="${f.codigo}">
                             <td><strong>${f.nome}</strong></td>
                             <td>
-                                <input type="text" class="form-control form-control-sm" 
-                                       data-id="${f.id}"
-                                       value="${f.formula}" 
-                                       ${f.editavel === 0 ? 'readonly' : ''}>
+                                    <input type="text" class="form-control form-control-sm" 
+                                        data-id="${f.id}"
+                                        value="${f.formula}" 
+                                        aria-label="Formula ${f.nome}"
+                                        ${f.editavel === 0 ? 'readonly' : ''}>
                             </td>
                             <td>
                                 ${f.editavel === 0 ? 
@@ -841,10 +842,10 @@
                                 <td>${t.tolerancia_entrada} min</td>
                                 <td>${formatarDiasSemana(t.dias_semana)}</td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-primary" onclick='editarTurno(${JSON.stringify(t)})'>
+                                    <button class="btn btn-sm btn-outline-primary" onclick='editarTurno(${JSON.stringify(t)})' aria-label="Editar turno">
                                         <i class="bi bi-pencil"></i>
                                     </button>
-                                    <button class="btn btn-sm btn-outline-danger" onclick="excluirTurno(${t.id})">
+                                    <button class="btn btn-sm btn-outline-danger" onclick="excluirTurno(${t.id})" aria-label="Excluir turno">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </td>

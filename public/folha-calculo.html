@@ -183,13 +183,13 @@
                                         <option value="9">Setembro</option>
                                         <option value="10">Outubro</option>
                                         <option value="11">Novembro</option>
-                                        <option value="12" selected>Dezembro</option>
+                                        <option value="12">Dezembro</option>
                                     </select>
                                 </div>
                                 
                                 <div class="mb-3">
                                     <label class="form-label">Ano</label>
-                                    <input type="number" class="form-control" id="anoFolha" value="2025">
+                                    <input type="number" class="form-control" id="anoFolha" value="">
                                 </div>
                                 
                                 <div class="mb-3">
@@ -480,7 +480,7 @@
                 const mesEnvio = parseInt(calculoAtual.periodo?.mes || calculoAtual.mes, 10);
                 const anoEnvio = parseInt(calculoAtual.periodo?.ano || calculoAtual.ano, 10);
 
-                const response = await fetch(`${API_URL}/folha-profissional/calcular/${calculoAtual.funcionario.id}`, {
+                const response = await fetch(`${API_URL}/folha-profissional/pagamentos`, {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
@@ -488,7 +488,15 @@
                     },
                     body: JSON.stringify({
                         mes: mesEnvio,
-                        ano: anoEnvio
+                        ano: anoEnvio,
+                        pagamentos: [
+                            {
+                                funcionario_id: calculoAtual.funcionario.id,
+                                valor: calculoAtual.salario_liquido,
+                                descricao: `Pagamento Salário - ${calculoAtual.funcionario.nome} - ${mesEnvio}/${anoEnvio}`,
+                                observacoes: `Ref: ${calculoAtual.funcionario.nome} - ${mesEnvio}/${anoEnvio}`
+                            }
+                        ]
                     })
                 });
 
@@ -867,7 +875,23 @@
         // Event listeners
         document.getElementById('buscaFuncionario').addEventListener('input', renderizarFuncionarios);
 
+        function definirPeriodoAtual() {
+            const hoje = new Date();
+            const mesAtual = hoje.getMonth() + 1;
+            const anoAtual = hoje.getFullYear();
+            const selectMes = document.getElementById('mesFolha');
+            const inputAno = document.getElementById('anoFolha');
+
+            if (selectMes) {
+                selectMes.value = mesAtual;
+            }
+            if (inputAno) {
+                inputAno.value = anoAtual;
+            }
+        }
+
         // Inicializar
+        definirPeriodoAtual();
         carregarFuncionarios();
     </script>
     <script src="js/folha-footer.js"></script>

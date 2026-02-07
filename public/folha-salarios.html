@@ -195,11 +195,7 @@
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Ano</label>
-                                <select class="form-select" id="filtro-ano">
-                                    <option value="2024">2024</option>
-                                    <option value="2025" selected>2025</option>
-                                    <option value="2026">2026</option>
-                                </select>
+                                <select class="form-select" id="filtro-ano"></select>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Status</label>
@@ -304,7 +300,21 @@
 
         // Definir mês atual
         document.addEventListener('DOMContentLoaded', () => {
-            const mesAtual = new Date().getMonth() + 1;
+            const hoje = new Date();
+            const mesAtual = hoje.getMonth() + 1;
+            const anoAtual = hoje.getFullYear();
+
+            const anoSelect = document.getElementById('filtro-ano');
+            if (anoSelect) {
+                const anos = [];
+                for (let ano = anoAtual - 2; ano <= anoAtual + 1; ano++) {
+                    anos.push(ano);
+                }
+                anoSelect.innerHTML = anos.map(ano =>
+                    `<option value="${ano}" ${ano === anoAtual ? 'selected' : ''}>${ano}</option>`
+                ).join('');
+            }
+
             document.getElementById('filtro-mes').value = mesAtual;
             carregarFolha();
         });

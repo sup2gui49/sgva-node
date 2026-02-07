@@ -71,6 +71,26 @@ main {
     font-weight: 600;
 }
 
+.formulas-col-component {
+    width: 30%;
+}
+
+.formulas-col-formula {
+    width: 50%;
+}
+
+.formulas-col-action {
+    width: 20%;
+}
+
+.audit-select {
+    max-width: 300px;
+}
+
+.is-hidden {
+    display: none;
+}
+
 .modal {
     z-index: 2000;
 }

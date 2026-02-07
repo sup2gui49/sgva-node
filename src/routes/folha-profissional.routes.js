@@ -177,6 +177,153 @@ function registrarStatusPagamento(funcionarioId, mes, ano, status, valorPago, de
   );
 }
 
+function registrarFolhasCalculadas(folhas, mes, ano) {
+  const existentes = db.prepare(`
+    SELECT COUNT(*) as total
+    FROM folhas_pagamento
+    WHERE mes = ? AND ano = ?
+  `).get(mes, ano);
+
+  if (existentes?.total > 0) {
+    return { saved: false, reason: 'exists', total: existentes.total };
+  }
+
+  const insertFolha = db.prepare(`
+    INSERT INTO folhas_pagamento (
+      mes, ano, funcionario_id, salario_base, total_subsidios,
+      subsidios_isentos, subsidios_tributaveis, salario_bruto,
+      inss_empregado, inss_patronal, deducao_fixa, rendimento_colectavel,
+      irt, total_descontos, salario_liquido, calculado_em
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now', 'localtime'))
+  `);
+
+  const insertSubsidioDetalhe = db.prepare(`
+    INSERT INTO folha_subsidios_detalhes (
+      folha_id, subsidio_id, nome_subsidio, valor, valor_isento, valor_tributavel
+    ) VALUES (?, ?, ?, ?, ?, ?)
+  `);
+
+  let registrosInseridos = 0;
+
+  folhas.forEach(func => {
+    const funcionarioId = func.funcionario?.id || func.funcionario_id;
+    if (!funcionarioId) {
+      return;
+    }
+
+    const salarioBase = parseFloat(func.salario_base || 0);
+    const totalSubsidios = parseFloat(func.subsidios?.total || func.total_subsidios || 0);
+    const subsidiosIsentos = parseFloat(func.subsidios?.isento || func.subsidios_isentos || 0);
+    const subsidiosTrib = parseFloat(func.subsidios?.tributavel || func.subsidios_tributaveis || 0);
+    const salarioBruto = parseFloat(func.salario_bruto || salarioBase);
+    const inssEmp = parseFloat(func.inss?.empregado || func.inss_empregado || 0);
+    const inssPatr = parseFloat(func.inss?.patronal || func.inss_patronal || 0);
+    const deducaoFixa = parseFloat(func.deducao_fixa || 0);
+    const rendCol = parseFloat(func.rendimento_colectavel || (salarioBase - inssEmp));
+    const irt = parseFloat(func.irt?.valor || func.irt || 0);
+    const totalDesc = parseFloat(func.total_descontos || 0);
+    const salarioLiq = parseFloat(func.salario_liquido || 0);
+
+    try {
+      const resultInsert = insertFolha.run(
+        mes, ano, funcionarioId, salarioBase, totalSubsidios,
+        subsidiosIsentos, subsidiosTrib, salarioBruto,
+        inssEmp, inssPatr, deducaoFixa, rendCol,
+        irt, totalDesc, salarioLiq
+      );
+
+      const folhaRegistroId = resultInsert.lastInsertRowid;
+      if (Array.isArray(func.subsidios?.detalhes)) {
+        func.subsidios.detalhes.forEach(det => {
+          insertSubsidioDetalhe.run(
+            folhaRegistroId,
+            det.id || det.subsidio_id || null,
+            det.nome || det.nome_subsidio || 'Subsídio',
+            parseFloat(det.valor || 0),
+            parseFloat(det.isento ?? det.valor_isento ?? 0),
+            parseFloat(det.tributavel ?? det.valor_tributavel ?? 0)
+          );
+        });
+      }
+
+      registrarStatusPagamento(funcionarioId, mes, ano, 'pago', salarioLiq, null);
+      registrosInseridos++;
+    } catch (error) {
+      console.error(`Erro ao inserir folha do funcionario ${funcionarioId}:`, error.message);
+    }
+  });
+
+  return { saved: true, registros_inseridos: registrosInseridos };
+}
+
+function registrarFolhaSeNaoExistir(calculo, mes, ano) {
+  const funcionarioId = calculo.funcionario?.id || calculo.funcionario_id;
+  if (!funcionarioId) {
+    return { saved: false, reason: 'missing_funcionario' };
+  }
+
+  const existente = db.prepare(`
+    SELECT id
+    FROM folhas_pagamento
+    WHERE funcionario_id = ? AND mes = ? AND ano = ?
+  `).get(funcionarioId, mes, ano);
+
+  if (existente?.id) {
+    return { saved: false, reason: 'exists', folha_id: existente.id };
+  }
+
+  const insertFolha = db.prepare(`
+    INSERT INTO folhas_pagamento (
+      mes, ano, funcionario_id, salario_base, total_subsidios,
+      subsidios_isentos, subsidios_tributaveis, salario_bruto,
+      inss_empregado, inss_patronal, deducao_fixa, rendimento_colectavel,
+      irt, total_descontos, salario_liquido, calculado_em
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now', 'localtime'))
+  `);
+
+  const insertSubsidioDetalhe = db.prepare(`
+    INSERT INTO folha_subsidios_detalhes (
+      folha_id, subsidio_id, nome_subsidio, valor, valor_isento, valor_tributavel
+    ) VALUES (?, ?, ?, ?, ?, ?)
+  `);
+
+  const salarioBase = parseFloat(calculo.salario_base || 0);
+  const totalSubsidios = parseFloat(calculo.subsidios?.total || calculo.total_subsidios || 0);
+  const subsidiosIsentos = parseFloat(calculo.subsidios?.isento || calculo.subsidios_isentos || 0);
+  const subsidiosTrib = parseFloat(calculo.subsidios?.tributavel || calculo.subsidios_tributaveis || 0);
+  const salarioBruto = parseFloat(calculo.salario_bruto || salarioBase);
+  const inssEmp = parseFloat(calculo.inss?.empregado || calculo.inss_empregado || 0);
+  const inssPatr = parseFloat(calculo.inss?.patronal || calculo.inss_patronal || 0);
+  const deducaoFixa = parseFloat(calculo.deducao_fixa || 0);
+  const rendCol = parseFloat(calculo.rendimento_colectavel || (salarioBase - inssEmp));
+  const irt = parseFloat(calculo.irt?.valor || calculo.irt || 0);
+  const totalDesc = parseFloat(calculo.total_descontos || 0);
+  const salarioLiq = parseFloat(calculo.salario_liquido || 0);
+
+  const resultInsert = insertFolha.run(
+    mes, ano, funcionarioId, salarioBase, totalSubsidios,
+    subsidiosIsentos, subsidiosTrib, salarioBruto,
+    inssEmp, inssPatr, deducaoFixa, rendCol,
+    irt, totalDesc, salarioLiq
+  );
+
+  const folhaRegistroId = resultInsert.lastInsertRowid;
+  if (Array.isArray(calculo.subsidios?.detalhes)) {
+    calculo.subsidios.detalhes.forEach(det => {
+      insertSubsidioDetalhe.run(
+        folhaRegistroId,
+        det.id || det.subsidio_id || null,
+        det.nome || det.nome_subsidio || 'Subsídio',
+        parseFloat(det.valor || 0),
+        parseFloat(det.isento ?? det.valor_isento ?? 0),
+        parseFloat(det.tributavel ?? det.valor_tributavel ?? 0)
+      );
+    });
+  }
+
+  return { saved: true, folha_id: folhaRegistroId };
+}
+
 // HELPER: Auto-criar tabela categorias_funcionarios se nao existir
 function ensureCategoriasTable() {
   try {
@@ -1132,6 +1279,13 @@ router.post('/pagamentos', (req, res) => {
         const calculo = folhaService.calcularFolhaFuncionario(parseInt(funcionario_id), mesInt, anoInt);
         const valorUsado = valor !== undefined ? parseFloat(valor) : calculo.salario_liquido;
 
+        let folhaSalva = null;
+        try {
+          folhaSalva = registrarFolhaSeNaoExistir(calculo, mesInt, anoInt);
+        } catch (saveError) {
+          console.error(`❌ Erro ao salvar folha para funcionario ${funcionario_id}: ${saveError.message}`);
+        }
+
         let despesaId = null;
         if (syncWithVendas) {
           despesaId = folhaService.registrarPagamentoSalario(calculo, mesInt, anoInt, {
@@ -1159,7 +1313,8 @@ router.post('/pagamentos', (req, res) => {
           funcionario: calculo.funcionario.nome,
           valor: valorUsado,
           despesa_id: despesaId,
-          integracao: syncWithVendas ? 'registrado' : 'independente'
+          integracao: syncWithVendas ? 'registrado' : 'independente',
+          folha_salva: folhaSalva?.saved || false
         });
       } catch (error) {
         detalhes.push({
@@ -1232,7 +1387,7 @@ router.get('/pagamentos/status', (req, res) => {
 // Calcular folha completa (todos funcionários)
 router.post('/calcular-completa', (req, res) => {
   try {
-    const { mes, ano } = req.body;
+    const { mes, ano, salvar } = req.body;
 
     if (!mes || !ano) {
       return res.status(400).json({
@@ -1241,10 +1396,9 @@ router.post('/calcular-completa', (req, res) => {
       });
     }
 
-    const resultados = folhaService.calcularFolhaCompleta(
-      parseInt(mes),
-      parseInt(ano)
-    );
+    const mesInt = parseInt(mes);
+    const anoInt = parseInt(ano);
+    const resultados = folhaService.calcularFolhaCompleta(mesInt, anoInt);
 
     const sucessos = resultados.filter(r => r.sucesso);
     const erros = resultados.filter(r => !r.sucesso).length;
@@ -1270,6 +1424,11 @@ router.post('/calcular-completa', (req, res) => {
       total_empresa: 0
     });
 
+    let resultadoSalvar = null;
+    if (salvar && sucessos.length > 0) {
+      resultadoSalvar = registrarFolhasCalculadas(sucessos, mesInt, anoInt);
+    }
+
     res.json({
       success: true,
       message: `Folha calculada! ${sucessos.length} sucessos, ${erros} erros`,
@@ -1278,7 +1437,10 @@ router.post('/calcular-completa', (req, res) => {
         sucessos: sucessos.length,
         erros,
         folhas: sucessos,
-        ...totais
+        ...totais,
+        salvo: resultadoSalvar?.saved || false,
+        registros_inseridos: resultadoSalvar?.registros_inseridos || 0,
+        motivo_nao_salvar: resultadoSalvar?.reason || null
       }
     });
   } catch (error) {

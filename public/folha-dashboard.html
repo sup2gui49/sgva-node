@@ -547,6 +547,44 @@
         const chartDataStore = { categorias: null, subsidios: null };
         let chartRetryInterval = null;
         const MAX_CHART_RETRY_ATTEMPTS = 20;
+        const autoSaveFolhaCache = new Set();
+
+        function getAutoSaveKey(mes, ano) {
+            return `${ano}-${mes}`;
+        }
+
+        async function registrarFolhasAutomaticamente(mes, ano) {
+            const key = getAutoSaveKey(mes, ano);
+            if (autoSaveFolhaCache.has(key)) {
+                return false;
+            }
+
+            autoSaveFolhaCache.add(key);
+
+            const token = localStorage.getItem('token');
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/folha-profissional/calcular-completa`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ mes, ano, salvar: true })
+                });
+
+                if (!response.ok) {
+                    return false;
+                }
+
+                const data = await response.json();
+                return !!data.data?.salvo;
+            } catch (error) {
+                console.error('Erro ao registrar folhas automaticamente:', error);
+                return false;
+            }
+        }
 
         function exibirAvisoGrafico() {
             document.querySelectorAll('[data-chart-name]').forEach(function(canvas) {
@@ -1023,7 +1061,7 @@
                 const totalEscaloes = Array.isArray(irtData.data) ? irtData.data.length : 13;
                 document.getElementById('totalEscaloes').textContent = totalEscaloes;
 
-                const folhasPeriodo = (folhasData.data || []).filter(f =>
+                let folhasPeriodo = (folhasData.data || []).filter(f =>
                     Number(f.mes) === mesAtual && Number(f.ano) === anoAtual
                 );
 
@@ -1032,7 +1070,22 @@
                     calculosPeriodo = await calcularFolhasAtuais(funcionarios, mesAtual, anoAtual, token);
                 }
 
-                const dataset = calculosPeriodo.length > 0 ? calculosPeriodo : folhasPeriodo;
+                let dataset = calculosPeriodo.length > 0 ? calculosPeriodo : folhasPeriodo;
+
+                if (folhasPeriodo.length === 0 && calculosPeriodo.length > 0 && token) {
+                    const salvou = await registrarFolhasAutomaticamente(mesAtual, anoAtual);
+                    if (salvou) {
+                        const folhasAtualizadasResp = await fetch(`${API_URL}/folha-profissional/folhas?mes=${mesAtual}&ano=${anoAtual}`);
+                        const folhasAtualizadasData = await folhasAtualizadasResp.json();
+                        folhasPeriodo = (folhasAtualizadasData.data || []).filter(f =>
+                            Number(f.mes) === mesAtual && Number(f.ano) === anoAtual
+                        );
+                        if (folhasPeriodo.length > 0) {
+                            dataset = folhasPeriodo;
+                        }
+                    }
+                }
+
                 document.getElementById('totalFolhas').textContent = dataset.length;
 
                 if (dataset.length > 0) {
