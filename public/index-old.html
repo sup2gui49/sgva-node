@@ -31,6 +31,15 @@
         .product-filter-select {
             padding: 10px;
         }
+
+        .table-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table-scroll table {
+            min-width: 720px;
+        }
     </style>
 </head>
 <body>
@@ -153,7 +162,7 @@
                         </ul>
                     </div>
 
-    <div class="table-responsive">
+    <div class="table-responsive table-scroll">
                     <table id="tabela-categorias-produtos" class="data-table">
                         <thead>
                             <tr>
@@ -192,7 +201,7 @@
                         </ul>
                     </div>
 
-    <div class="table-responsive">
+    <div class="table-responsive table-scroll">
                     <table id="tabela-categorias-despesas" class="data-table">
                         <thead>
                             <tr>

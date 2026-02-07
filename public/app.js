@@ -269,6 +269,8 @@ function showPage(page) {
     if (page === 'folha') loadEmployees();
 }
 
+window.showPage = showPage;
+
 // [Mapeamento removido - declarado no topo do arquivo]
 
 // Restaurar página ao carregar
@@ -335,6 +337,15 @@ function renderDashboardCards(d) {
         return;
     }
 
+    const formatKz = (value) => {
+        const numeric = Number(String(value).replace(/[^0-9.-]/g, ''));
+        if (!Number.isFinite(numeric)) return '--';
+        return new Intl.NumberFormat('pt-AO', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(numeric);
+    };
+
     const crescimento = parseFloat(d.crescimento_receita) || 0;
     const crescimentoIcon = crescimento >= 0 ? '📈' : '📉';
     const crescimentoColor = crescimento >= 0 ? '#27ae60' : '#e74c3c';
@@ -343,12 +354,12 @@ function renderDashboardCards(d) {
     container.innerHTML = `
         <div class="stat-card">
             <h3>💰 Receita Total</h3>
-            <div class="value">${d.receita_total} KZ</div>
+            <div class="value">${formatKz(d.receita_total)} KZ</div>
             <small style="color: ${crescimentoColor};">${crescimentoIcon} ${d.crescimento_receita} vs mês anterior</small>
         </div>
         <div class="stat-card">
             <h3>📊 Lucro Líquido</h3>
-            <div class="value" style="color: ${lucroCor};">${d.lucro_liquido} KZ</div>
+            <div class="value" style="color: ${lucroCor};">${formatKz(d.lucro_liquido)} KZ</div>
             <small>Margem: ${d.margem_lucro}</small>
         </div>
         <div class="stat-card">
@@ -358,27 +369,27 @@ function renderDashboardCards(d) {
         </div>
         <div class="stat-card">
             <h3>🎫 Ticket Médio</h3>
-            <div class="value">${d.ticket_medio} KZ</div>
+            <div class="value">${formatKz(d.ticket_medio)} KZ</div>
             <small>${d.total_vendas} vendas no mês</small>
         </div>
         <div class="stat-card">
             <h3>📦 Custos (CMV)</h3>
-            <div class="value">${d.custos_vendas} KZ</div>
+            <div class="value">${formatKz(d.custos_vendas)} KZ</div>
             <small>Margem bruta: ${d.margem_bruta}</small>
         </div>
         <div class="stat-card">
             <h3>💸 Despesas</h3>
-            <div class="value">${d.despesas_totais} KZ</div>
+            <div class="value">${formatKz(d.despesas_totais)} KZ</div>
             <small>Operacionais do mês</small>
         </div>
         <div class="stat-card">
             <h3>🏛️ IVA a Recolher</h3>
-            <div class="value">${d.iva_recolher} KZ</div>
+            <div class="value">${formatKz(d.iva_recolher)} KZ</div>
             <small>Imposto sobre vendas</small>
         </div>
         <div class="stat-card">
             <h3>🎁 Descontos</h3>
-            <div class="value">${d.descontos_concedidos} KZ</div>
+            <div class="value">${formatKz(d.descontos_concedidos)} KZ</div>
             <small>Concedidos no mês</small>
         </div>
     `;
@@ -386,6 +397,7 @@ function renderDashboardCards(d) {
 
 // Carregar gráficos do dashboard
 let chartInstances = {};
+let produtosChartRequestId = 0;
 
 let chartLoadAttempts = 0;
 const MAX_CHART_ATTEMPTS = 10;
@@ -416,14 +428,13 @@ async function loadDashboardCharts() {
         console.log('📊 Carregando gráficos do dashboard...');
         
         // Obter dados
-        const [dashData, despesasData, vendasData, produtosData] = await Promise.all([
+        const [dashData, despesasData, vendasData] = await Promise.all([
             fetch(`${API_URL}/financeiro/dashboard`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
             fetch(`${API_URL}/despesas/resumo?mes=${mes}&ano=${ano}`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
-            fetch(`${API_URL}/vendas`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
-            fetch(`${API_URL}/produtos`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json())
+            fetch(`${API_URL}/vendas`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json())
         ]);
         
-        console.log('✅ Dados carregados:', { dashData, despesasData, vendasData, produtosData });
+        console.log('✅ Dados carregados:', { dashData, despesasData, vendasData });
         
         // 1. Gráfico Receita vs Despesas
         createReceitaDespesaChart(dashData, despesasData);
@@ -435,7 +446,7 @@ async function loadDashboardCharts() {
         createEvolucaoChart(vendasData);
         
         // 4. Gráfico Produtos Mais Vendidos
-        createProdutosChart(vendasData);
+        createProdutosChart();
         
         console.log('✅ Gráficos criados com sucesso');
         
@@ -449,6 +460,22 @@ async function loadDashboardCharts() {
             chartsContainer.appendChild(errorMsg);
         }
     }
+}
+
+function getLastMonthsRange(totalMonths) {
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+
+    const start = new Date(end.getFullYear(), end.getMonth() - (totalMonths - 1), 1);
+    start.setHours(0, 0, 0, 0);
+
+    const formatDate = (d) => d.toISOString().slice(0, 10);
+    return {
+        start,
+        end,
+        data_inicio: formatDate(start),
+        data_fim: formatDate(end)
+    };
 }
 
 function createReceitaDespesaChart(dashData, despesasData) {
@@ -570,7 +597,9 @@ function createEvolucaoChart(vendasData) {
     const dadosPorMes = {};
     
     vendas.forEach(venda => {
+        if (!venda.data_venda) return;
         const data = new Date(venda.data_venda);
+        if (Number.isNaN(data.getTime())) return;
         const mesAno = `${String(data.getMonth() + 1).padStart(2, '0')}/${data.getFullYear()}`;
         
         if (!dadosPorMes[mesAno]) {
@@ -584,10 +613,16 @@ function createEvolucaoChart(vendasData) {
         dadosPorMes[mesAno].quantidade += 1;
     });
     
-    // Últimos 6 meses
-    const meses = Object.keys(dadosPorMes).slice(-6);
-    const valores = meses.map(m => dadosPorMes[m].vendas);
-    const quantidades = meses.map(m => dadosPorMes[m].quantidade);
+    // Últimos 6 meses (ordenados)
+    const totalMonths = 6;
+    const { end } = getLastMonthsRange(totalMonths);
+    const meses = [];
+    for (let i = totalMonths - 1; i >= 0; i -= 1) {
+        const d = new Date(end.getFullYear(), end.getMonth() - i, 1);
+        meses.push(`${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`);
+    }
+    const valores = meses.map(m => dadosPorMes[m]?.vendas || 0);
+    const quantidades = meses.map(m => dadosPorMes[m]?.quantidade || 0);
     
     // Formatar labels melhor
     const mesesNomes = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -684,55 +719,52 @@ function createEvolucaoChart(vendasData) {
     });
 }
 
-async function createProdutosChart(vendasData) {
+async function createProdutosChart() {
     const canvas = document.getElementById('chart-produtos');
     if (!canvas) return;
 
-    // Tentar destruir qualquer gráfico Chart.js associado a este canvas (por elemento ou por id)
+    const requestId = ++produtosChartRequestId;
+
     try {
-        const canvasId = canvas.id || 'chart-produtos';
-        const existingChart = Chart.getChart(canvas) || Chart.getChart(canvasId);
-        if (existingChart) {
-            try { existingChart.destroy(); } catch (e) { /* ignorar */ }
+        const { data_inicio, data_fim } = getLastMonthsRange(6);
+        const relatorioResponse = await fetch(
+            `${API_URL}/vendas/relatorios/periodo?data_inicio=${data_inicio}&data_fim=${data_fim}`,
+            { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+        const relatorioData = await relatorioResponse.json();
+        const produtosVendidos = relatorioData.produtos_mais_vendidos || [];
+
+        if (relatorioData.success === false || produtosVendidos.length === 0) {
+            canvas.parentElement.innerHTML = '<p style="text-align:center; padding:50px;">Nenhum produto vendido no período</p>';
+            return;
         }
-    } catch (e) {
-        // Se Chart.getChart não existir ou falhar, continuar
-    }
 
-    // Destruir também qualquer instância salva em chartInstances
-    if (chartInstances['produtos']) {
-        try { chartInstances['produtos'].destroy(); } catch (e) { /* ignorar */ }
-        delete chartInstances['produtos'];
-    }
+        const labels = produtosVendidos.map(p => p.nome || 'Sem nome');
+        const quantidades = produtosVendidos.map(p => Number(p.quantidade_vendida) || 0);
 
-    // Usar contexto 2D se disponível
-    const ctx = (canvas.getContext) ? canvas.getContext('2d') : canvas;
+        if (requestId !== produtosChartRequestId) {
+            return;
+        }
 
-    try {
-        // Buscar produtos para ter os nomes
-        const produtosResponse = await fetch(`${API_URL}/produtos`);
-        const produtosData = await produtosResponse.json();
-        const produtos = produtosData.data || [];
-        
-        // Criar mapa de produtos
-        const produtosMap = {};
-        produtos.forEach(p => {
-            produtosMap[p.id] = p.nome;
-        });
-        
-        // Simular dados de produtos vendidos (idealmente viria da API)
-        const vendas = vendasData.data || [];
-        const produtosVendidos = {};
-        
-        // Como não temos itens de venda, vamos simular baseado nos produtos existentes
-        // Pegar top 5 produtos aleatórios para demo
-        const produtosDemo = produtos.slice(0, 5);
-        produtosDemo.forEach((p, i) => {
-            produtosVendidos[p.nome] = Math.floor(Math.random() * 50) + 10;
-        });
-        
-        const labels = Object.keys(produtosVendidos);
-        const quantidades = Object.values(produtosVendidos);
+        // Tentar destruir qualquer gráfico Chart.js associado a este canvas (por elemento ou por id)
+        try {
+            const canvasId = canvas.id || 'chart-produtos';
+            const existingChart = Chart.getChart(canvas) || Chart.getChart(canvasId);
+            if (existingChart) {
+                try { existingChart.destroy(); } catch (e) { /* ignorar */ }
+            }
+        } catch (e) {
+            // Se Chart.getChart não existir ou falhar, continuar
+        }
+
+        // Destruir também qualquer instância salva em chartInstances
+        if (chartInstances['produtos']) {
+            try { chartInstances['produtos'].destroy(); } catch (e) { /* ignorar */ }
+            delete chartInstances['produtos'];
+        }
+
+        // Usar contexto 2D se disponível
+        const ctx = (canvas.getContext) ? canvas.getContext('2d') : canvas;
         
         // Cores diferentes para cada barra
         const cores = [
@@ -1089,6 +1121,8 @@ async function showNewSale() {
         alert('Ocorreu um erro ao tentar abrir a tela de vendas: ' + error.message);
     }
 
+}
+
 function hideNewSale() {
     document.getElementById('new-sale-form').style.display = 'none';
 }
@@ -1096,55 +1130,55 @@ function hideNewSale() {
 async function addItemToSale() {
     try {
         const produtoId = document.getElementById('sale-produto').value;
-    const quantidade = document.getElementById('sale-quantidade').value;
-    
-    if (!produtoId || !quantidade) {
-        alert('Selecione um produto e quantidade');
-        return;
-    }
-    
-    const response = await fetch(`${API_URL}/produtos/${produtoId}`);
-    
-    const data = await response.json();
-    
-    if (data.success) {
-        const produto = data.data;
-        
-        // Calcular IVA baseado na categoria do produto
-        console.log('🔍 PRODUTO COMPLETO:', produto);
-        console.log('🔍 sujeito_iva:', produto.sujeito_iva, typeof produto.sujeito_iva);
-        console.log('🔍 taxa_iva_padrao:', produto.taxa_iva_padrao, typeof produto.taxa_iva_padrao);
-        
-        const subtotal = parseFloat(quantidade) * produto.preco_venda;
-        const taxaIva = produto.sujeito_iva ? (produto.taxa_iva_padrao || 0) : 0;
-        const valorIva = subtotal * (taxaIva / 100);
-        const totalComIva = subtotal + valorIva;
-        
-        console.log(`📊 Produto: ${produto.nome}`);
-        console.log(`📊 Categoria: ${produto.categoria_nome}`);
-        console.log(`📊 Taxa IVA: ${taxaIva}%`);
-        console.log(`📊 Subtotal: ${subtotal.toFixed(2)} KZ`);
-        console.log(`📊 IVA: ${valorIva.toFixed(2)} KZ`);
-        console.log(`📊 Total: ${totalComIva.toFixed(2)} KZ`);
-        
-        saleItems.push({
-            produto_id: produto.id,
-            descricao: produto.nome,
-            quantidade: parseFloat(quantidade),
-            preco_unitario: produto.preco_venda,
-            categoria_id: produto.categoria_id,
-            categoria_nome: produto.categoria_nome,
-            taxa_iva: taxaIva,
-            valor_iva: valorIva,
-            subtotal: subtotal,
-            total_com_iva: totalComIva
-        });
-        
-        updateSaleItems();
-    } else {
-        console.error('Erro ao buscar produto:', data);
-        alert('Erro ao buscar dados do produto: ' + (data.message || 'Erro desconhecido. Verifique o console.'));
-    }
+        const quantidade = document.getElementById('sale-quantidade').value;
+
+        if (!produtoId || !quantidade) {
+            alert('Selecione um produto e quantidade');
+            return;
+        }
+
+        const response = await fetch(`${API_URL}/produtos/${produtoId}`);
+
+        const data = await response.json();
+
+        if (data.success) {
+            const produto = data.data;
+
+            // Calcular IVA baseado na categoria do produto
+            console.log('🔍 PRODUTO COMPLETO:', produto);
+            console.log('🔍 sujeito_iva:', produto.sujeito_iva, typeof produto.sujeito_iva);
+            console.log('🔍 taxa_iva_padrao:', produto.taxa_iva_padrao, typeof produto.taxa_iva_padrao);
+
+            const subtotal = parseFloat(quantidade) * produto.preco_venda;
+            const taxaIva = produto.sujeito_iva ? (produto.taxa_iva_padrao || 0) : 0;
+            const valorIva = subtotal * (taxaIva / 100);
+            const totalComIva = subtotal + valorIva;
+
+            console.log(`📊 Produto: ${produto.nome}`);
+            console.log(`📊 Categoria: ${produto.categoria_nome}`);
+            console.log(`📊 Taxa IVA: ${taxaIva}%`);
+            console.log(`📊 Subtotal: ${subtotal.toFixed(2)} KZ`);
+            console.log(`📊 IVA: ${valorIva.toFixed(2)} KZ`);
+            console.log(`📊 Total: ${totalComIva.toFixed(2)} KZ`);
+
+            saleItems.push({
+                produto_id: produto.id,
+                descricao: produto.nome,
+                quantidade: parseFloat(quantidade),
+                preco_unitario: produto.preco_venda,
+                categoria_id: produto.categoria_id,
+                categoria_nome: produto.categoria_nome,
+                taxa_iva: taxaIva,
+                valor_iva: valorIva,
+                subtotal: subtotal,
+                total_com_iva: totalComIva
+            });
+
+            updateSaleItems();
+        } else {
+            console.error('Erro ao buscar produto:', data);
+            alert('Erro ao buscar dados do produto: ' + (data.message || 'Erro desconhecido. Verifique o console.'));
+        }
     } catch (error) {
         console.error('Erro de exceção ao adicionar item:', error);
         alert('Erro: ' + error.message);
@@ -1600,6 +1634,9 @@ async function loadCategorias() {
 async function loadFinanceiro() {
     loadDRE();
 }
+
+window.loadFinanceiro = loadFinanceiro;
+window.showFinanceiroTab = showFinanceiroTab;
 
 async function loadDRE() {
     try {
@@ -2404,7 +2441,6 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
-};
 
 // Inicializar
 bootstrapSalesApp();

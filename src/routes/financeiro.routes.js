@@ -388,15 +388,24 @@ router.get('/dre', (req, res) => {
         || folhaDetalhada.total_salario_liquido > 0
         || folhaDetalhada.total_salario_base > 0));
 
+    const funcionariosTotais = db.prepare(`
+      SELECT SUM(salario_base) as total, COUNT(*) as qtd
+      FROM funcionarios
+      WHERE ativo = 1
+    `).get();
+
+    const salarioBaseFuncionarios = funcionariosTotais?.total || 0;
+    const qtdFuncionarios = funcionariosTotais?.qtd || 0;
+
     let folhaPagamento = despesasSalariosLiquidos;
     let inssPatronal = despesasINSSPatronal;
     let dadosFolha = {
       tem_folha_registrada: temFolhaRegistrada,
-      salario_base: folhaDetalhada?.total_salario_base || 0,
-      salario_bruto: folhaDetalhada?.total_salario_bruto || 0,
-      inss_empregado: folhaDetalhada?.total_inss_empregado || 0,
-      irt: folhaDetalhada?.total_irt || 0,
-      funcionarios: folhaDetalhada?.total_funcionarios || 0
+      salario_base: temFolhaRegistrada ? (folhaDetalhada?.total_salario_base || 0) : salarioBaseFuncionarios,
+      salario_bruto: temFolhaRegistrada ? (folhaDetalhada?.total_salario_bruto || 0) : salarioBaseFuncionarios,
+      inss_empregado: temFolhaRegistrada ? (folhaDetalhada?.total_inss_empregado || 0) : (salarioBaseFuncionarios * 0.03),
+      irt: temFolhaRegistrada ? (folhaDetalhada?.total_irt || 0) : (salarioBaseFuncionarios * 0.10),
+      funcionarios: temFolhaRegistrada ? (folhaDetalhada?.total_funcionarios || 0) : qtdFuncionarios
     };
 
     // Se existir folha profissional calculada, usar os valores reais
@@ -408,23 +417,8 @@ router.get('/dre', (req, res) => {
 
     // Se não houver registro de folha paga e nem folha calculada, estimar
     if (!temFolhaRegistrada && despesasSalariosLiquidos === 0) {
-      const salariosTotais = db.prepare(`
-        SELECT SUM(salario_base) as total, COUNT(*) as qtd
-        FROM funcionarios
-        WHERE ativo = 1
-      `).get();
-      
-      const salarioBase = salariosTotais.total || 0;
-      folhaPagamento = salarioBase * 0.87; // Estimativa: 13% de descontos médios
-      inssPatronal = salarioBase * 0.08;
-      
-      dadosFolha = {
-        tem_folha_registrada: false,
-        salario_base: salarioBase,
-        inss_empregado: salarioBase * 0.03,
-        irt: salarioBase * 0.10,
-        funcionarios: salariosTotais.qtd || 0
-      };
+      folhaPagamento = salarioBaseFuncionarios * 0.87; // Estimativa: 13% de descontos médios
+      inssPatronal = salarioBaseFuncionarios * 0.08;
     }
     
     const lucroAntesImpostos = lucroOperacional - folhaPagamento - inssPatronal;
