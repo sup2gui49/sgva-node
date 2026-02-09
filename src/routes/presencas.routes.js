@@ -121,8 +121,52 @@ router.post('/registrar', (req, res) => {
                 db.prepare(`UPDATE presencas SET entrada_registrada = ?, observacao = COALESCE(?, observacao) WHERE id = ?`)
                   .run(horario, observacao, presenca.id);
             } else {
-                 db.prepare(`UPDATE presencas SET saida_registrada = ?, observacao = COALESCE(?, observacao) WHERE id = ?`)
-                  .run(horario, observacao, presenca.id);
+                // Update Saida
+                let finalStatus = presenca.status;
+                let finalObs = observacao || presenca.observacao;
+
+                // Verificar horas trabalhadas vs turno
+                if (presenca.entrada_registrada) {
+                    try {
+                        const turno = db.prepare('SELECT * FROM turnos WHERE id = ?').get(presenca.turno_id || turno_id);
+                        if (turno) {
+                            // Converter horarios para minutos
+                            const toMins = (h) => {
+                                const [hh, mm] = h.split(':').map(Number);
+                                return hh * 60 + mm;
+                            };
+
+                            const entradaMins = toMins(presenca.entrada_registrada);
+                            const saidaMins = toMins(horario);
+                            const workedMins = saidaMins - entradaMins;
+
+                            // Horas esperadas do turno (com desconto de intervalo se houver?) 
+                            // Simplificando: saida - entrada do turno
+                            const turnoEntradaMins = toMins(turno.entrada);
+                            const turnoSaidaMins = toMins(turno.saida);
+                            let expectedMins = turnoSaidaMins - turnoEntradaMins;
+                            
+                            // Se tiver intervalo, descontar (assumindo 1h se nao definido ou calcular)
+                            if (turno.inicio_intervalo && turno.fim_intervalo) {
+                                expectedMins -= (toMins(turno.fim_intervalo) - toMins(turno.inicio_intervalo));
+                            }
+
+                            // Margem de erro (tolerancia geral 30 min para considerar falta?)
+                            // Se trabalhou menos que o esperado - 30 minutos
+                            if (workedMins < (expectedMins - 30)) {
+                                finalStatus = 'falta'; // Como pedido pelo usuário
+                                const diffH = Math.floor((expectedMins - workedMins) / 60);
+                                const diffM = (expectedMins - workedMins) % 60;
+                                finalObs = (finalObs ? finalObs + '; ' : '') + `Horas insuficientes (-${diffH}h${diffM}m)`;
+                            }
+                        }
+                    } catch (calcErr) {
+                        console.error('Erro ao calcular horas:', calcErr);
+                    }
+                }
+
+                 db.prepare(`UPDATE presencas SET saida_registrada = ?, status = ?, observacao = ? WHERE id = ?`)
+                  .run(horario, finalStatus, finalObs, presenca.id);
             }
         }
 
