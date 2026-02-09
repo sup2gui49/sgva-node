@@ -518,13 +518,18 @@ table tr:hover {
         scroll-snap-align: start;
     }
 
-    table {
+    .table-responsive {
         display: block;
         width: 100%;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
-        /* Remover max-height se estiver cortando linhas, ou aumentar */
-        max-height: 70vh; 
+    }
+
+    table {
+        /* display: block; REMOVIDO para manter alinhamento */
+        width: 100%;
+        /* overflow-x: auto; movido para wrapper */
+        /* max-height: 70vh; movido ou removido */
     }
 
     /* REMOVIDO: display: table em thead/tbody quebra alinhamento de colunas */

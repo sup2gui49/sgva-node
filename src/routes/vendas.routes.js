@@ -344,6 +344,12 @@ router.post('/', (req, res) => {
           itemDetalhado.preco_unitario,
           itemDetalhado.subtotal
         );
+
+        // Atualizar estoque se for produto
+        if (itemDetalhado.produto_id) {
+          db.prepare('UPDATE produtos SET estoque = estoque - ? WHERE id = ?')
+            .run(itemDetalhado.quantidade, itemDetalhado.produto_id);
+        }
       });
 
       return {
@@ -480,19 +486,47 @@ router.patch('/:id/status', (req, res) => {
       });
     }
     
-    const venda = db.prepare('SELECT id FROM vendas WHERE id = ?').get(id);
+    const venda = db.prepare('SELECT id, status FROM vendas WHERE id = ?').get(id);
     if (!venda) {
       return res.status(404).json({
         success: false,
         message: 'Venda não encontrada'
       });
     }
+
+    const updateStatus = db.transaction(() => {
+      // Se estiver cancelando uma venda concluída, devolver estoque
+      if (venda.status === 'concluida' && status === 'cancelada') {
+        const itens = db.prepare('SELECT produto_id, quantidade FROM itens_venda WHERE venda_id = ? AND produto_id IS NOT NULL').all(id);
+        
+        const updateEstoque = db.prepare('UPDATE produtos SET estoque = estoque + ? WHERE id = ?');
+        
+        for (const item of itens) {
+          updateEstoque.run(item.quantidade, item.produto_id);
+        }
+      }
+
+      // Se estiver reativando uma venda cancelada (opcional, mas bom pra consistência)
+      if (venda.status === 'cancelada' && status === 'concluida') {
+        const itens = db.prepare('SELECT produto_id, quantidade FROM itens_venda WHERE venda_id = ? AND produto_id IS NOT NULL').all(id);
+        
+        const updateEstoque = db.prepare('UPDATE produtos SET estoque = estoque - ? WHERE id = ?');
+        
+        for (const item of itens) {
+          updateEstoque.run(item.quantidade, item.produto_id);
+        }
+      }
+      
+      db.prepare('UPDATE vendas SET status = ? WHERE id = ?').run(status, id);
+    });
     
-    db.prepare('UPDATE vendas SET status = ? WHERE id = ?').run(status, id);
+    updateStatus();
     
     res.json({
       success: true,
-      message: 'Status da venda atualizado com sucesso!'
+      message: status === 'cancelada' 
+        ? 'Venda cancelada e estoque reposto com sucesso!' 
+        : 'Status da venda atualizado com sucesso!'
     });
   } catch (error) {
     res.status(500).json({

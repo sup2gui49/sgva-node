@@ -1220,11 +1220,15 @@ async function loadSales() {
                 <div style="margin-bottom: 15px;">
                     <button onclick="gerarRelatorioPDF('vendas')" style="background: #3498db; color: white;">📄 Relatório de Vendas (PDF)</button>
                 </div>
-                <table><thead><tr><th>Data</th><th>Cliente</th><th>Produtos</th><th>Total</th><th>Pagamento</th><th>Status</th><th>Ações</th></tr></thead><tbody>`;
+                <div class="table-responsive">
+                <table><thead><tr><th>Data</th><th>Cliente</th><th>Produtos</th><th>Total</th><th>Pagamento</th><th>Status</th><th style="text-align: center;">Ações</th></tr></thead><tbody>`;
             
+            const userRole = currentUser.role || currentUser.funcao || 'funcionario';
+
             data.data.forEach(venda => {
                 // Buscar itens da venda
                 const produtos = venda.itens ? venda.itens.map(i => `${i.descricao} (${i.quantidade})`).join(', ') : 'N/A';
+                const canCancel = (userRole === 'admin' || userRole === 'gerente') && venda.status !== 'cancelada';
                 
                 html += `
                     <tr>
@@ -1234,18 +1238,51 @@ async function loadSales() {
                         <td>${venda.total} KZ</td>
                         <td>${venda.tipo_pagamento}</td>
                         <td>${venda.status}</td>
-                        <td>
-                            <button onclick="gerarRecibo(${venda.id})" style="background: #27ae60; color: white; padding: 5px 10px;">🧾 Recibo</button>
+                        <td style="white-space: nowrap; width: 1%; text-align: center;">
+                            <button onclick="gerarRecibo(${venda.id})" class="btn btn-success" style="padding: 2px 8px; font-size: 1rem; line-height: 1;" title="Emitir Recibo">
+                                <i class="bi bi-receipt"></i>
+                            </button>
+                            ${canCancel ? `
+                            <button onclick="cancelSale(${venda.id})" class="btn btn-danger ms-1" style="padding: 2px 8px; font-size: 1rem; line-height: 1;" title="Cancelar Venda">
+                                <i class="bi bi-x-circle"></i>
+                            </button>` : ''}
                         </td>
                     </tr>
                 `;
             });
             
-            html += '</tbody></table>';
+            html += '</tbody></table></div>';
             document.getElementById('vendas-list').innerHTML = html;
         }
     } catch (error) {
         console.error('Erro ao carregar vendas:', error);
+    }
+}
+
+async function cancelSale(id) {
+    if(!confirm('Tem certeza que deseja cancelar esta venda? Esta ação devolverá os produtos ao estoque.')) return;
+    
+    try {
+        const response = await fetch(`${API_URL}/vendas/${id}/status`, {
+            method: 'PATCH',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` 
+            },
+            body: JSON.stringify({ status: 'cancelada' })
+        });
+        
+        const data = await response.json();
+        
+        if(data.success) {
+            alert('Venda cancelada com sucesso!');
+            loadSales();
+        } else {
+            alert('Erro ao cancelar: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao conectar com o servidor');
     }
 }
 

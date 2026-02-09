@@ -20,7 +20,7 @@ router.get('/monitor', (req, res) => {
 
         // Buscar funcionários do turno
         let sqlFunc = `
-            SELECT f.id, f.nome, f.foto, f.turno_id, f.trabalha_fds, t.dias_semana
+            SELECT f.id, f.nome, f.foto, f.turno_id, f.trabalha_fds, f.categoria, f.setor, t.dias_semana
             FROM funcionarios f
             LEFT JOIN turnos t ON f.turno_id = t.id
             WHERE f.ativo = 1
@@ -79,10 +79,25 @@ router.get('/monitor', (req, res) => {
 // POST /registrar
 router.post('/registrar', (req, res) => {
     try {
-        const { funcionario_id, data, horario, tipo, observacao, turno_id } = req.body;
+        const { funcionario_id, data, horario, tipo, observacao, turno_id, status } = req.body;
         // tipo: 'entrada' ou 'saida'
+        // status: 'presente', 'falta', etc. (opcional, default calculado)
 
         let presenca = db.prepare('SELECT * FROM presencas WHERE funcionario_id = ? AND data = ?').get(funcionario_id, data);
+
+        if (status === 'falta') {
+            if (!presenca) {
+                const stmt = db.prepare(`
+                    INSERT INTO presencas (funcionario_id, data, status, observacao, turno_id)
+                    VALUES (?, ?, ?, ?, ?)
+                `);
+                stmt.run(funcionario_id, data, 'falta', observacao || '', turno_id);
+            } else {
+                db.prepare(`UPDATE presencas SET status = 'falta', observacao = ? WHERE id = ?`)
+                  .run(observacao || presenca.observacao, presenca.id);
+            }
+            return res.json({ success: true });
+        }
 
         if (!presenca) {
             // Create

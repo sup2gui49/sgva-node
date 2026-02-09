@@ -136,8 +136,11 @@ class SaftController {
             vendas.forEach(v => {
                 const invoice = salesInvoices.ele('Invoice');
                 invoice.ele('InvoiceNo').txt(`FT SGVA/${year}/${v.id}`).up();
+                
+                const invoiceStatus = v.status === 'cancelada' ? 'A' : 'N';
+                
                 invoice.ele('DocumentStatus')
-                    .ele('InvoiceStatus').txt('N').up()
+                    .ele('InvoiceStatus').txt(invoiceStatus).up()
                     .ele('InvoiceStatusDate').txt(v.data_venda).up()
                     .ele('SourceID').txt(v.usuario_id.toString()).up()
                     .ele('SourceBilling').txt('P').up()

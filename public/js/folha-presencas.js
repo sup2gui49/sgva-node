@@ -265,10 +265,14 @@ function renderizarMonitor(funcionarios) {
                     </div>
                     
                     <div class="d-grid gap-2">
-                        ${!p.entrada_registrada 
-                                ? `<button class="btn btn-primary btn-sm fw-bold" onclick="abrirRegistro(${f.id}, 'entrada')"><i class="bi bi-box-arrow-in-right"></i> REGISTRAR ENTRADA</button>` 
+                        ${!p.entrada_registrada && p.status !== 'falta'
+                                ? `<button class="btn btn-primary btn-sm fw-bold" onclick="abrirRegistro(${f.id}, 'entrada')"><i class="bi bi-box-arrow-in-right"></i> REGISTRAR ENTRADA</button>
+                                   <button class="btn btn-outline-danger btn-sm fw-bold mt-1" onclick="abrirRegistro(${f.id}, 'falta')"><i class="bi bi-x-circle"></i> MARCAR FALTA</button>` 
                                 : ''}
-                        ${p.entrada_registrada && !p.saida_registrada
+                        ${p.status === 'falta' 
+                                ? '<button class="btn btn-danger btn-sm fw-bold" disabled><i class="bi bi-x-circle-fill"></i> FALTA REGISTRADA</button>'
+                                : ''}
+                        ${p.entrada_registrada && !p.saida_registrada && p.status !== 'falta'
                                 ? `<button class="btn btn-danger btn-sm fw-bold" onclick="abrirRegistro(${f.id}, 'saida')"><i class="bi bi-box-arrow-left"></i> REGISTRAR SAÍDA</button>` 
                                 : ''}
                         ${p.saida_registrada 
@@ -301,45 +305,84 @@ function renderizarRelatorio(funcionarios) {
     if (turnoInfo) turnoInfo.textContent = turnoTexto;
 
     if (!funcionarios || funcionarios.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Sem registros para o periodo.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-5"><i class="bi bi-clipboard-x display-6 d-block mb-3"></i>Sem registros para o periodo.</td></tr>';
         return;
     }
 
     const rows = funcionarios.map(f => {
         const p = f.presenca || {};
+        const avatarUrl = createAvatarUrl(f.nome, f.foto);
+        
         let statusLabel = 'Aguardando';
-        let statusClass = 'secondary';
+        let statusClass = 'secondary'; // bootstrap class suffix (e.g. text-secondary)
+        let statusIcon = 'bi-hourglass';
 
         if (f.presenca) {
             if (p.status === 'presente') {
                 statusLabel = 'Presente';
                 statusClass = 'success';
+                statusIcon = 'bi-check-circle-fill';
             } else if (p.status === 'atrasado') {
                 statusLabel = 'Atrasado';
                 statusClass = 'warning';
+                statusIcon = 'bi-exclamation-circle-fill';
+            } else if (p.status === 'falta') {
+                statusLabel = 'FALTA';
+                statusClass = 'danger';
+                statusIcon = 'bi-x-octagon-fill';
             } else if (p.status === 'ausente') {
                 statusLabel = 'Ausente';
                 statusClass = 'danger';
+                statusIcon = 'bi-x-circle-fill';
             } else {
                 statusLabel = p.status ? String(p.status) : 'Presente';
                 statusClass = 'info';
+                statusIcon = 'bi-info-circle-fill';
             }
         } else {
             statusLabel = 'Ausente';
             statusClass = 'danger';
+            statusIcon = 'bi-x-circle-fill';
         }
 
         const entrada = p.entrada_registrada ? p.entrada_registrada.substring(0, 5) : '--:--';
         const saida = p.saida_registrada ? p.saida_registrada.substring(0, 5) : '--:--';
-        const obs = p.observacao || '-';
+        const obs = p.observacao || '';
+        
+        // Dados extras
+        const cargo = f.categoria || 'Colaborador'; 
+        const setor = f.setor || 'Geral';
+
+        // Badge styling: outlined style is cleaner
+        const badgeClass = `badge bg-${statusClass}-subtle text-${statusClass} border border-${statusClass} rounded-pill px-3`;
 
         return `
             <tr>
-                <td>${f.nome}</td>
-                <td><span class="badge bg-${statusClass}">${statusLabel}</span></td>
-                <td>${entrada}</td>
-                <td>${saida}</td>
-                <td>${obs}</td>
+                <td class="ps-3 align-middle">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3 position-relative">
+                             <img src="${avatarUrl}" class="rounded-circle border shadow-sm align-middle" width="40" height="40" alt="${f.nome}" style="object-fit:cover;">
+                        </div>
+                        <div>
+                            <div class="fw-bold text-dark mb-0 text-truncate" style="max-width:180px;">${f.nome}</div>
+                            <div class="small text-muted" style="font-size: 0.75rem;">${cargo} &bull; ${setor}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="align-middle text-center">
+                    <span class="${badgeClass}">
+                        <i class="bi ${statusIcon} me-1"></i>${statusLabel.toUpperCase()}
+                    </span>
+                </td>
+                <td class="align-middle text-center">
+                    <div class="fw-bold text-dark font-monospace">${entrada}</div>
+                </td>
+                <td class="align-middle text-center">
+                    <div class="fw-bold text-dark font-monospace">${saida}</div>
+                </td>
+                <td class="align-middle">
+                   ${obs ? `<span class="d-inline-block text-truncate text-muted small" style="max-width: 200px;" title="${obs}"><i class="bi bi-chat-text me-1"></i> ${obs}</span>` : '<span class="text-black-50 small">-</span>'}
+                </td>
             </tr>
         `;
     }).join('');
@@ -398,17 +441,23 @@ async function confirmarRegistro() {
     const data = document.getElementById('filtro-data').value;
     const turnoId = document.getElementById('filtro-turno').value;
 
+    const payload = {
+        funcionario_id: id,
+        data,
+        turno_id: turnoId,
+        horario: hora,
+        tipo,
+        observacao: obs
+    };
+
+    if (tipo === 'falta') {
+        payload.status = 'falta';
+    }
+
     try {
         const response = await fetchAuth(`${API_URL}/presencas/registrar`, {
             method: 'POST',
-            body: JSON.stringify({
-                funcionario_id: id,
-                data,
-                turno_id: turnoId,
-                horario: hora,
-                tipo,
-                observacao: obs
-            })
+            body: JSON.stringify(payload)
         });
         
         const res = await response.json();
@@ -445,6 +494,8 @@ function exportarRelatorio() {
         const obs = p.observacao || '';
         return {
             nome: f.nome,
+            cargo: f.categoria,
+            setor: f.setor,
             status,
             entrada,
             saida,
@@ -674,7 +725,10 @@ function exportarRelatorio() {
                             const statusLabel = row.status ? row.status.charAt(0).toUpperCase() + row.status.slice(1) : 'Ausente';
                             return `
                                 <tr>
-                                    <td>${row.nome || ''}</td>
+                                    <td>
+                                        <div style="font-weight:600; color:#111827;">${row.nome || ''}</div>
+                                        <div style="font-size:10px; color:#6b7280; text-transform:uppercase; letter-spacing:0.5px;">${row.cargo || 'Funcionario'}</div>
+                                    </td>
                                     <td><span class="status-pill ${statusClass}">${statusLabel}</span></td>
                                     <td>${row.entrada || '--:--'}</td>
                                     <td>${row.saida || '--:--'}</td>
