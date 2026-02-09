@@ -228,7 +228,8 @@ router.get('/codigo/:codigo', auth, async (req, res) => {
 router.get('/admin/stats', auth, async (req, res) => {
     try {
         // Validar permissão (só admin e gerente)
-        if (req.user.tipo !== 'admin' && req.user.tipo !== 'gerente') {
+        const userRole = req.user?.role || req.user?.funcao || req.user?.tipo;
+        if (userRole !== 'admin' && userRole !== 'gerente') {
             return res.status(403).json({
                 success: false,
                 message: 'Acesso negado'
@@ -255,7 +256,8 @@ router.get('/admin/stats', auth, async (req, res) => {
 router.get('/admin/relatorio', auth, async (req, res) => {
     try {
         // Validar permissão (só admin e gerente)
-        if (req.user.tipo !== 'admin' && req.user.tipo !== 'gerente') {
+        const userRole = req.user?.role || req.user?.funcao || req.user?.tipo;
+        if (userRole !== 'admin' && userRole !== 'gerente') {
             return res.status(403).json({
                 success: false,
                 message: 'Acesso negado'
