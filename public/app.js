@@ -334,7 +334,8 @@ async function loadDashboardData() {
     if (navigator.onLine) {
         await loadDashboardCharts();
     } else {
-        console.info('📴 Offline - mantendo gráficos anteriores.');
+        console.info('📴 Offline - exibindo graficos em modo offline.');
+        renderDashboardChartsOffline(getDashboardChartsCache());
     }
 }
 
@@ -401,6 +402,116 @@ let produtosChartRequestId = 0;
 
 let chartLoadAttempts = 0;
 const MAX_CHART_ATTEMPTS = 10;
+const DASHBOARD_CHART_CACHE_KEY = 'dashboardChartsCacheV1';
+
+function saveDashboardChartsCache(charts) {
+    try {
+        const payload = {
+            timestamp: Date.now(),
+            charts
+        };
+        localStorage.setItem(DASHBOARD_CHART_CACHE_KEY, JSON.stringify(payload));
+    } catch (e) {
+        console.warn('Nao foi possivel salvar cache de graficos:', e);
+    }
+}
+
+function getDashboardChartsCache() {
+    try {
+        const raw = localStorage.getItem(DASHBOARD_CHART_CACHE_KEY);
+        if (!raw) return null;
+        const payload = JSON.parse(raw);
+        if (!payload || !payload.charts) return null;
+        return payload;
+    } catch (e) {
+        return null;
+    }
+}
+
+function getOfflineChartContainer(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas || !canvas.parentElement) return null;
+    const parent = canvas.parentElement;
+    let container = parent.querySelector(`[data-offline-chart="${canvasId}"]`);
+    if (!container) {
+        container = document.createElement('div');
+        container.dataset.offlineChart = canvasId;
+        container.style.marginTop = '12px';
+        parent.appendChild(container);
+    }
+    canvas.style.display = 'none';
+    return container;
+}
+
+function clearOfflineChartFallback(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (canvas) {
+        canvas.style.display = '';
+    }
+    const parent = canvas?.parentElement;
+    const container = parent?.querySelector(`[data-offline-chart="${canvasId}"]`);
+    if (container) {
+        container.remove();
+    }
+}
+
+function renderOfflineChartBars(canvasId, items, emptyMessage) {
+    const container = getOfflineChartContainer(canvasId);
+    if (!container) return;
+
+    if (!items || items.length === 0) {
+        container.innerHTML = `<p style="text-align:center; padding:20px;">${emptyMessage || 'Sem dados offline.'}</p>`;
+        return;
+    }
+
+    if (window.OfflineCharts) {
+        OfflineCharts.renderBars(container, items, { compact: true });
+        return;
+    }
+
+    container.innerHTML = '<p style="text-align:center; padding:20px;">Recursos offline indisponiveis.</p>';
+}
+
+function renderDashboardChartsOffline(cache) {
+    const charts = cache?.charts || {};
+    const receitaData = charts.receitaDespesa || {};
+    const categorias = charts.despesasCategoria || [];
+    const evolucao = charts.evolucao || {};
+    const produtos = charts.produtosMaisVendidos || [];
+
+    renderOfflineChartBars('chart-receita-despesa', [
+        { label: 'Receita', value: receitaData.receita || 0 },
+        { label: 'Despesas', value: receitaData.despesas || 0 },
+        { label: 'Lucro', value: receitaData.lucro || 0 }
+    ], 'Sem dados de receita/despesa offline.');
+
+    renderOfflineChartBars(
+        'chart-despesas-categoria',
+        categorias.map(c => ({
+            label: c.categoria || 'Sem categoria',
+            value: Number(c.total) || 0
+        })),
+        'Sem despesas offline.'
+    );
+
+    renderOfflineChartBars(
+        'chart-evolucao',
+        (evolucao.labels || []).map((label, idx) => ({
+            label,
+            value: Number((evolucao.valores || [])[idx]) || 0
+        })),
+        'Sem evolucao offline.'
+    );
+
+    renderOfflineChartBars(
+        'chart-produtos',
+        produtos.map(p => ({
+            label: `${p.tipo === 'servico' ? 'Servico' : 'Produto'}: ${p.nome || 'Sem nome'}`,
+            value: Number(p.quantidade_vendida) || 0
+        })),
+        'Sem dados offline de produtos/servicos.'
+    );
+}
 
 async function loadDashboardCharts() {
     try {
@@ -436,17 +547,29 @@ async function loadDashboardCharts() {
         
         console.log('✅ Dados carregados:', { dashData, despesasData, vendasData });
         
+        clearOfflineChartFallback('chart-receita-despesa');
+        clearOfflineChartFallback('chart-despesas-categoria');
+        clearOfflineChartFallback('chart-evolucao');
+        clearOfflineChartFallback('chart-produtos');
+
         // 1. Gráfico Receita vs Despesas
-        createReceitaDespesaChart(dashData, despesasData);
+        const receitaDespesa = createReceitaDespesaChart(dashData, despesasData);
         
         // 2. Gráfico Despesas por Categoria
-        createDespesasCategoriaChart(despesasData);
+        const despesasCategoria = createDespesasCategoriaChart(despesasData);
         
         // 3. Gráfico de Evolução Mensal
-        createEvolucaoChart(vendasData);
+        const evolucao = createEvolucaoChart(vendasData);
         
-        // 4. Gráfico Produtos Mais Vendidos
-        createProdutosChart();
+        // 4. Gráfico Produtos e Serviços Mais Vendidos
+        const produtosMaisVendidos = await createProdutosChart();
+
+        saveDashboardChartsCache({
+            receitaDespesa,
+            despesasCategoria,
+            evolucao,
+            produtosMaisVendidos
+        });
         
         console.log('✅ Gráficos criados com sucesso');
         
@@ -479,20 +602,20 @@ function getLastMonthsRange(totalMonths) {
 }
 
 function createReceitaDespesaChart(dashData, despesasData) {
+    const receita = dashData.dados?.receita_total || 0;
+    const despesas = despesasData.resumo?.valor_total || 0;
+    const lucro = receita - despesas;
+
     const ctx = document.getElementById('chart-receita-despesa');
     if (!ctx) {
         console.warn('⚠️ Canvas chart-receita-despesa não encontrado');
-        return;
+        return { receita, despesas, lucro };
     }
     
     // Destruir gráfico anterior se existir
     if (chartInstances['receita-despesa']) {
         chartInstances['receita-despesa'].destroy();
     }
-    
-    const receita = dashData.dados?.receita_total || 0;
-    const despesas = despesasData.resumo?.valor_total || 0;
-    const lucro = receita - despesas;
     
     console.log('📊 Criando gráfico Receita vs Despesas:', { receita, despesas, lucro });
     
@@ -531,11 +654,13 @@ function createReceitaDespesaChart(dashData, despesasData) {
             }
         }
     });
+
+    return { receita, despesas, lucro };
 }
 
 function createDespesasCategoriaChart(despesasData) {
     const ctx = document.getElementById('chart-despesas-categoria');
-    if (!ctx) return;
+    if (!ctx) return despesasData.por_categoria || [];
     
     if (chartInstances['despesas-categoria']) {
         chartInstances['despesas-categoria'].destroy();
@@ -545,7 +670,7 @@ function createDespesasCategoriaChart(despesasData) {
     
     if (categorias.length === 0) {
         ctx.parentElement.innerHTML = '<p style="text-align:center; padding:50px;">Nenhuma despesa registrada</p>';
-        return;
+        return categorias;
     }
     
     const labels = categorias.map(c => c.categoria || 'Sem categoria');
@@ -582,16 +707,11 @@ function createDespesasCategoriaChart(despesasData) {
             }
         }
     });
+
+    return categorias;
 }
 
-function createEvolucaoChart(vendasData) {
-    const ctx = document.getElementById('chart-evolucao');
-    if (!ctx) return;
-    
-    if (chartInstances['evolucao']) {
-        chartInstances['evolucao'].destroy();
-    }
-    
+function buildEvolucaoData(vendasData) {
     // Agrupar vendas por mês
     const vendas = vendasData.data || [];
     const dadosPorMes = {};
@@ -630,15 +750,27 @@ function createEvolucaoChart(vendasData) {
         const [mes, ano] = m.split('/');
         return `${mesesNomes[parseInt(mes) - 1]}/${ano}`;
     });
+
+    return { labels: labelsFormatados, valores, quantidades };
+}
+
+function createEvolucaoChart(vendasData) {
+    const evolucaoData = buildEvolucaoData(vendasData);
+    const ctx = document.getElementById('chart-evolucao');
+    if (!ctx) return evolucaoData;
+    
+    if (chartInstances['evolucao']) {
+        chartInstances['evolucao'].destroy();
+    }
     
     chartInstances['evolucao'] = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: labelsFormatados,
+            labels: evolucaoData.labels,
             datasets: [
                 {
                     label: 'Receita (KZ)',
-                    data: valores,
+                    data: evolucaoData.valores,
                     borderColor: 'rgba(75, 192, 192, 1)',
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
                     tension: 0.4,
@@ -648,7 +780,7 @@ function createEvolucaoChart(vendasData) {
                 },
                 {
                     label: 'Nº de Vendas',
-                    data: quantidades,
+                    data: evolucaoData.quantidades,
                     borderColor: 'rgba(255, 99, 132, 1)',
                     backgroundColor: 'rgba(255, 99, 132, 0.2)',
                     tension: 0.4,
@@ -717,11 +849,13 @@ function createEvolucaoChart(vendasData) {
             }
         }
     });
+
+    return evolucaoData;
 }
 
 async function createProdutosChart() {
     const canvas = document.getElementById('chart-produtos');
-    if (!canvas) return;
+    if (!canvas) return [];
 
     const requestId = ++produtosChartRequestId;
 
@@ -735,11 +869,14 @@ async function createProdutosChart() {
         const produtosVendidos = relatorioData.produtos_mais_vendidos || [];
 
         if (relatorioData.success === false || produtosVendidos.length === 0) {
-            canvas.parentElement.innerHTML = '<p style="text-align:center; padding:50px;">Nenhum produto vendido no período</p>';
-            return;
+            canvas.parentElement.innerHTML = '<p style="text-align:center; padding:50px;">Nenhum produto ou servico vendido no periodo</p>';
+            return produtosVendidos;
         }
 
-        const labels = produtosVendidos.map(p => p.nome || 'Sem nome');
+        const labels = produtosVendidos.map(p => {
+            const tipoLabel = p.tipo === 'servico' ? 'Servico' : 'Produto';
+            return `${tipoLabel}: ${p.nome || 'Sem nome'}`;
+        });
         const quantidades = produtosVendidos.map(p => Number(p.quantidade_vendida) || 0);
 
         if (requestId !== produtosChartRequestId) {
@@ -798,7 +935,12 @@ async function createProdutosChart() {
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                return `Vendidos: ${context.parsed.x} unidades`;
+                                const item = produtosVendidos[context.dataIndex] || {};
+                                const receita = Number(item.receita_gerada) || 0;
+                                return [
+                                    `Vendidos: ${context.parsed.x} unidades`,
+                                    `Receita: ${formatKzValue(receita)} KZ`
+                                ];
                             }
                         }
                     }
@@ -814,9 +956,11 @@ async function createProdutosChart() {
                 }
             }
         });
+        return produtosVendidos;
     } catch (error) {
         console.error('Erro ao criar gráfico de produtos:', error);
     }
+    return [];
 }
 
 // ==================== PRODUTOS ====================

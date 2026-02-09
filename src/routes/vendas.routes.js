@@ -125,20 +125,38 @@ router.get('/relatorios/periodo', (req, res) => {
     `).all(data_inicio, data_fim);
     
     const produtosMaisVendidos = db.prepare(`
-      SELECT 
-        p.nome,
-        SUM(i.quantidade) as quantidade_vendida,
-        SUM(i.subtotal) as receita_gerada
-      FROM itens_venda i
-      JOIN vendas v ON i.venda_id = v.id
-      LEFT JOIN produtos p ON i.produto_id = p.id
-      WHERE date(v.data_venda) BETWEEN date(?) AND date(?)
-      AND v.status = 'concluida'
-      AND p.id IS NOT NULL
-      GROUP BY p.id, p.nome
+      SELECT
+        nome,
+        tipo,
+        SUM(quantidade) as quantidade_vendida,
+        SUM(subtotal) as receita_gerada
+      FROM (
+        SELECT
+          p.nome as nome,
+          'produto' as tipo,
+          i.quantidade as quantidade,
+          i.subtotal as subtotal
+        FROM itens_venda i
+        JOIN vendas v ON i.venda_id = v.id
+        JOIN produtos p ON i.produto_id = p.id
+        WHERE date(v.data_venda) BETWEEN date(?) AND date(?)
+        AND v.status = 'concluida'
+        UNION ALL
+        SELECT
+          r.nome as nome,
+          'servico' as tipo,
+          i.quantidade as quantidade,
+          i.subtotal as subtotal
+        FROM itens_venda i
+        JOIN vendas v ON i.venda_id = v.id
+        JOIN receitas r ON i.receita_id = r.id
+        WHERE date(v.data_venda) BETWEEN date(?) AND date(?)
+        AND v.status = 'concluida'
+      )
+      GROUP BY nome, tipo
       ORDER BY quantidade_vendida DESC
       LIMIT 10
-    `).all(data_inicio, data_fim);
+    `).all(data_inicio, data_fim, data_inicio, data_fim);
     
     res.json({
       success: true,
@@ -520,20 +538,38 @@ router.get('/relatorios/periodo', (req, res) => {
     `).all(data_inicio, data_fim);
     
     const produtosMaisVendidos = db.prepare(`
-      SELECT 
-        p.nome,
-        SUM(i.quantidade) as quantidade_vendida,
-        SUM(i.subtotal) as receita_gerada
-      FROM itens_venda i
-      JOIN vendas v ON i.venda_id = v.id
-      LEFT JOIN produtos p ON i.produto_id = p.id
-      WHERE date(v.data_venda) BETWEEN date(?) AND date(?)
-      AND v.status = 'concluida'
-      AND p.id IS NOT NULL
-      GROUP BY p.id, p.nome
+      SELECT
+        nome,
+        tipo,
+        SUM(quantidade) as quantidade_vendida,
+        SUM(subtotal) as receita_gerada
+      FROM (
+        SELECT
+          p.nome as nome,
+          'produto' as tipo,
+          i.quantidade as quantidade,
+          i.subtotal as subtotal
+        FROM itens_venda i
+        JOIN vendas v ON i.venda_id = v.id
+        JOIN produtos p ON i.produto_id = p.id
+        WHERE date(v.data_venda) BETWEEN date(?) AND date(?)
+        AND v.status = 'concluida'
+        UNION ALL
+        SELECT
+          r.nome as nome,
+          'servico' as tipo,
+          i.quantidade as quantidade,
+          i.subtotal as subtotal
+        FROM itens_venda i
+        JOIN vendas v ON i.venda_id = v.id
+        JOIN receitas r ON i.receita_id = r.id
+        WHERE date(v.data_venda) BETWEEN date(?) AND date(?)
+        AND v.status = 'concluida'
+      )
+      GROUP BY nome, tipo
       ORDER BY quantidade_vendida DESC
       LIMIT 10
-    `).all(data_inicio, data_fim);
+    `).all(data_inicio, data_fim, data_inicio, data_fim);
     
     res.json({
       success: true,

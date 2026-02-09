@@ -246,7 +246,8 @@ function registrarFolhasCalculadas(folhas, mes, ano) {
         });
       }
 
-      registrarStatusPagamento(funcionarioId, mes, ano, 'pago', salarioLiq, null);
+      // Apenas registra a folha calculada como pendente; pagamento deve ser manual.
+      registrarStatusPagamento(funcionarioId, mes, ano, 'pendente', 0, null);
       registrosInseridos++;
     } catch (error) {
       console.error(`Erro ao inserir folha do funcionario ${funcionarioId}:`, error.message);

@@ -59,6 +59,7 @@ document.addEventListener('DOMContentLoaded', init);
 let currentTurnoId = null;
 let currentDate = new Date().toISOString().split('T')[0];
 let turnoCheckInterval = null;
+let ultimoMonitorData = [];
 
 async function init() {
     // 1. Clock
@@ -161,13 +162,16 @@ async function carregarMonitor() {
         const result = await response.json();
 
         if (result.success) {
+            ultimoMonitorData = Array.isArray(result.data) ? result.data : [];
             renderizarMonitor(result.data);
             atualizarStats(result.data);
         } else {
+            ultimoMonitorData = [];
             showError(result.message);
         }
     } catch (error) {
         console.error(error);
+        ultimoMonitorData = [];
         if (error.message && error.message.includes("404")) {
              grid.innerHTML = `
                 <div class="col-12 text-center py-5 text-warning">
@@ -206,6 +210,7 @@ function renderizarMonitor(funcionarios) {
     if (!funcionarios || funcionarios.length === 0) {
         grid.innerHTML = '<div class="col-12 text-center py-5 text-muted">Nenhum funcionário escalado para este turno.</div>';
         atualizarStats([]);
+        renderizarRelatorio([]);
         return;
     }
 
@@ -274,6 +279,72 @@ function renderizarMonitor(funcionarios) {
         `;
         grid.appendChild(card);
     });
+
+    renderizarRelatorio(funcionarios);
+}
+
+function renderizarRelatorio(funcionarios) {
+    const tbody = document.getElementById('relatorio-presencas');
+    const subtitulo = document.getElementById('relatorio-subtitulo');
+    const turnoInfo = document.getElementById('relatorio-turno');
+    const turnoSelect = document.getElementById('filtro-turno');
+    const dataInput = document.getElementById('filtro-data');
+
+    if (!tbody) return;
+
+    const dataTexto = dataInput?.value
+        ? new Date(dataInput.value).toLocaleDateString('pt-AO')
+        : '--/--/----';
+    const turnoTexto = turnoSelect?.selectedOptions?.[0]?.textContent || 'Turno nao definido';
+
+    if (subtitulo) subtitulo.textContent = `Data: ${dataTexto}`;
+    if (turnoInfo) turnoInfo.textContent = turnoTexto;
+
+    if (!funcionarios || funcionarios.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Sem registros para o periodo.</td></tr>';
+        return;
+    }
+
+    const rows = funcionarios.map(f => {
+        const p = f.presenca || {};
+        let statusLabel = 'Aguardando';
+        let statusClass = 'secondary';
+
+        if (f.presenca) {
+            if (p.status === 'presente') {
+                statusLabel = 'Presente';
+                statusClass = 'success';
+            } else if (p.status === 'atrasado') {
+                statusLabel = 'Atrasado';
+                statusClass = 'warning';
+            } else if (p.status === 'ausente') {
+                statusLabel = 'Ausente';
+                statusClass = 'danger';
+            } else {
+                statusLabel = p.status ? String(p.status) : 'Presente';
+                statusClass = 'info';
+            }
+        } else {
+            statusLabel = 'Ausente';
+            statusClass = 'danger';
+        }
+
+        const entrada = p.entrada_registrada ? p.entrada_registrada.substring(0, 5) : '--:--';
+        const saida = p.saida_registrada ? p.saida_registrada.substring(0, 5) : '--:--';
+        const obs = p.observacao || '-';
+
+        return `
+            <tr>
+                <td>${f.nome}</td>
+                <td><span class="badge bg-${statusClass}">${statusLabel}</span></td>
+                <td>${entrada}</td>
+                <td>${saida}</td>
+                <td>${obs}</td>
+            </tr>
+        `;
+    }).join('');
+
+    tbody.innerHTML = rows;
 }
 
 function atualizarStats(funcionarios) {
@@ -356,5 +427,98 @@ async function confirmarRegistro() {
 }
 
 function exportarRelatorio() {
-    alert('Funcionalidade de relatório em desenvolvimento.');
+    const turnoSelect = document.getElementById('filtro-turno');
+    const dataInput = document.getElementById('filtro-data');
+    const dataTexto = dataInput?.value || '';
+    const turnoTexto = turnoSelect?.selectedOptions?.[0]?.textContent || '';
+
+    if (!ultimoMonitorData || ultimoMonitorData.length === 0) {
+        alert('Sem dados para exportar.');
+        return;
+    }
+
+    const rows = ultimoMonitorData.map(f => {
+        const p = f.presenca || {};
+        const status = p.status || (f.presenca ? 'presente' : 'ausente');
+        const entrada = p.entrada_registrada ? p.entrada_registrada.substring(0, 5) : '';
+        const saida = p.saida_registrada ? p.saida_registrada.substring(0, 5) : '';
+        const obs = p.observacao || '';
+        return {
+            nome: f.nome,
+            status,
+            entrada,
+            saida,
+            obs
+        };
+    });
+
+    const dataFormatada = dataTexto
+        ? new Date(dataTexto).toLocaleDateString('pt-AO')
+        : new Date().toLocaleDateString('pt-AO');
+
+    const html = `
+        <!DOCTYPE html>
+        <html lang="pt-AO">
+        <head>
+            <meta charset="UTF-8">
+            <title>Relatorio de Presencas</title>
+            <style>
+                body { font-family: Arial, sans-serif; color: #222; margin: 24px; }
+                h1 { font-size: 20px; margin-bottom: 4px; }
+                .meta { color: #555; font-size: 12px; margin-bottom: 16px; }
+                table { width: 100%; border-collapse: collapse; font-size: 12px; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                th { background: #f5f5f5; }
+                .status-presente { color: #198754; font-weight: 600; }
+                .status-atrasado { color: #f0ad4e; font-weight: 600; }
+                .status-ausente { color: #dc3545; font-weight: 600; }
+            </style>
+        </head>
+        <body>
+            <h1>Relatorio de Presencas</h1>
+            <div class="meta">Data: ${dataFormatada} | Turno: ${turnoTexto || 'Nao definido'}</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Funcionario</th>
+                        <th>Status</th>
+                        <th>Entrada</th>
+                        <th>Saida</th>
+                        <th>Observacao</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows.map(row => {
+                        const statusClass = row.status === 'presente'
+                            ? 'status-presente'
+                            : (row.status === 'atrasado' ? 'status-atrasado' : 'status-ausente');
+                        return `
+                            <tr>
+                                <td>${row.nome || ''}</td>
+                                <td class="${statusClass}">${row.status}</td>
+                                <td>${row.entrada || '--:--'}</td>
+                                <td>${row.saida || '--:--'}</td>
+                                <td>${row.obs || '-'}</td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </body>
+        </html>
+    `;
+
+    const popup = window.open('', '_blank');
+    if (!popup) {
+        alert('Por favor, permita pop-ups para gerar o PDF.');
+        return;
+    }
+
+    popup.document.open();
+    popup.document.write(html);
+    popup.document.close();
+
+    popup.onload = () => {
+        popup.focus();
+    };
 }
