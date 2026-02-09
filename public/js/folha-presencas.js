@@ -456,6 +456,23 @@ function exportarRelatorio() {
         ? new Date(dataTexto).toLocaleDateString('pt-AO')
         : new Date().toLocaleDateString('pt-AO');
 
+    const total = rows.length;
+    let presentes = 0;
+    let atrasados = 0;
+    let ausentes = 0;
+
+    rows.forEach(row => {
+        if (row.status === 'presente') {
+            presentes += 1;
+        } else if (row.status === 'atrasado') {
+            atrasados += 1;
+        } else {
+            ausentes += 1;
+        }
+    });
+
+    const geradoEm = new Date().toLocaleString('pt-AO');
+
     const html = `
         <!DOCTYPE html>
         <html lang="pt-AO">
@@ -463,47 +480,216 @@ function exportarRelatorio() {
             <meta charset="UTF-8">
             <title>Relatorio de Presencas</title>
             <style>
-                body { font-family: Arial, sans-serif; color: #222; margin: 24px; }
-                h1 { font-size: 20px; margin-bottom: 4px; }
-                .meta { color: #555; font-size: 12px; margin-bottom: 16px; }
-                table { width: 100%; border-collapse: collapse; font-size: 12px; }
-                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                th { background: #f5f5f5; }
-                .status-presente { color: #198754; font-weight: 600; }
-                .status-atrasado { color: #f0ad4e; font-weight: 600; }
-                .status-ausente { color: #dc3545; font-weight: 600; }
+                @page { margin: 20mm; }
+                * { box-sizing: border-box; }
+                body {
+                    font-family: "Segoe UI", Arial, sans-serif;
+                    color: #1f2937;
+                    margin: 0;
+                }
+                .report {
+                    padding: 24px;
+                }
+                .report-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    gap: 16px;
+                    border-bottom: 2px solid #e5e7eb;
+                    padding-bottom: 16px;
+                    margin-bottom: 20px;
+                }
+                .brand {
+                    display: flex;
+                    gap: 12px;
+                    align-items: center;
+                }
+                .logo {
+                    width: 44px;
+                    height: 44px;
+                    border-radius: 10px;
+                    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+                    color: #fff;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 700;
+                    letter-spacing: 1px;
+                }
+                .brand-title {
+                    font-size: 16px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
+                .brand-sub {
+                    font-size: 12px;
+                    color: #6b7280;
+                    margin-top: 2px;
+                }
+                .meta-box {
+                    text-align: right;
+                    font-size: 12px;
+                    color: #374151;
+                    line-height: 1.6;
+                }
+                .summary {
+                    display: grid;
+                    grid-template-columns: repeat(4, minmax(0, 1fr));
+                    gap: 12px;
+                    margin-bottom: 18px;
+                }
+                .summary-card {
+                    background: #f9fafb;
+                    border: 1px solid #e5e7eb;
+                    border-radius: 12px;
+                    padding: 12px;
+                }
+                .summary-card h4 {
+                    margin: 0;
+                    font-size: 11px;
+                    color: #6b7280;
+                    text-transform: uppercase;
+                    letter-spacing: 0.8px;
+                }
+                .summary-card p {
+                    margin: 6px 0 0;
+                    font-size: 18px;
+                    font-weight: 700;
+                    color: #111827;
+                }
+                .summary-card.presente p { color: #15803d; }
+                .summary-card.atrasado p { color: #b45309; }
+                .summary-card.ausente p { color: #b91c1c; }
+                .report-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 12px;
+                }
+                .report-table th,
+                .report-table td {
+                    padding: 10px 12px;
+                    border-bottom: 1px solid #e5e7eb;
+                    text-align: left;
+                    vertical-align: top;
+                }
+                .report-table thead th {
+                    background: #f3f4f6;
+                    font-size: 11px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.7px;
+                    color: #374151;
+                }
+                .report-table tbody tr:nth-child(even) {
+                    background: #fafafa;
+                }
+                .status-pill {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 4px 10px;
+                    border-radius: 999px;
+                    font-weight: 600;
+                    font-size: 11px;
+                }
+                .status-presente {
+                    background: #dcfce7;
+                    color: #15803d;
+                }
+                .status-atrasado {
+                    background: #fef3c7;
+                    color: #b45309;
+                }
+                .status-ausente {
+                    background: #fee2e2;
+                    color: #b91c1c;
+                }
+                .footer {
+                    margin-top: 24px;
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: 11px;
+                    color: #6b7280;
+                }
+                .assinatura {
+                    margin-top: 18px;
+                    border-top: 1px solid #e5e7eb;
+                    padding-top: 8px;
+                    width: 220px;
+                    text-align: center;
+                }
             </style>
         </head>
         <body>
-            <h1>Relatorio de Presencas</h1>
-            <div class="meta">Data: ${dataFormatada} | Turno: ${turnoTexto || 'Nao definido'}</div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Funcionario</th>
-                        <th>Status</th>
-                        <th>Entrada</th>
-                        <th>Saida</th>
-                        <th>Observacao</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${rows.map(row => {
-                        const statusClass = row.status === 'presente'
-                            ? 'status-presente'
-                            : (row.status === 'atrasado' ? 'status-atrasado' : 'status-ausente');
-                        return `
-                            <tr>
-                                <td>${row.nome || ''}</td>
-                                <td class="${statusClass}">${row.status}</td>
-                                <td>${row.entrada || '--:--'}</td>
-                                <td>${row.saida || '--:--'}</td>
-                                <td>${row.obs || '-'}</td>
-                            </tr>
-                        `;
-                    }).join('')}
-                </tbody>
-            </table>
+            <div class="report">
+                <div class="report-header">
+                    <div class="brand">
+                        <div class="logo">SG</div>
+                        <div>
+                            <div class="brand-title">SGVA Folha</div>
+                            <div class="brand-sub">Relatorio de Presencas</div>
+                        </div>
+                    </div>
+                    <div class="meta-box">
+                        <div><strong>Data:</strong> ${dataFormatada}</div>
+                        <div><strong>Turno:</strong> ${turnoTexto || 'Nao definido'}</div>
+                        <div><strong>Gerado em:</strong> ${geradoEm}</div>
+                    </div>
+                </div>
+
+                <div class="summary">
+                    <div class="summary-card">
+                        <h4>Escalados</h4>
+                        <p>${total}</p>
+                    </div>
+                    <div class="summary-card presente">
+                        <h4>Presentes</h4>
+                        <p>${presentes}</p>
+                    </div>
+                    <div class="summary-card atrasado">
+                        <h4>Atrasados</h4>
+                        <p>${atrasados}</p>
+                    </div>
+                    <div class="summary-card ausente">
+                        <h4>Ausentes</h4>
+                        <p>${ausentes}</p>
+                    </div>
+                </div>
+
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Funcionario</th>
+                            <th>Status</th>
+                            <th>Entrada</th>
+                            <th>Saida</th>
+                            <th>Observacao</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows.map(row => {
+                            const statusClass = row.status === 'presente'
+                                ? 'status-presente'
+                                : (row.status === 'atrasado' ? 'status-atrasado' : 'status-ausente');
+                            const statusLabel = row.status ? row.status.charAt(0).toUpperCase() + row.status.slice(1) : 'Ausente';
+                            return `
+                                <tr>
+                                    <td>${row.nome || ''}</td>
+                                    <td><span class="status-pill ${statusClass}">${statusLabel}</span></td>
+                                    <td>${row.entrada || '--:--'}</td>
+                                    <td>${row.saida || '--:--'}</td>
+                                    <td>${row.obs || '-'}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+
+                <div class="footer">
+                    <div>Documento interno - uso restrito</div>
+                    <div class="assinatura">Assinatura Responsavel</div>
+                </div>
+            </div>
         </body>
         </html>
     `;

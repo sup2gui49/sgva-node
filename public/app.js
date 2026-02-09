@@ -40,11 +40,12 @@ const SALES_DASHBOARD_CACHE_KEY = 'sgva_sales_dashboard_cache_v1';
 console.log('📡 API_URL:', API_URL);
 console.log('🔑 Token carregado inicialmente:', token ? 'Sim' : 'Não');
 
-function saveSalesDashboardCache(dados) {
+function saveSalesDashboardCache(dados, dre) {
     try {
         localStorage.setItem(SALES_DASHBOARD_CACHE_KEY, JSON.stringify({
             timestamp: Date.now(),
-            dados
+            dados,
+            dre
         }));
     } catch (error) {
         console.warn('⚠️ Não foi possível salvar cache do dashboard de vendas:', error);
@@ -296,29 +297,44 @@ async function loadDashboardData() {
     const mes = new Date().getMonth() + 1;
     const ano = new Date().getFullYear();
     let dados = null;
+    let dre = null;
     let usandoCache = false;
 
     try {
-        const response = await fetch(`${API_URL}/financeiro/dashboard?mes=${mes}&ano=${ano}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const [dashResponse, dreResponse] = await Promise.all([
+            fetch(`${API_URL}/financeiro/dashboard?mes=${mes}&ano=${ano}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            }),
+            fetch(`${API_URL}/financeiro/dre?mes=${mes}&ano=${ano}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+        ]);
 
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+        if (!dashResponse.ok) {
+            throw new Error(`HTTP ${dashResponse.status}`);
         }
 
-        const data = await response.json();
+        const data = await dashResponse.json();
         if (!data.success) {
             throw new Error(data.message || 'Não foi possível carregar o dashboard');
         }
 
         dados = data.dados;
-        saveSalesDashboardCache(dados);
+
+        if (dreResponse.ok) {
+            const dreData = await dreResponse.json();
+            if (dreData.success) {
+                dre = dreData.dre;
+            }
+        }
+
+        saveSalesDashboardCache(dados, dre);
         setDashboardOfflineBanner('');
     } catch (error) {
         console.error('Erro ao carregar dashboard:', error);
         if (cache) {
             dados = cache.dados;
+            dre = cache.dre || null;
             usandoCache = true;
             const stamp = formatCacheDate(cache.timestamp);
             setDashboardOfflineBanner(`⚠️ Sem ligação à API. Mostrando dados gravados em ${stamp || 'data desconhecida'}.`);
@@ -329,7 +345,7 @@ async function loadDashboardData() {
         }
     }
 
-    renderDashboardCards(dados);
+    renderDashboardCards(dados, dre);
 
     if (navigator.onLine) {
         await loadDashboardCharts();
@@ -339,7 +355,7 @@ async function loadDashboardData() {
     }
 }
 
-function renderDashboardCards(d) {
+function renderDashboardCards(d, dre) {
     const container = document.getElementById('dashboard-cards');
     if (!container) return;
     if (!d) {
@@ -350,7 +366,11 @@ function renderDashboardCards(d) {
     const crescimento = parseFloat(d.crescimento_receita) || 0;
     const crescimentoIcon = crescimento >= 0 ? '📈' : '📉';
     const crescimentoColor = crescimento >= 0 ? '#27ae60' : '#e74c3c';
-    const lucroCor = parseFloat(d.lucro_liquido) >= 0 ? '#27ae60' : '#e74c3c';
+    const lucroValor = dre?.lucro_liquido ?? d.lucro_liquido;
+    const margemLucro = dre?.margem_liquida ?? d.margem_lucro;
+    const lucroCor = parseFloat(lucroValor) >= 0 ? '#27ae60' : '#e74c3c';
+    const lucroLabel = dre ? '📊 Lucro Líquido (DRE)' : '📊 Lucro Líquido';
+    const margemLabel = dre ? 'Margem DRE' : 'Margem';
 
     container.innerHTML = `
         <div class="stat-card">
@@ -359,9 +379,9 @@ function renderDashboardCards(d) {
             <small style="color: ${crescimentoColor};">${crescimentoIcon} ${d.crescimento_receita} vs mês anterior</small>
         </div>
         <div class="stat-card">
-            <h3>📊 Lucro Líquido</h3>
-            <div class="value" style="color: ${lucroCor};">${formatKzValue(d.lucro_liquido)} KZ</div>
-            <small>Margem: ${d.margem_lucro}</small>
+            <h3>${lucroLabel}</h3>
+            <div class="value" style="color: ${lucroCor};">${formatKzValue(lucroValor)} KZ</div>
+            <small>${margemLabel}: ${margemLucro}</small>
         </div>
         <div class="stat-card">
             <h3>📈 ROI</h3>
@@ -1584,19 +1604,39 @@ function showCategoriasTab(tab) {
 
 async function loadEstatisticasCategorias() {
     try {
+        const readJsonSafe = async (response) => {
+            try {
+                return await response.json();
+            } catch (e) {
+                return null;
+            }
+        };
+
         // Carregar estatísticas de categorias de produtos
         const resProdutos = await fetch(`${API_URL}/categorias-produtos/admin/stats`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        
-        const resProdutsData = await resProdutos.json();
+        const resProdutsData = await readJsonSafe(resProdutos);
         
         // Carregar estatísticas de categorias de despesas  
         const resDespesas = await fetch(`${API_URL}/categorias-despesas/admin/stats`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        
-        const resDespesasData = await resDespesas.json();
+        const resDespesasData = await readJsonSafe(resDespesas);
+
+        if (!resProdutos.ok || !resDespesas.ok) {
+            const statsContainer = document.getElementById('stats-cards');
+            if (statsContainer) {
+                statsContainer.innerHTML = `
+                    <div class="card">
+                        <h3>🔒 Estatísticas restritas</h3>
+                        <p class="number">403</p>
+                        <small>Sem permissão para ver estatísticas de categorias.</small>
+                    </div>
+                `;
+            }
+            return;
+        }
         
         // Atualizar cards de estatísticas
         const statsContainer = document.getElementById('stats-cards');
@@ -1641,18 +1681,24 @@ async function loadEstatisticasCategorias() {
         }
         
         // Criar gráfico de distribuição por IVA
-        if (resProdutsData.data.por_iva) {
+        if (resProdutsData?.data?.por_iva) {
             criarGraficoIvaDistribuicao(resProdutsData.data.por_iva);
         }
         
         // Criar gráfico produtos vs serviços
-        if (resProdutsData.data.por_tipo) {
+        if (resProdutsData?.data?.por_tipo) {
             criarGraficoProdutosServicos(resProdutsData.data.por_tipo);
         }
         
     } catch (error) {
         console.error('Erro ao carregar estatísticas:', error);
-        showNotification('Erro ao carregar estatísticas', 'error');
+        if (typeof showNotification === 'function') {
+            showNotification('Erro ao carregar estatísticas', 'error');
+        } else if (typeof showMessage === 'function') {
+            showMessage('Erro ao carregar estatísticas', 'error');
+        } else {
+            alert('Erro ao carregar estatísticas');
+        }
     }
 }
 
