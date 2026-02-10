@@ -259,7 +259,7 @@
                                         <th>Categoria</th>
                                         <th>Salário Base</th>
                                         <th style="cursor: pointer;" onclick="toggleTodasColunaSubsidios()" title="Clique para expandir/recolher colunas de subsídios">
-                                            Subsídios <i class="bi bi-chevron-right" id="chevron-header"></i>
+                                            Subsídios <i class="bi bi-chevron-down" id="chevron-header"></i>
                                         </th>
                                         <!-- Colunas de subsídios serão inseridas aqui dinamicamente -->
                                         <th>Total Bruto</th>
@@ -549,7 +549,7 @@
                 if (subsidiosDetalhes.length > 0) {
                     const colspanTotal = 12 + (colunasSubsidiosExpandidas ? listaSubsidios.length : 0);
                     html += `
-                        <tr id="subsidios-${index}" class="subsidios-detalhes" style="display: none;">
+                        <tr id="subsidios-${index}" class="subsidios-detalhes">
                             <td colspan="${colspanTotal}">
                                 <div style="padding: 10px;">
                                     <h6><i class="bi bi-wallet2"></i> Detalhes dos Subsídios:</h6>
@@ -614,7 +614,7 @@
         }
 
         // Toggle todas as colunas de subsídios
-        let colunasSubsidiosExpandidas = false;
+        let colunasSubsidiosExpandidas = true;
         function toggleTodasColunaSubsidios() {
             colunasSubsidiosExpandidas = !colunasSubsidiosExpandidas;
             const chevron = document.getElementById('chevron-header');
